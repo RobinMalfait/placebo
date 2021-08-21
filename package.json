@@ -1,0 +1,25 @@
+{
+  "name": "placebo",
+  "version": "0.0.0",
+  "description": "Placebo, the beautiful diagnostics printer",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "keywords": ["diagnostics"],
+  "author": "Robin Malfait",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^27.0.6",
+    "prettier": "^2.3.2"
+  },
+  "dependencies": {
+    "kleur": "^4.1.4"
+  }
+}
