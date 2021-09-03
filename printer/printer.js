@@ -41,11 +41,19 @@ let colors = [
 ].map((f) => f().bold)
 
 let RowTypes = {
-  Code: 0,
-  ContextLine: 1,
-  Diagnostic: 2,
-  LineNumberSeparator: 3,
-  StartOfNote: 4,
+  // Code
+  Code: 1 << 0,
+  ContextLine: 1 << 1,
+
+  // Diagnostics
+  Diagnostic: 1 << 2,
+
+  // Separator
+  LineNumberSeparator: 1 << 3,
+
+  // Notes
+  Note: 1 << 4,
+  StartOfNote: 1 << 5,
 }
 
 // The amount of lines before and after the current line to give more context
