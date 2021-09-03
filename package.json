@@ -12,7 +12,9 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "keywords": ["diagnostics"],
+  "keywords": [
+    "diagnostics"
+  ],
   "author": "Robin Malfait",
   "license": "MIT",
   "devDependencies": {
