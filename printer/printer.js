@@ -640,9 +640,9 @@ function reportBlock(sources, diagnostics, flush) {
   for (let line of output.splice(0)) {
     let modified = ''
 
-    // Some of the output arrays are "holy", using a normal `.map()`, those
-    // empty spots won't be mapped, with a normal for loop however, they will
-    // be `undefined`.
+    // Some of the output arrays are holey/sparse, using a normal `.map()`,
+    // those empty spots won't be mapped, with a normal for loop however,
+    // they will be `undefined`.
     for (let cell of line) {
       modified += cell ?? ' '
     }
