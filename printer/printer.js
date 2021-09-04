@@ -26,7 +26,9 @@ let Chars = {
 
   // Misc
   /* · */ dot: '\u00B7',
-  /* ￭ */ box: '\uFFED',
+  /* • */ middot: '\u2022',
+  /* ∙ */ bigdot: '\u2219',
+  /* ■ */ box: '\u25A0',
   /* ┊ */ VSeparator: '\u250A',
 }
 
@@ -601,7 +603,7 @@ function reportBlock(sources, diagnostics, flush) {
         [RowTypes.Code]() {
           return [
             ...' '.repeat(MARGIN - 2),
-            kleur.bold().red(Chars.box),
+            kleur.bold().red(Chars.bigdot),
             ' ',
             ...lineNumber,
             ' ',

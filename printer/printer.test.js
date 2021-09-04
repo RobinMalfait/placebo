@@ -50,7 +50,7 @@ it('should print a message', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class="flex block" />
+∙ 1 │   <div class="flex block" />
     ·               ─┬──
     ·                ╰──── Message 1
     │
@@ -67,7 +67,7 @@ it('should print a message and reindent it to save space', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class="flex block" />
+∙ 1 │   <div class="flex block" />
     ·               ─┬──
     ·                ╰──── Message 1
     │
@@ -86,7 +86,7 @@ it('should print a message and a note', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class="flex block" />
+∙ 1 │   <div class="flex block" />
     ·               ─┬──
     ·                ╰──── Message 1
     ·
@@ -109,7 +109,7 @@ it('should print a message with multiple notes', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class="flex block" />
+∙ 1 │   <div class="flex block" />
     ·               ─┬──
     ·                ╰──── Message 1
     ·
@@ -134,7 +134,7 @@ it('should print multiple messages', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class="flex block" />
+∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
     ·                │     ╰──── Message 2
     ·                ╰────────── Message 1
@@ -155,7 +155,7 @@ it('should squash multiple equal messages #1', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class="flex block" />
+∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
     ·                ╰─────┴──── I am a message
     │
@@ -177,7 +177,7 @@ it('should squash multiple equal messages #2', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class=\"flex block text-black text-white\" />
+∙ 1 │   <div class=\"flex block text-black text-white\" />
     ·               ─┬── ──┬── ────┬───── ────┬─────
     ·                │     │       ╰──────────┴─────── Collding on the \`color\` property
     ·                ╰─────┴────────────────────────── Collding on the \`display\` property
@@ -199,7 +199,7 @@ it('should not squash multiple equal messages if there is a message in between',
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class=\"flex hidden block\" />
+∙ 1 │   <div class=\"flex hidden block\" />
     ·               ─┬── ──┬─── ──┬──
     ·                │     │      ╰──── I am a message
     ·                │     ╰─────────── I am another message
@@ -221,7 +221,7 @@ it('should print multiple messages with a note', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class="flex block" />
+∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
     ·                │     ╰──── Message 2
     ·                ╰────────── Message 1
@@ -246,7 +246,7 @@ it('should print multiple messages with multiple notes', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   <div class="flex block" />
+∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
     ·                │     ╰──── Message 2
     ·                ╰────────── Message 1
@@ -272,7 +272,7 @@ it('should be possible to print a lot of messages', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
+∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
     ·   ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬
     ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰── Symbol at position: 25
     ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──── Symbol at position: 24
@@ -317,7 +317,7 @@ it('should be possible to print a lot of similar messages', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
+∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
     ·   ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬
     ·   ╰─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴── This is part of the alphabet
     │
@@ -340,7 +340,7 @@ it('should be possible to print messages across different lines', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 2 │   <span class="bg-never-500"></span>
+∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
     ·                     ╰──── gonna
     ·
@@ -352,7 +352,7 @@ it('should be possible to print messages across different lines', () => {
     ┌─[./example-file.txt]
     │
   2 │   <span class="bg-never-500"></span>
-￭ 3 │   <span class="bg-give-500"></span>
+∙ 3 │   <span class="bg-give-500"></span>
     ·                   ─┬──
     ·                    ╰──── you up
     │
@@ -375,11 +375,11 @@ it('should be possible to print messages across different lines and group them i
 
     ┌─[./example-file.txt]
     │
-￭ 2 │   <span class="bg-never-500"></span>
+∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
     ·                     ╰──── gonna
     ·
-￭ 3 │   <span class="bg-give-500"></span>
+∙ 3 │   <span class="bg-give-500"></span>
     ·                   ─┬──
     ·                    ╰──── you up
     │
@@ -402,7 +402,7 @@ it('should be possible to print messages across different lines including notes'
 
     ┌─[./example-file.txt]
     │
-￭ 2 │   <span class="bg-never-500"></span>
+∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
     ·                     ╰──── gonna
     ·
@@ -416,7 +416,7 @@ it('should be possible to print messages across different lines including notes'
     ┌─[./example-file.txt]
     │
   2 │   <span class="bg-never-500"></span>
-￭ 3 │   <span class="bg-give-500"></span>
+∙ 3 │   <span class="bg-give-500"></span>
     ·                   ─┬──
     ·                    ╰──── you up
     ·
@@ -447,11 +447,11 @@ it('should be possible to print messages across different lines and group them i
 
     ┌─[./example-file.txt]
     │
-￭ 2 │   <span class="bg-never-500"></span>
+∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
     ·                     ╰──── gonna
     ·
-￭ 3 │   <span class="bg-give-500"></span>
+∙ 3 │   <span class="bg-give-500"></span>
     ·                   ─┬──
     ·                    ╰──── you up
     ·
@@ -481,7 +481,7 @@ describe('context lines', () => {
     │
   2 │   <span class="a"></span>
   3 │   <span class="b"></span>
-￭ 4 │   <span class="c"></span>
+∙ 4 │   <span class="c"></span>
     ·               ─┬─
     ·                ╰─── With context lines around
     ·
@@ -509,7 +509,7 @@ describe('context lines', () => {
     ┌─[./example-file.txt]
     │
   2 │   <span class="a"></span>
-￭ 3 │   <span class="b"></span>
+∙ 3 │   <span class="b"></span>
     ·               ─┬─
     ·                ╰─── With context lines around
     ·
@@ -539,7 +539,7 @@ describe('context lines', () => {
   2 │   <span class="a"></span>
   3 │   <span class="b"></span>
   4 │   <span class="c"></span>
-￭ 5 │   <span class="d"></span>
+∙ 5 │   <span class="d"></span>
     ·               ─┬─
     ·                ╰─── With context lines around
     ·
@@ -569,12 +569,12 @@ describe('context lines', () => {
     ┌─[./example-file.txt]
     │
   2 │   <span class="a"></span>
-￭ 3 │   <span class="b"></span>
+∙ 3 │   <span class="b"></span>
     ·               ─┬─
     ·                ╰─── With context lines around
     ·
   4 │   <span class="c"></span>
-￭ 5 │   <span class="d"></span>
+∙ 5 │   <span class="d"></span>
     ·               ─┬─
     ·                ╰─── With context lines around
     ·
@@ -612,7 +612,7 @@ describe('context lines', () => {
      ┌─[./example-file.txt]
      │
    2 │   <span class="a"></span>
-￭  3 │   <span class="b"></span>
+∙  3 │   <span class="b"></span>
      ·               ─┬─
      ·                ╰─── With context lines around
      ·
@@ -623,7 +623,7 @@ describe('context lines', () => {
   10 │   <span class="i"></span>
   11 │   <span class="j"></span>
   12 │   <span class="k"></span>
-￭ 13 │   <span class="l"></span>
+∙ 13 │   <span class="l"></span>
      ·               ─┬─
      ·                ╰─── With context lines around
      ·
@@ -654,7 +654,7 @@ describe('squashing', () => {
     │
   2 │   <html>
   3 │     <body>
-￭ 4 │       <div class="example"></div>
+∙ 4 │       <div class="example"></div>
   5 │     </body>       ───┬───
   6 │   </html>            ╰───── This is indeed an example, good job!
     │
@@ -676,7 +676,7 @@ describe('squashing', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 2 │   @screen 2xl {
+∙ 2 │   @screen 2xl {
     ·           ─┬─
     ·            ╰─── @screen 2xl is not supported
     ·
@@ -708,7 +708,7 @@ describe('multi-line diagnostics', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 2 │    let sum = (() => {
+∙ 2 │    let sum = (() => {
     ·                     ┬
     · ╭───────────────────╯
     · │
@@ -716,7 +716,7 @@ describe('multi-line diagnostics', () => {
   4 │ │    let b = 321
   5 │ │
   6 │ │    return a + b
-￭ 7 │ │  })()
+∙ 7 │ │  })()
     · │  ┬
     · ╰──┴── This is a group
     │
@@ -742,17 +742,17 @@ describe('multi-line diagnostics', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 2 │    let sum = (() => {
+∙ 2 │    let sum = (() => {
     ·                     ┬
     · ╭───────────────────╯
     · │
   3 │ │    let a = 123
-￭ 4 │ │    let b = 321
+∙ 4 │ │    let b = 321
     · │        ┬
     · ├────────╯
     · │
   5 │ │    return a + b
-￭ 6 │ │  })()
+∙ 6 │ │  })()
     · │  ┬
     · ╰──┴── This is a group
     │
@@ -779,20 +779,20 @@ describe('multi-line diagnostics', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 2 │    let sum = (() => {
+∙ 2 │    let sum = (() => {
     ·                     ┬
     · ╭───────────────────╯
     · │
-￭ 3 │ │    let a = 123
+∙ 3 │ │    let a = 123
     · │        ┬
     · ├────────╯
     · │
-￭ 4 │ │    let b = 321
+∙ 4 │ │    let b = 321
     · │        ┬
     · ├────────╯
     · │
   5 │ │    return a + b
-￭ 6 │ │  })()
+∙ 6 │ │  })()
     · │  ┬
     · ╰──┴── This is a group
     │
@@ -820,17 +820,17 @@ describe('multi-line diagnostics', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 2 │    let sum = (() => {
+∙ 2 │    let sum = (() => {
     ·                     ┬
     · ╭───────────────────╯
     · │
   3 │ │    let a = 123
-￭ 4 │ │    let b = 321
+∙ 4 │ │    let b = 321
     · │        ┬
     · ├────────╯
     · │
   6 │ │    return a + b
-￭ 7 │ │  })()
+∙ 7 │ │  })()
     · │  ┬
     · ╰──┴── This is a group
     │
@@ -861,14 +861,14 @@ describe('multi-line diagnostics', () => {
 
     ┌─[./example-file.txt]
     │
-￭ 2 │     a b c d e f g
+∙ 2 │     a b c d e f g
     ·     ┬ ┬ ┬
     · ╭───╯ │ │
     · │╭────╯ │
     · ││╭─────╯
     · │││
   3 │ │││ These lines are connected
-￭ 4 │ │││ 1 2 3 4 5 6 7
+∙ 4 │ │││ 1 2 3 4 5 6 7
     · │││ ┬ ┬ ┬
     · ││╰─│─│─┴── Pair 3
     · │╰──│─┴──── Pair 2
