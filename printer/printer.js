@@ -1,4 +1,6 @@
+let path = require('path')
 let kleur = require('kleur')
+let { highlight, plain } = require('cli-highlight')
 
 let { range } = require('./utils/range')
 
@@ -69,6 +71,30 @@ let PADDING = 3
 // The margin around the code
 let MARGIN = 2
 
+function formatCode(row, highlightCode) {
+  let joined = ''
+  for (let char of row) joined += char ?? ' '
+
+  // A list of "off" escapes: All attributes off, bold off, undefline off,
+  // blink off, default foreground, default background
+  // let offs = /((?:\x1B\[0m|\x1B\[21m|\x1B\[24m|\x1B\[25m|\x1B\[39m|\x1B\[49m)+)/g
+  let offs = ['\x1B[0m', '\x1B[21m', '\x1B[24m', '\x1B[25m', '\x1B[39m', '\x1B[49m']
+
+  let ansiIdx = joined.indexOf('\x1b')
+  if (ansiIdx === -1) {
+    joined = highlightCode(joined)
+  } else {
+    let lastAnsiIdx = Math.max(...offs.map((off) => joined.lastIndexOf(off)))
+    let codeBefore = joined.slice(0, ansiIdx)
+    let diagnostics = joined.slice(ansiIdx, lastAnsiIdx)
+    let codeAfter = joined.slice(lastAnsiIdx)
+
+    joined = highlightCode(codeBefore) + diagnostics + highlightCode(codeAfter)
+  }
+
+  return joined
+}
+
 function reportBlock(sources, diagnostics, flush) {
   // Group by same line
   let groupedByRow = new Map()
@@ -85,7 +111,39 @@ function reportBlock(sources, diagnostics, flush) {
   // cross those file boundaries so that is going to be interesting...
   let file = diagnostics[0].file
 
-  let lines = sources.get(file).split('\n')
+  let h = kleur.enabled
+    ? (input) =>
+        highlight(input, {
+          language: path.extname(file).slice(1),
+          ignoreIllegals: true,
+          theme: {
+            keyword: kleur.blue,
+            built_in: kleur.cyan,
+            type: kleur.cyan().dim,
+            literal: kleur.blue,
+            number: kleur.magenta,
+            regexp: kleur.red,
+            string: kleur.green,
+            class: kleur.blue,
+            function: kleur.yellow,
+            comment: kleur.green,
+            doctag: kleur.green,
+            meta: kleur.grey,
+            tag: kleur.grey,
+            name: kleur.blue,
+            'builtin-name': plain,
+            attr: kleur.cyan,
+            emphasis: kleur.italic,
+            strong: kleur.bold,
+            link: kleur.underline,
+            addition: kleur.green,
+            deletion: kleur.red,
+          },
+        })
+    : (input) => input //noop
+
+  let source = sources.get(file)
+  let lines = source.split('\n')
 
   // Find all printable lines. Lines with issues + context lines. We'll use
   // an object for now which will make it easier for overlapping context
@@ -252,10 +310,11 @@ function reportBlock(sources, diagnostics, flush) {
 
   // Add printable lines to output
   for (let [lineNumber, line] of printableLines.entries()) {
+    let hasDiagnostics = groupedByRow.has(lineNumber)
     let rowIdx = output.push(line.split('')) - 1
 
     rowInfo.set(output[rowIdx], {
-      type: groupedByRow.has(lineNumber) ? RowTypes.Code : RowTypes.ContextLine,
+      type: hasDiagnostics ? RowTypes.Code : RowTypes.ContextLine,
       lineNumber,
     })
 
@@ -608,7 +667,7 @@ function reportBlock(sources, diagnostics, flush) {
             ...lineNumber,
             ' ',
             kleur.dim(Chars.V),
-            ...row,
+            formatCode(row, (raw) => h(raw)),
           ]
         },
         [RowTypes.ContextLine]() {
@@ -617,13 +676,7 @@ function reportBlock(sources, diagnostics, flush) {
             ...lineNumber.split('').map(kleur.dim),
             ' ',
             kleur.dim(Chars.V),
-            ...row.map((char) => {
-              // Already contains ansi escapes
-              if (char.length !== 1) return char
-
-              // Dim the raw line
-              return kleur.dim(char)
-            }),
+            formatCode(row, (raw) => kleur.dim(h(raw))),
           ]
         },
         [RowTypes.Diagnostic]() {
@@ -661,7 +714,7 @@ function reportBlock(sources, diagnostics, flush) {
   }
 }
 
-module.exports = function (sources, diagnostics, flush) {
+module.exports = function (sources, diagnostics, flush = console.log) {
   // Sort diagnostics by location, first by row then by column so that it is
   // sorted top to bottom, left to right
   diagnostics = diagnostics.slice().sort((a, z) => a.loc.row - z.loc.row || a.loc.col - z.loc.col)
