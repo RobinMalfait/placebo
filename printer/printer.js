@@ -666,6 +666,13 @@ module.exports = function (sources, diagnostics, flush) {
   // sorted top to bottom, left to right
   diagnostics = diagnostics.slice().sort((a, z) => a.loc.row - z.loc.row || a.loc.col - z.loc.col)
 
+  // Row & Col are 1-based when they come in. For now, let's make it a bit
+  // simpler and use them as 0-based values.
+  diagnostics = diagnostics.map((d) => ({
+    ...d,
+    loc: { ...d.loc, row: d.loc.row - 1, col: d.loc.col - 1 },
+  }))
+
   // Group by block
   let grouped = new Map()
   for (let diagnostic of diagnostics) {

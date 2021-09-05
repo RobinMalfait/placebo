@@ -24,7 +24,7 @@ function findLocation(code, word) {
   let col = code.split('\n')[row].indexOf(word)
   let len = word.length
 
-  return { row, col, len }
+  return { row: row + 1, col: col + 1, len }
 }
 
 function magic(source, diagnostics = [], file = './example-file.txt') {
@@ -264,7 +264,7 @@ it('should be possible to print a lot of messages', () => {
   let diagnostics = Array(26)
     .fill(0)
     .map((_, idx) => idx * 2)
-    .map((col, idx) => diagnose(`Symbol at position: ${idx}`, { row: 0, col, len: 1 }))
+    .map((col, idx) => diagnose(`Symbol at position: ${idx}`, { row: 1, col: col + 1, len: 1 }))
 
   let result = magic(code, diagnostics)
 
@@ -309,7 +309,7 @@ it('should be possible to print a lot of similar messages', () => {
   let diagnostics = Array(26)
     .fill(0)
     .map((_, idx) => idx * 2)
-    .map((col) => diagnose('This is part of the alphabet', { row: 0, col, len: 1 }))
+    .map((col) => diagnose('This is part of the alphabet', { row: 1, col: col + 1, len: 1 }))
 
   let result = magic(code, diagnostics)
 
