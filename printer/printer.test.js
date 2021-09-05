@@ -11,12 +11,8 @@ let html = syntax
 let css = syntax
 let javascript = syntax
 
-function diagnose(
-  message,
-  location,
-  { file = './example-file.txt', notes = [], block, context } = {}
-) {
-  return { block, context, file, message, loc: location, notes }
+function diagnose(message, location, { notes = [], block, context } = {}) {
+  return { block, context, message, loc: location, notes }
 }
 
 function findLocation(code, word) {
@@ -27,7 +23,7 @@ function findLocation(code, word) {
   return { row: row + 1, col: col + 1, len }
 }
 
-function magic(source, diagnostics = [], file = './example-file.txt') {
+function magic(source, diagnostics = [], file = './example.txt') {
   let sources = new Map([[file, source]])
 
   let lines = []
@@ -35,7 +31,11 @@ function magic(source, diagnostics = [], file = './example-file.txt') {
     lines.push(args.join(' '))
   }
 
-  printer(sources, diagnostics, collector)
+  printer(
+    sources,
+    diagnostics.map((d) => ({ ...d, file })),
+    collector
+  )
 
   return lines.join('\n')
 }
@@ -44,11 +44,11 @@ it('should print a message', () => {
   let code = html`<div class="flex block" />`
   let diagnostics = [diagnose('Message 1', findLocation(code, 'flex'))]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬──
@@ -61,11 +61,11 @@ it('should print a message and reindent it to save space', () => {
   let code = `                                                 <div class="flex block" />`
   let diagnostics = [diagnose('Message 1', findLocation(code, 'flex'))]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬──
@@ -80,11 +80,11 @@ it('should print a message and a note', () => {
     diagnose('Message 1', findLocation(code, 'flex'), { notes: ['This is a note'] }),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬──
@@ -103,11 +103,11 @@ it('should print a message with multiple notes', () => {
     }),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬──
@@ -128,11 +128,11 @@ it('should print multiple messages', () => {
     diagnose('Message 2', findLocation(code, 'block')),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
@@ -149,11 +149,11 @@ it('should squash multiple equal messages #1', () => {
     diagnose('I am a message', findLocation(code, 'block')),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
@@ -171,11 +171,11 @@ it('should squash multiple equal messages #2', () => {
     diagnose('Collding on the `color` property', findLocation(code, 'text-white')),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class=\"flex block text-black text-white\" />
     ·               ─┬── ──┬── ────┬───── ────┬─────
@@ -193,11 +193,11 @@ it('should not squash multiple equal messages if there is a message in between',
     diagnose('I am a message', findLocation(code, 'block')),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class=\"flex hidden block\" />
     ·               ─┬── ──┬─── ──┬──
@@ -215,11 +215,11 @@ it('should print multiple messages with a note', () => {
     diagnose('Message 2', findLocation(code, 'block')),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
@@ -240,11 +240,11 @@ it('should print multiple messages with multiple notes', () => {
     }),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
@@ -270,7 +270,7 @@ it('should be possible to print a lot of messages', () => {
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.txt]
     │
 ∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
     ·   ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬
@@ -315,7 +315,7 @@ it('should be possible to print a lot of similar messages', () => {
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.txt]
     │
 ∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
     ·   ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬
@@ -334,11 +334,11 @@ it('should be possible to print messages across different lines', () => {
     diagnose('you up', findLocation(code, 'give')),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
@@ -349,7 +349,7 @@ it('should be possible to print messages across different lines', () => {
     └─
 
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
   2 │   <span class="bg-never-500"></span>
 ∙ 3 │   <span class="bg-give-500"></span>
@@ -369,11 +369,11 @@ it('should be possible to print messages across different lines and group them i
     diagnose('you up', findLocation(code, 'give'), { block: 'abc' }),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
@@ -396,11 +396,11 @@ it('should be possible to print messages across different lines including notes'
     diagnose('you up', findLocation(code, 'give'), { notes: ['I am a note from message 2'] }),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
@@ -413,7 +413,7 @@ it('should be possible to print messages across different lines including notes'
     └─
 
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
   2 │   <span class="bg-never-500"></span>
 ∙ 3 │   <span class="bg-give-500"></span>
@@ -441,11 +441,11 @@ it('should be possible to print messages across different lines and group them i
     }),
   ]
 
-  let result = magic(code, diagnostics)
+  let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
 ∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
@@ -474,10 +474,10 @@ describe('context lines', () => {
     `
     let diagnostics = [diagnose('With context lines around', findLocation(code, '"c"'))]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
   2 │   <span class="a"></span>
   3 │   <span class="b"></span>
@@ -503,10 +503,10 @@ describe('context lines', () => {
     `
     let diagnostics = [diagnose('With context lines around', findLocation(code, '"b"'))]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
   2 │   <span class="a"></span>
 ∙ 3 │   <span class="b"></span>
@@ -531,10 +531,10 @@ describe('context lines', () => {
     `
     let diagnostics = [diagnose('With context lines around', findLocation(code, '"d"'))]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
   2 │   <span class="a"></span>
   3 │   <span class="b"></span>
@@ -563,10 +563,10 @@ describe('context lines', () => {
       diagnose('With context lines around', findLocation(code, '"d"'), { block: 'abc' }),
     ]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
   2 │   <span class="a"></span>
 ∙ 3 │   <span class="b"></span>
@@ -606,10 +606,10 @@ describe('context lines', () => {
       diagnose('With context lines around', findLocation(code, '"l"'), { block: 'abc' }),
     ]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
 
-     ┌─[./example-file.txt]
+     ┌─[./example.html]
      │
    2 │   <span class="a"></span>
 ∙  3 │   <span class="b"></span>
@@ -647,10 +647,10 @@ describe('squashing', () => {
       diagnose('This is indeed an example, good job!', findLocation(code, 'example')),
     ]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.html]
     │
   2 │   <html>
   3 │     <body>
@@ -671,10 +671,10 @@ describe('squashing', () => {
     `
     let diagnostics = [diagnose('@screen 2xl is not supported', findLocation(code, '2xl'))]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.css')
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.css]
     │
 ∙ 2 │   @screen 2xl {
     ·           ─┬─
@@ -703,10 +703,10 @@ describe('multi-line diagnostics', () => {
       diagnose('This is a group', findLocation(code, '}'), { block: 'one', context: 'one' }),
     ]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.js')
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.js]
     │
 ∙ 2 │    let sum = (() => {
     ·                     ┬
@@ -737,10 +737,10 @@ describe('multi-line diagnostics', () => {
       diagnose('This is a group', findLocation(code, '}'), { block: 'one', context: 'one' }),
     ]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.js')
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.js]
     │
 ∙ 2 │    let sum = (() => {
     ·                     ┬
@@ -774,10 +774,10 @@ describe('multi-line diagnostics', () => {
       diagnose('This is a group', findLocation(code, '}'), { block: 'one', context: 'one' }),
     ]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.js')
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.js]
     │
 ∙ 2 │    let sum = (() => {
     ·                     ┬
@@ -814,11 +814,11 @@ describe('multi-line diagnostics', () => {
       diagnose('This is a group', findLocation(code, '}'), { block: 'one', context: 'one' }),
     ]
 
-    let result = magic(code, diagnostics)
+    let result = magic(code, diagnostics, './example.js')
 
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.js]
     │
 ∙ 2 │    let sum = (() => {
     ·                     ┬
@@ -859,7 +859,7 @@ describe('multi-line diagnostics', () => {
     expect(result).toEqual()
     expect(result).toEqual(`
 
-    ┌─[./example-file.txt]
+    ┌─[./example.txt]
     │
 ∙ 2 │     a b c d e f g
     ·     ┬ ┬ ┬
