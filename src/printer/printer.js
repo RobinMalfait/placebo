@@ -2,6 +2,7 @@ let path = require('path')
 let kleur = require('kleur')
 let { highlight, plain } = require('cli-highlight')
 
+let { env } = require('../env')
 let { range } = require('../utils/range')
 
 let Chars = {
@@ -59,17 +60,6 @@ let RowTypes = {
   Note: 1 << 4,
   StartOfNote: 1 << 5,
 }
-
-// The amount of lines before and after the current line to give more context
-// to the user.
-let BEFORE_CONTEXT_LINES_COUNT = 3
-let AFTER_CONTEXT_LINES_COUNT = 3
-
-// The default indentation to add some padding in the box.
-let PADDING = 3
-
-// The margin around the code
-let MARGIN = 2
 
 function formatCode(row, highlightCode) {
   let joined = ''
@@ -151,7 +141,7 @@ function reportBlock(sources, diagnostics, flush) {
   let printableLines = new Map()
   for (let lineNumber of groupedByRow.keys()) {
     // Before context lines
-    let beforeStart = Math.max(lineNumber - BEFORE_CONTEXT_LINES_COUNT, 0)
+    let beforeStart = Math.max(lineNumber - env.BEFORE_CONTEXT_LINES_COUNT, 0)
     for (let [idx, line] of lines.slice(beforeStart, lineNumber).entries()) {
       printableLines.set(beforeStart + idx, line)
     }
@@ -160,7 +150,7 @@ function reportBlock(sources, diagnostics, flush) {
     printableLines.set(lineNumber, lines[lineNumber])
 
     // After context lines
-    let afterEnd = Math.min(lineNumber + 1 + AFTER_CONTEXT_LINES_COUNT, lines.length - 1)
+    let afterEnd = Math.min(lineNumber + 1 + env.AFTER_CONTEXT_LINES_COUNT, lines.length - 1)
     for (let [idx, line] of lines.slice(lineNumber + 1, afterEnd).entries()) {
       printableLines.set(lineNumber + 1 + idx, line)
     }
@@ -215,13 +205,13 @@ function reportBlock(sources, diagnostics, flush) {
       continue
     }
 
-    printableLines.set(lineNumber, ' '.repeat(PADDING) + line)
+    printableLines.set(lineNumber, ' '.repeat(env.PADDING) + line)
   }
 
   // Adjust column offsets for padding
   for (let diagnostics of groupedByRow.values()) {
     for (let diagnostic of diagnostics) {
-      diagnostic.loc.col += PADDING
+      diagnostic.loc.col += env.PADDING
     }
   }
 
@@ -611,7 +601,7 @@ function reportBlock(sources, diagnostics, flush) {
         inject(
           output.length,
           RowTypes.Diagnostic,
-          ...' '.repeat(PADDING),
+          ...' '.repeat(env.PADDING),
           ...'NOTE:'.split('').map(kleur.bold().cyan),
           ' ',
           ...note
@@ -621,7 +611,7 @@ function reportBlock(sources, diagnostics, flush) {
       inject(
         output.length,
         RowTypes.Diagnostic,
-        ...' '.repeat(PADDING),
+        ...' '.repeat(env.PADDING),
         ...'NOTES:'.split('').map(kleur.bold().cyan)
       )
 
@@ -629,7 +619,7 @@ function reportBlock(sources, diagnostics, flush) {
         inject(
           output.length,
           RowTypes.Diagnostic,
-          ...' '.repeat(PADDING + 2),
+          ...' '.repeat(env.PADDING + 2),
           kleur.dim('-'),
           ' ',
           ...note
@@ -642,26 +632,26 @@ function reportBlock(sources, diagnostics, flush) {
   output = [
     // Opening block
     [
-      ...' '.repeat(gutterWidth + 1 + MARGIN),
+      ...' '.repeat(gutterWidth + 1 + env.MARGIN),
       kleur.dim(Chars.TLSquare),
       kleur.dim(Chars.H),
       kleur.dim('['),
       kleur.bold(file),
       kleur.dim(']'),
     ],
-    [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.V].map(kleur.dim),
+    [...' '.repeat(gutterWidth + 1 + env.MARGIN), Chars.V].map(kleur.dim),
 
     // Gutter + existing output
     ...output.map((row) => {
       let { type, lineNumber } = rowInfo.get(row)
-      let emptyIndent = ' '.repeat(gutterWidth + MARGIN)
+      let emptyIndent = ' '.repeat(gutterWidth + env.MARGIN)
 
       lineNumber = (lineNumber + 1).toString().padStart(gutterWidth, ' ')
 
       return {
         [RowTypes.Code]() {
           return [
-            ...' '.repeat(MARGIN - 2),
+            ...' '.repeat(env.MARGIN - 2),
             kleur.bold().red(Chars.bigdot),
             ' ',
             ...lineNumber,
@@ -672,7 +662,7 @@ function reportBlock(sources, diagnostics, flush) {
         },
         [RowTypes.ContextLine]() {
           return [
-            ...' '.repeat(MARGIN),
+            ...' '.repeat(env.MARGIN),
             ...lineNumber.split('').map(kleur.dim),
             ' ',
             kleur.dim(Chars.V),
@@ -692,8 +682,10 @@ function reportBlock(sources, diagnostics, flush) {
     }),
 
     // Closing block
-    notes.length <= 0 ? [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.V].map(kleur.dim) : null,
-    [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.BLSquare, Chars.H].map(kleur.dim),
+    notes.length <= 0
+      ? [...' '.repeat(gutterWidth + 1 + env.MARGIN), Chars.V].map(kleur.dim)
+      : null,
+    [...' '.repeat(gutterWidth + 1 + env.MARGIN), Chars.BLSquare, Chars.H].map(kleur.dim),
   ].filter(Boolean)
 
   // Flush a separator line
