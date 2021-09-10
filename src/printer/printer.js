@@ -2,7 +2,7 @@ let path = require('path')
 let kleur = require('kleur')
 let { highlight, plain } = require('cli-highlight')
 
-let { range } = require('./utils/range')
+let { range } = require('../utils/range')
 
 let Chars = {
   /* ─ */ H: '\u2500',
