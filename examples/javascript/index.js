@@ -9,8 +9,14 @@ let file = path.resolve(__dirname, './code.js')
 let source = fs.readFileSync(file, 'utf8')
 let sources = new Map([[file, source]])
 
-async function run() {
-  printer(sources, await diagnostics(source, { file }), console.log)
+let executed = module.parent === null
+
+async function run(flush = console.log) {
+  printer(sources, await diagnostics(source, { file }), flush)
 }
 
-run()
+if (executed) {
+  run()
+} else {
+  module.exports = run
+}
