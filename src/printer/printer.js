@@ -636,7 +636,11 @@ function reportBlock(sources, diagnostics, flush) {
       kleur.dim(Chars.TLSquare),
       kleur.dim(Chars.H),
       kleur.dim('['),
-      kleur.bold(file),
+      kleur.bold(
+        ((relative) => (relative.startsWith('.') ? relative : `./${relative}`))(
+          path.relative(process.cwd(), path.resolve(file))
+        )
+      ),
       kleur.dim(']'),
     ],
     [...' '.repeat(gutterWidth + 1 + env.MARGIN), Chars.V].map(kleur.dim),
