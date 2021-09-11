@@ -643,7 +643,8 @@ function reportBlock(sources, diagnostics, flush) {
       kleur.dim(Chars.H),
       kleur.dim('['),
       kleur.bold(
-        ((relative) => (relative.startsWith('.') ? relative : `./${relative}`))(
+        ((relative) =>
+          relative.startsWith('.') || relative.startsWith('/') ? relative : `./${relative}`)(
           path.relative(process.cwd(), path.resolve(file))
         )
       ),
