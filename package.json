@@ -20,7 +20,9 @@
   "devDependencies": {
     "jest": "^27.0.6",
     "postcss": "^8.3.6",
-    "prettier": "^2.3.2"
+    "posthtml-parser": "^0.10.1",
+    "prettier": "^2.3.2",
+    "tailwindcss": "^2.2.15"
   },
   "dependencies": {
     "cli-highlight": "^2.1.11",
