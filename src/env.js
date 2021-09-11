@@ -3,6 +3,9 @@ module.exports.env = {
   // to the user.
   BEFORE_CONTEXT_LINES_COUNT: resolveEnv('PLACEBO_CONTEXT_LINES_BEFORE', Number, 3),
   AFTER_CONTEXT_LINES_COUNT: resolveEnv('PLACEBO_CONTEXT_LINES_AFTER', Number, 3),
+
+  // Whether or not you want syntax highlighting for the context lines
+  COLOR_CONTEXT_LINES: resolveEnv('PLACEBO_COLOR_CONTEXT_LINES', Boolean, false),
 }
 
 function resolveEnv(name, type, defaultValue) {
@@ -14,6 +17,13 @@ function resolveEnv(name, type, defaultValue) {
   if (type === Number) {
     let valueAsNumber = Number(value)
     return isNaN(valueAsNumber) ? defaultValue : valueAsNumber
+  }
+
+  if (type === Boolean) {
+    if (value === '1' || value === 'true') return true
+    if (value === '0' || value === 'false') return false
+
+    return Boolean(value)
   }
 
   return value ?? defaultValue
