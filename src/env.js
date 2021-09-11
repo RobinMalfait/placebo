@@ -3,12 +3,6 @@ module.exports.env = {
   // to the user.
   BEFORE_CONTEXT_LINES_COUNT: resolveEnv('PLACEBO_CONTEXT_LINES_BEFORE', Number, 3),
   AFTER_CONTEXT_LINES_COUNT: resolveEnv('PLACEBO_CONTEXT_LINES_AFTER', Number, 3),
-
-  // The default indentation to add some padding in the box.
-  PADDING: resolveEnv('PLACEBO_PADDING', Number, 3),
-
-  // The margin around the code
-  MARGIN: resolveEnv('PLACEBO_MARGIN', Number, 2),
 }
 
 function resolveEnv(name, type, defaultValue) {

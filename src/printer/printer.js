@@ -45,6 +45,12 @@ let colors = [
   kleur.white,
 ].map((f) => f().bold)
 
+// The default indentation to add some padding in the box.
+let PADDING = 3
+
+// The margin around the code
+let MARGIN = 2
+
 let RowTypes = {
   // Code
   Code: 1 << 0,
@@ -205,13 +211,13 @@ function reportBlock(sources, diagnostics, flush) {
       continue
     }
 
-    printableLines.set(lineNumber, ' '.repeat(env.PADDING) + line)
+    printableLines.set(lineNumber, ' '.repeat(PADDING) + line)
   }
 
   // Adjust column offsets for padding
   for (let diagnostics of groupedByRow.values()) {
     for (let diagnostic of diagnostics) {
-      diagnostic.loc.col += env.PADDING
+      diagnostic.loc.col += PADDING
     }
   }
 
@@ -601,7 +607,7 @@ function reportBlock(sources, diagnostics, flush) {
         inject(
           output.length,
           RowTypes.Diagnostic,
-          ...' '.repeat(env.PADDING),
+          ...' '.repeat(PADDING),
           ...'NOTE:'.split('').map(kleur.bold().cyan),
           ' ',
           ...note
@@ -611,7 +617,7 @@ function reportBlock(sources, diagnostics, flush) {
       inject(
         output.length,
         RowTypes.Diagnostic,
-        ...' '.repeat(env.PADDING),
+        ...' '.repeat(PADDING),
         ...'NOTES:'.split('').map(kleur.bold().cyan)
       )
 
@@ -619,7 +625,7 @@ function reportBlock(sources, diagnostics, flush) {
         inject(
           output.length,
           RowTypes.Diagnostic,
-          ...' '.repeat(env.PADDING + 2),
+          ...' '.repeat(PADDING + 2),
           kleur.dim('-'),
           ' ',
           ...note
@@ -632,7 +638,7 @@ function reportBlock(sources, diagnostics, flush) {
   output = [
     // Opening block
     [
-      ...' '.repeat(gutterWidth + 1 + env.MARGIN),
+      ...' '.repeat(gutterWidth + 1 + MARGIN),
       kleur.dim(Chars.TLSquare),
       kleur.dim(Chars.H),
       kleur.dim('['),
@@ -643,19 +649,19 @@ function reportBlock(sources, diagnostics, flush) {
       ),
       kleur.dim(']'),
     ],
-    [...' '.repeat(gutterWidth + 1 + env.MARGIN), Chars.V].map(kleur.dim),
+    [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.V].map(kleur.dim),
 
     // Gutter + existing output
     ...output.map((row) => {
       let { type, lineNumber } = rowInfo.get(row)
-      let emptyIndent = ' '.repeat(gutterWidth + env.MARGIN)
+      let emptyIndent = ' '.repeat(gutterWidth + MARGIN)
 
       lineNumber = (lineNumber + 1).toString().padStart(gutterWidth, ' ')
 
       return {
         [RowTypes.Code]() {
           return [
-            ...' '.repeat(env.MARGIN - 2),
+            ...' '.repeat(MARGIN - 2),
             kleur.bold().red(Chars.bigdot),
             ' ',
             ...lineNumber,
@@ -666,7 +672,7 @@ function reportBlock(sources, diagnostics, flush) {
         },
         [RowTypes.ContextLine]() {
           return [
-            ...' '.repeat(env.MARGIN),
+            ...' '.repeat(MARGIN),
             ...lineNumber.split('').map(kleur.dim),
             ' ',
             kleur.dim(Chars.V),
@@ -686,10 +692,8 @@ function reportBlock(sources, diagnostics, flush) {
     }),
 
     // Closing block
-    notes.length <= 0
-      ? [...' '.repeat(gutterWidth + 1 + env.MARGIN), Chars.V].map(kleur.dim)
-      : null,
-    [...' '.repeat(gutterWidth + 1 + env.MARGIN), Chars.BLSquare, Chars.H].map(kleur.dim),
+    notes.length <= 0 ? [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.V].map(kleur.dim) : null,
+    [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.BLSquare, Chars.H].map(kleur.dim),
   ].filter(Boolean)
 
   // Flush a separator line
