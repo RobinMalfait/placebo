@@ -204,3 +204,7 @@ want to introduce configuration options.
 ```sh
 node ./examples/javascript
 ```
+
+```sh
+node ./examples/css
+```

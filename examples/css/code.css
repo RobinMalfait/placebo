@@ -1,0 +1,22 @@
+html,
+body {
+  display: inline;
+
+  width: 200px;
+  height: 200px;
+
+  color: black;
+  background-color: black;
+}
+
+.my-row {
+  display: table-row;
+  margin-top: 2px;
+  margin-right: 3px;
+
+  float: right;
+}
+
+.something {
+  padding: 0px;
+}
