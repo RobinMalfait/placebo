@@ -670,7 +670,7 @@ function reportBlock(sources, diagnostics, flush) {
             ...lineNumber.split('').map(kleur.dim),
             ' ',
             kleur.dim(Chars.V),
-            formatCode(row, (raw) => kleur.dim(h(raw))),
+            formatCode(row, (raw) => kleur.dim(raw)),
           ]
         },
         [RowTypes.Diagnostic]() {
