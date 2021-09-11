@@ -197,3 +197,10 @@ A beautiful new language agnostic diagnostics printer!
 **Note**, this is still in active development. Currently there is no real API
 to use it yet, the diagnostics format can still change, and we may or may not
 want to introduce configuration options.
+
+
+### Examples
+
+```sh
+node ./examples/javascript
+```
