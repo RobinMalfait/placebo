@@ -37,7 +37,7 @@ function magic(source, diagnostics = [], file = './example.txt') {
     collector
   )
 
-  return lines.join('\n')
+  return '\n' + lines.join('\n')
 }
 
 it('should print a message', () => {
@@ -47,7 +47,6 @@ it('should print a message', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
@@ -64,7 +63,6 @@ it('should print a message and reindent it to save space', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
@@ -83,7 +81,6 @@ it('should print a message and a note', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
@@ -106,7 +103,6 @@ it('should print a message with multiple notes', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
@@ -131,7 +127,6 @@ it('should print multiple messages', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
@@ -152,7 +147,6 @@ it('should squash multiple equal messages #1', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
@@ -174,7 +168,6 @@ it('should squash multiple equal messages #2', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class=\"flex block text-black text-white\" />
@@ -196,7 +189,6 @@ it('should not squash multiple equal messages if there is a message in between',
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class=\"flex hidden block\" />
@@ -218,7 +210,6 @@ it('should print multiple messages with a note', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
@@ -243,7 +234,6 @@ it('should print multiple messages with multiple notes', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
@@ -269,7 +259,6 @@ it('should be possible to print a lot of messages', () => {
   let result = magic(code, diagnostics)
 
   expect(result).toEqual(`
-
     ┌─[./example.txt]
     │
 ∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
@@ -314,7 +303,6 @@ it('should be possible to print a lot of similar messages', () => {
   let result = magic(code, diagnostics)
 
   expect(result).toEqual(`
-
     ┌─[./example.txt]
     │
 ∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
@@ -337,7 +325,6 @@ it('should be possible to print messages across different lines', () => {
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 2 │   <span class="bg-never-500"></span>
@@ -347,7 +334,6 @@ it('should be possible to print messages across different lines', () => {
   3 │   <span class="bg-give-500"></span>
     │
     └─
-
 
     ┌─[./example.html]
     │
@@ -372,7 +358,6 @@ it('should be possible to print messages across different lines and group them i
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 2 │   <span class="bg-never-500"></span>
@@ -399,7 +384,6 @@ it('should be possible to print messages across different lines including notes'
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 2 │   <span class="bg-never-500"></span>
@@ -411,7 +395,6 @@ it('should be possible to print messages across different lines including notes'
     ├─
     ·   NOTE: I am a note from message 1
     └─
-
 
     ┌─[./example.html]
     │
@@ -444,7 +427,6 @@ it('should be possible to print messages across different lines and group them i
   let result = magic(code, diagnostics, './example.html')
 
   expect(result).toEqual(`
-
     ┌─[./example.html]
     │
 ∙ 2 │   <span class="bg-never-500"></span>
@@ -476,7 +458,6 @@ describe('context lines', () => {
 
     let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
-
     ┌─[./example.html]
     │
   2 │   <span class="a"></span>
@@ -505,7 +486,6 @@ describe('context lines', () => {
 
     let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
-
     ┌─[./example.html]
     │
   2 │   <span class="a"></span>
@@ -533,7 +513,6 @@ describe('context lines', () => {
 
     let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
-
     ┌─[./example.html]
     │
   2 │   <span class="a"></span>
@@ -565,7 +544,6 @@ describe('context lines', () => {
 
     let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
-
     ┌─[./example.html]
     │
   2 │   <span class="a"></span>
@@ -608,7 +586,6 @@ describe('context lines', () => {
 
     let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
-
      ┌─[./example.html]
      │
    2 │   <span class="a"></span>
@@ -649,7 +626,6 @@ describe('squashing', () => {
 
     let result = magic(code, diagnostics, './example.html')
     expect(result).toEqual(`
-
     ┌─[./example.html]
     │
   2 │   <html>
@@ -673,7 +649,6 @@ describe('squashing', () => {
 
     let result = magic(code, diagnostics, './example.css')
     expect(result).toEqual(`
-
     ┌─[./example.css]
     │
 ∙ 2 │   @screen 2xl {
@@ -705,7 +680,6 @@ describe('multi-line diagnostics', () => {
 
     let result = magic(code, diagnostics, './example.js')
     expect(result).toEqual(`
-
     ┌─[./example.js]
     │
 ∙ 2 │    let sum = (() => {
@@ -739,7 +713,6 @@ describe('multi-line diagnostics', () => {
 
     let result = magic(code, diagnostics, './example.js')
     expect(result).toEqual(`
-
     ┌─[./example.js]
     │
 ∙ 2 │    let sum = (() => {
@@ -776,7 +749,6 @@ describe('multi-line diagnostics', () => {
 
     let result = magic(code, diagnostics, './example.js')
     expect(result).toEqual(`
-
     ┌─[./example.js]
     │
 ∙ 2 │    let sum = (() => {
@@ -817,7 +789,6 @@ describe('multi-line diagnostics', () => {
     let result = magic(code, diagnostics, './example.js')
 
     expect(result).toEqual(`
-
     ┌─[./example.js]
     │
 ∙ 2 │    let sum = (() => {
@@ -858,7 +829,6 @@ describe('multi-line diagnostics', () => {
     let result = magic(code, diagnostics)
     expect(result).toEqual()
     expect(result).toEqual(`
-
     ┌─[./example.txt]
     │
 ∙ 2 │     a b c d e f g

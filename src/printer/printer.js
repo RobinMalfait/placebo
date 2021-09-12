@@ -697,9 +697,6 @@ function reportBlock(sources, diagnostics, flush) {
     [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.BLSquare, Chars.H].map(kleur.dim),
   ].filter(Boolean)
 
-  // Flush a separator line
-  flush('\n')
-
   // Flush everything
   for (let line of output.splice(0)) {
     let modified = ''
@@ -743,7 +740,9 @@ module.exports = function (sources, diagnostics, flush = console.log) {
   }
 
   // Report per block, that will be cleaner from a UI perspective
-  for (let diagnostics of grouped.values()) {
+  let blocks = Array.from(grouped.values())
+  for (let [idx, diagnostics] of blocks.entries()) {
     reportBlock(sources, diagnostics, flush)
+    if (idx !== blocks.length - 1) flush('')
   }
 }
