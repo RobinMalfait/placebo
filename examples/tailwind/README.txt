@@ -9,7 +9,6 @@
     │
     └─
 
-
     ┌─[./examples/tailwind/code.html]
     │
 ∙ 1 │   <div class="block text-gray-900 flex sm:block sm:flex">
@@ -21,7 +20,6 @@
     │
     └─
 
-
     ┌─[./examples/tailwind/code.html]
     │
   1 │   <div class="block text-gray-900 flex sm:block sm:flex">
@@ -32,7 +30,6 @@
     │
     └─
 
-
     ┌─[./examples/tailwind/code.html]
     │
   1 │   <div class="block text-gray-900 flex sm:block sm:flex">
@@ -42,7 +39,6 @@
   5 │   <div class="underline block text-gray-100 antialiased flex line-through">
     │
     └─
-
 
     ┌─[./examples/tailwind/code.html]
     │
@@ -59,7 +55,6 @@
     │
     └─
 
-
     ┌─[./examples/tailwind/code.html]
     │
   2 │     <div class="text-gray-100 block text-gray-100 block">Hello</div>
@@ -75,7 +70,6 @@
     │
     └─
 
-
     ┌─[./examples/tailwind/code.html]
     │
   5 │   <div class="underline block text-gray-100 antialiased flex line-through">
@@ -85,7 +79,6 @@
     ·                    ╰────────────────────────────────────────────┴───────── Colliding classes, they operate on the same "overflow" property.
     │
     └─
-
 
     ┌─[./examples/tailwind/code.html]
     │

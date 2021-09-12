@@ -19,7 +19,6 @@
     │
     └─
 
-
      ┌─[./examples/css/code.css]
      │
   10 │    }
@@ -46,7 +45,6 @@
   20 │    .something {
      │
      └─
-
 
      ┌─[./examples/css/code.css]
      │
