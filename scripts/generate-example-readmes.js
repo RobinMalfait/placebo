@@ -20,7 +20,7 @@ async function generate() {
     })
     .map(async (p) => {
       let [example, output] = await p
-      return fs.writeFile(path.resolve(example, 'README.txt'), output.replace(/^\n+/g, ''))
+      return fs.writeFile(path.resolve(example, 'README.txt'), output)
     })
 
   await Promise.all(examples)
