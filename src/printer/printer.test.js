@@ -117,6 +117,41 @@ it('should print a message with multiple notes', () => {
     └─`)
 })
 
+it('should print nested notes in a hierarchy', () => {
+  let code = html`<div class="flex block" />`
+  let diagnostics = [
+    diagnose('Message 1', findLocation(code, 'flex'), {
+      notes: [
+        'Heading 1',
+        ['Heading 2', ['Heading 3 A', ['A', 'B', 'C']], ['Heading 3 B', ['D', 'E', 'F']]],
+      ],
+    }),
+  ]
+
+  let result = magic(code, diagnostics, './example.html')
+
+  expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="flex block" />
+    ·               ─┬──
+    ·                ╰──── Message 1
+    ·
+    ├─
+    ·   NOTES:
+    ·     - Heading 1
+    ·       - Heading 2
+    ·         - Heading 3 A
+    ·           - A
+    ·           - B
+    ·           - C
+    ·         - Heading 3 B
+    ·           - D
+    ·           - E
+    ·           - F
+    └─`)
+})
+
 it('should print multiple messages', () => {
   let code = html`<div class="flex block" />`
   let diagnostics = [

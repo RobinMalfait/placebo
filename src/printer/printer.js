@@ -48,8 +48,8 @@ let colors = [
 // The default indentation to add some padding in the box.
 let PADDING = 3
 
-// The margin around the code
-let MARGIN = 2
+// The margin before the line numbers
+let GUTTER_WIDTH = 2
 
 let RowTypes = {
   // Code
@@ -108,34 +108,39 @@ function reportBlock(sources, diagnostics, flush) {
   let file = diagnostics[0].file
 
   let h = kleur.enabled
-    ? (input) =>
-        highlight(input, {
-          language: path.extname(file).slice(1),
-          ignoreIllegals: true,
-          theme: {
-            keyword: kleur.blue,
-            built_in: kleur.cyan,
-            type: kleur.cyan().dim,
-            literal: kleur.blue,
-            number: kleur.magenta,
-            regexp: kleur.red,
-            string: kleur.green,
-            class: kleur.blue,
-            function: kleur.yellow,
-            comment: kleur.green,
-            doctag: kleur.green,
-            meta: kleur.grey,
-            tag: kleur.grey,
-            name: kleur.blue,
-            'builtin-name': plain,
-            attr: kleur.cyan,
-            emphasis: kleur.italic,
-            strong: kleur.bold,
-            link: kleur.underline,
-            addition: kleur.green,
-            deletion: kleur.red,
-          },
-        })
+    ? (input) => {
+        try {
+          return highlight(input, {
+            language: path.extname(file).slice(1),
+            ignoreIllegals: true,
+            theme: {
+              keyword: kleur.blue,
+              built_in: kleur.cyan,
+              type: kleur.cyan().dim,
+              literal: kleur.blue,
+              number: kleur.magenta,
+              regexp: kleur.red,
+              string: kleur.green,
+              class: kleur.blue,
+              function: kleur.yellow,
+              comment: kleur.green,
+              doctag: kleur.green,
+              meta: kleur.grey,
+              tag: kleur.grey,
+              name: kleur.blue,
+              'builtin-name': plain,
+              attr: kleur.cyan,
+              emphasis: kleur.italic,
+              strong: kleur.bold,
+              link: kleur.underline,
+              addition: kleur.green,
+              deletion: kleur.red,
+            },
+          })
+        } catch (err) {
+          return input
+        }
+      }
     : (input) => input //noop
 
   let source = sources.get(file)
@@ -621,16 +626,26 @@ function reportBlock(sources, diagnostics, flush) {
         ...'NOTES:'.split('').map(kleur.bold().cyan)
       )
 
-      for (let note of notes) {
-        inject(
-          output.length,
-          RowTypes.Diagnostic,
-          ...' '.repeat(PADDING + 2),
-          kleur.dim('-'),
-          ' ',
-          ...note
-        )
+      function renderNotes(notes, level = 0) {
+        for (let note of notes) {
+          if (Array.isArray(note)) {
+            renderNotes(note, level + 1)
+          } else if (!note || note.trim() === '') {
+            inject(output.length, RowTypes.Diagnostic)
+          } else {
+            inject(
+              output.length,
+              RowTypes.Diagnostic,
+              ...' '.repeat(PADDING + 2 + level * 2),
+              kleur.dim('-'),
+              ' ',
+              ...note
+            )
+          }
+        }
       }
+
+      renderNotes(notes)
     }
   }
 
@@ -638,7 +653,7 @@ function reportBlock(sources, diagnostics, flush) {
   output = [
     // Opening block
     [
-      ...' '.repeat(gutterWidth + 1 + MARGIN),
+      ...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH),
       kleur.dim(Chars.TLSquare),
       kleur.dim(Chars.H),
       kleur.dim('['),
@@ -650,19 +665,19 @@ function reportBlock(sources, diagnostics, flush) {
       ),
       kleur.dim(']'),
     ],
-    [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.V].map(kleur.dim),
+    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.V].map(kleur.dim),
 
     // Gutter + existing output
     ...output.map((row) => {
       let { type, lineNumber } = rowInfo.get(row)
-      let emptyIndent = ' '.repeat(gutterWidth + MARGIN)
+      let emptyIndent = ' '.repeat(gutterWidth + GUTTER_WIDTH)
 
       lineNumber = (lineNumber + 1).toString().padStart(gutterWidth, ' ')
 
       return {
         [RowTypes.Code]() {
           return [
-            ...' '.repeat(MARGIN - 2),
+            ...' '.repeat(GUTTER_WIDTH - 2),
             kleur.bold().red(Chars.bigdot),
             ' ',
             ...lineNumber,
@@ -673,7 +688,7 @@ function reportBlock(sources, diagnostics, flush) {
         },
         [RowTypes.ContextLine]() {
           return [
-            ...' '.repeat(MARGIN),
+            ...' '.repeat(GUTTER_WIDTH),
             ...lineNumber.split('').map(kleur.dim),
             ' ',
             kleur.dim(Chars.V),
@@ -693,8 +708,10 @@ function reportBlock(sources, diagnostics, flush) {
     }),
 
     // Closing block
-    notes.length <= 0 ? [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.V].map(kleur.dim) : null,
-    [...' '.repeat(gutterWidth + 1 + MARGIN), Chars.BLSquare, Chars.H].map(kleur.dim),
+    notes.length <= 0
+      ? [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.V].map(kleur.dim)
+      : null,
+    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.BLSquare, Chars.H].map(kleur.dim),
   ].filter(Boolean)
 
   // Flush everything
