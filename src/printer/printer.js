@@ -45,6 +45,30 @@ let colors = [
   kleur.white,
 ].map((f) => f().bold)
 
+// TODO: We can probably optimize this algorithm, sometimes it makes more
+// sentence to push a word onto the next line even if there is enough room,
+// because that could mean that the overal length is smaller in the end. I
+// think.
+function wordWrap(text, maxWidth) {
+  let words = text.split(' ')
+  let sentence = ''
+  let sentences = []
+  for (let word of words) {
+    if (sentence.length + word.length <= maxWidth) {
+      sentence += ' ' + word
+    } else {
+      sentences.push(sentence.trim())
+      sentence = word
+    }
+  }
+
+  if (sentence.length > 0) {
+    sentences.push(sentence.trim())
+  }
+
+  return sentences
+}
+
 // The default indentation to add some padding in the box.
 let PADDING = 3
 
@@ -486,7 +510,30 @@ function reportBlock(sources, diagnostics, flush) {
 
       // Inject the message after the horizontal line
       if (!diagnostic.context || isLastDiagnosticInContext(diagnostic)) {
-        lastLine.push(' ', ...diagnostic.message.split('').map(decorate))
+        let startPosition = lastLine.length - gutterWidth + 1 + GUTTER_WIDTH + PADDING + 1
+        let lastLineOffset = lastLine.length
+        let availableSpace = env.PRINT_WIDTH - startPosition
+        if (availableSpace >= diagnostic.message.length) {
+          lastLine.push(' ', ...diagnostic.message.split('').map(decorate))
+        } else {
+          output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = decorate(Chars.TLRound)
+          output[output.indexOf(lastLine) - 1][lastLineOffset] = decorate(Chars.H)
+
+          lastLine[lastLine.length - 1] = decorate(Chars.RConnector)
+          let sentences = wordWrap(diagnostic.message, availableSpace)
+          for (let [idx, sentence] of sentences.entries()) {
+            if (idx === 0) {
+              lastLine.push(' ', ...sentence.split('').map(decorate))
+            } else {
+              lastLine.push(decorate(Chars.V), ' ', ...sentence.split('').map(decorate))
+            }
+
+            lastLine = inject(output.indexOf(lastLine) + 1, RowTypes.Diagnostic)
+            lastLine.push(...' '.repeat(lastLineOffset - 1))
+          }
+
+          lastLine.push(decorate(Chars.BLRound), decorate(Chars.H))
+        }
       }
     }
   }

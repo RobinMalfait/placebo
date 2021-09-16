@@ -6,6 +6,9 @@ module.exports.env = {
 
   // Whether or not you want syntax highlighting for the context lines
   COLOR_CONTEXT_LINES: resolveEnv('PLACEBO_COLOR_CONTEXT_LINES', Boolean, false),
+
+  // Print width to make everything fit as good as possible
+  PRINT_WIDTH: resolveEnv('PLACEBO_PRINT_WIDTH', Number, process.stdout.columns),
 }
 
 function resolveEnv(name, type, defaultValue) {

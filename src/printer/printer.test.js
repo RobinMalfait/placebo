@@ -694,6 +694,32 @@ describe('squashing', () => {
   })
 })
 
+describe('message wrapping', () => {
+  it('should render multi-line messages', () => {
+    let code = html`<div class="text-grey-200"></div>`
+    let diagnostics = [
+      diagnose(
+        'This color should be "gray" and not "grey". This is because the letter "a" has an ascii value of 97 but an "e" has an ascii value of 101. This means that "a" is cheaper to store. Lol, jk, I just need a long message here...',
+        findLocation(code, 'grey')
+      ),
+    ]
+
+    let result = magic(code, diagnostics, './example.css')
+    expect(result).toEqual(`
+    ┌─[./example.css]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·                    ─┬── ╭─
+    ·                     ╰───┤ This color should be "gray" and not "grey". This is because the
+    ·                         │ letter "a" has an ascii value of 97 but and "e" has an ascii value of
+    ·                         │ 101. This means that "a" is cheaper to store. Lol, jk, I just need a
+    ·                         │ long message here...
+    ·                         ╰─
+    │
+    └─`)
+  })
+})
+
 describe('multi-line diagnostics', () => {
   it('should be possible to print related diagnostics together spread across multiple lines (2x)', () => {
     let code = javascript`
