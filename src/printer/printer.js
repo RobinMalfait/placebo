@@ -513,6 +513,9 @@ function reportBlock(sources, diagnostics, flush) {
           return inject(idx, type)
         }
 
+        let info = rowInfo.get(output[idx])
+        info.type |= type // Add the current type to the existing type
+
         return output[idx]
       }
 
@@ -762,6 +765,15 @@ function reportBlock(sources, diagnostics, flush) {
         },
         [RowTypes.StartOfNote]() {
           return [...emptyIndent, ' ', kleur.dim(Chars.LConnector), ...row]
+        },
+        [RowTypes.ContextLine | RowTypes.Diagnostic]() {
+          return [
+            ...' '.repeat(GUTTER_WIDTH),
+            ...lineNumber.split('').map(kleur.dim),
+            ' ',
+            kleur.dim(Chars.V),
+            formatCode(row, (raw) => kleur.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
+          ]
         },
       }[type]()
     }),
