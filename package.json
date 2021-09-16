@@ -4,8 +4,8 @@
   "description": "Placebo, the beautiful diagnostics printer",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "examples:generate-readme": "node ./scripts/generate-example-readmes.js"
+    "test": "PLACEBO_PRINT_WIDTH=100 jest",
+    "examples:generate-readme": "PLACEBO_PRINT_WIDTH=100 node ./scripts/generate-example-readmes.js"
   },
   "prettier": {
     "printWidth": 100,
