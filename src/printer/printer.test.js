@@ -3,13 +3,9 @@ let printer = require('./printer')
 
 kleur.enabled = false
 
-function syntax(templates) {
-  return templates.join('')
-}
-
-let html = syntax
-let css = syntax
-let javascript = syntax
+let html = String.raw
+let css = String.raw
+let javascript = String.raw
 
 function diagnose(message, location, { notes = [], block, context } = {}) {
   return { block, context, message, loc: location, notes }
