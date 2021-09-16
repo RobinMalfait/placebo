@@ -711,10 +711,42 @@ describe('message wrapping', () => {
 ∙ 1 │   <div class="text-grey-200"></div>
     ·                    ─┬── ╭─
     ·                     ╰───┤ This color should be "gray" and not "grey". This is because the
-    ·                         │ letter "a" has an ascii value of 97 but and "e" has an ascii value of
+    ·                         │ letter "a" has an ascii value of 97 but an "e" has an ascii value of
     ·                         │ 101. This means that "a" is cheaper to store. Lol, jk, I just need a
     ·                         │ long message here...
     ·                         ╰─
+    │
+    └─`)
+  })
+
+  it('should squash context lines in multi-line messages', () => {
+    let code = html`<div>
+      <div class="text-grey-200">
+        <div></div>
+      </div>
+      <div>
+        <div></div>
+      </div>
+    </div>`
+    let diagnostics = [
+      diagnose(
+        'This color should be "gray" and not "grey". This is because the letter "a" has an ascii value of 97 but an "e" has an ascii value of 101. This means that "a" is cheaper to store. Lol, jk, I just need a long message here...',
+        findLocation(code, 'grey')
+      ),
+    ]
+
+    let result = magic(code, diagnostics, './example.css')
+    expect(result).toEqual(`
+    ┌─[./example.css]
+    │
+  1 │   <div>
+∙ 2 │         <div class="text-grey-200">
+  3 │           <div></div>    ─┬── ╭─
+  4 │         </div>            ╰───┤ This color should be "gray" and not "grey". This is because
+  5 │         <div>                 │ the letter "a" has an ascii value of 97 but an "e" has an ascii
+    ·                               │ value of 101. This means that "a" is cheaper to store. Lol, jk,
+    ·                               │ I just need a long message here...
+    ·                               ╰─
     │
     └─`)
   })

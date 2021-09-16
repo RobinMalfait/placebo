@@ -508,6 +508,14 @@ function reportBlock(sources, diagnostics, flush) {
         }
       }
 
+      function injectIfEnoughRoom(idx, start, type) {
+        if (!output[idx] || output[idx].slice(start).length > 0) {
+          return inject(idx, type)
+        }
+
+        return output[idx]
+      }
+
       // Inject the message after the horizontal line
       if (!diagnostic.context || isLastDiagnosticInContext(diagnostic)) {
         let startPosition = lastLine.length - gutterWidth + 1 + GUTTER_WIDTH + PADDING + 1
@@ -528,8 +536,12 @@ function reportBlock(sources, diagnostics, flush) {
               lastLine.push(decorate(Chars.V), ' ', ...sentence.split('').map(decorate))
             }
 
-            lastLine = inject(output.indexOf(lastLine) + 1, RowTypes.Diagnostic)
-            lastLine.push(...' '.repeat(lastLineOffset - 1))
+            lastLine = injectIfEnoughRoom(
+              output.indexOf(lastLine) + 1,
+              lastLineOffset - 1,
+              RowTypes.Diagnostic
+            )
+            lastLine[lastLineOffset - 1] = ''
           }
 
           lastLine.push(decorate(Chars.BLRound), decorate(Chars.H))
