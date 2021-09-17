@@ -710,10 +710,10 @@ describe('message wrapping', () => {
     │
 ∙ 1 │   <div class="text-grey-200"></div>
     ·                    ─┬── ╭─
-    ·                     ╰───┤ This color should be "gray" and not "grey". This is because the
-    ·                         │ letter "a" has an ascii value of 97 but an "e" has an ascii value of
-    ·                         │ 101. This means that "a" is cheaper to store. Lol, jk, I just need a
-    ·                         │ long message here...
+    ·                     ╰───┤ This color should be "gray" and not "grey". This is because
+    ·                         │ the letter "a" has an ascii value of 97 but an "e" has
+    ·                         │ an ascii value of 101. This means that "a" is cheaper
+    ·                         │ to store. Lol, jk, I just need a long message here...
     ·                         ╰─
     │
     └─`)
@@ -743,9 +743,9 @@ describe('message wrapping', () => {
 ∙ 2 │         <div class="text-grey-200">
   3 │           <div></div>    ─┬── ╭─
   4 │         </div>            ╰───┤ This color should be "gray" and not "grey". This is because
-  5 │         <div>                 │ the letter "a" has an ascii value of 97 but an "e" has an ascii
-    ·                               │ value of 101. This means that "a" is cheaper to store. Lol, jk,
-    ·                               │ I just need a long message here...
+  5 │         <div>                 │ the letter "a" has an ascii value of 97 but an "e" has
+    ·                               │ an ascii value of 101. This means that "a" is cheaper
+    ·                               │ to store. Lol, jk, I just need a long message here...
     ·                               ╰─
     │
     └─`)
