@@ -1,5 +1,5 @@
 let path = require('path')
-let kleur = require('kleur')
+let pc = require('picocolors')
 let { highlight, plain } = require('cli-highlight')
 
 let { env } = require('../env')
@@ -36,15 +36,9 @@ let Chars = {
   /* ┊ */ VSeparator: '\u250A',
 }
 
-let colors = [
-  kleur.yellow,
-  kleur.red,
-  kleur.blue,
-  kleur.green,
-  kleur.magenta,
-  kleur.cyan,
-  kleur.white,
-].map((f) => f().bold)
+let colors = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan, pc.white].map(
+  (f) => (v) => pc.bold(f(v))
+)
 
 // The default indentation to add some padding in the box.
 let PADDING = 3
@@ -108,34 +102,34 @@ function reportBlock(sources, diagnostics, flush) {
   // cross those file boundaries so that is going to be interesting...
   let file = diagnostics[0].file
 
-  let h = kleur.enabled
+  let h = pc.isColorSupported
     ? (input) => {
         try {
           return highlight(input, {
             language: path.extname(file).slice(1),
             ignoreIllegals: true,
             theme: {
-              keyword: kleur.blue,
-              built_in: kleur.cyan,
-              type: kleur.cyan().dim,
-              literal: kleur.blue,
-              number: kleur.magenta,
-              regexp: kleur.red,
-              string: kleur.green,
-              class: kleur.blue,
-              function: kleur.yellow,
-              comment: kleur.green,
-              doctag: kleur.green,
-              meta: kleur.grey,
-              tag: kleur.grey,
-              name: kleur.blue,
+              keyword: pc.blue,
+              built_in: pc.cyan,
+              type: (v) => pc.cyan(pc.dim(v)),
+              literal: pc.blue,
+              number: pc.magenta,
+              regexp: pc.red,
+              string: pc.green,
+              class: pc.blue,
+              function: pc.yellow,
+              comment: pc.green,
+              doctag: pc.green,
+              meta: pc.grey,
+              tag: pc.grey,
+              name: pc.blue,
               'builtin-name': plain,
-              attr: kleur.cyan,
-              emphasis: kleur.italic,
-              strong: kleur.bold,
-              link: kleur.underline,
-              addition: kleur.green,
-              deletion: kleur.red,
+              attr: pc.cyan,
+              emphasis: pc.italic,
+              strong: pc.bold,
+              link: pc.underline,
+              addition: pc.green,
+              deletion: pc.red,
             },
           })
         } catch (err) {
@@ -502,7 +496,7 @@ function reportBlock(sources, diagnostics, flush) {
         let lastLineOffset = lastLine.length
         let availableSpace = env.PRINT_WIDTH - startPosition
         if (availableSpace >= diagnostic.message.length) {
-          lastLine.push(' ', ...diagnostic.message.split('').map(decorate))
+          lastLine.push(' ', ...diagnostic.message.split('').map((v) => decorate(v)))
         } else {
           output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = decorate(Chars.TLRound)
           output[output.indexOf(lastLine) - 1][lastLineOffset] = decorate(Chars.H)
@@ -511,9 +505,9 @@ function reportBlock(sources, diagnostics, flush) {
           let sentences = wordWrap(diagnostic.message, availableSpace)
           for (let [idx, sentence] of sentences.entries()) {
             if (idx === 0) {
-              lastLine.push(' ', ...sentence.split('').map(decorate))
+              lastLine.push(' ', ...sentence.split('').map((v) => decorate(v)))
             } else {
-              lastLine.push(decorate(Chars.V), ' ', ...sentence.split('').map(decorate))
+              lastLine.push(decorate(Chars.V), ' ', ...sentence.split('').map((v) => decorate(v)))
             }
 
             lastLine = injectIfEnoughRoom(
@@ -644,7 +638,7 @@ function reportBlock(sources, diagnostics, flush) {
       inject(output.length, RowTypes.Diagnostic)
     }
 
-    inject(output.length, RowTypes.StartOfNote, kleur.dim(Chars.H))
+    inject(output.length, RowTypes.StartOfNote, pc.dim(Chars.H))
 
     if (notes.length === 1) {
       for (let note of notes) {
@@ -652,7 +646,7 @@ function reportBlock(sources, diagnostics, flush) {
           output.length,
           RowTypes.Diagnostic,
           ...' '.repeat(PADDING),
-          ...'NOTE:'.split('').map(kleur.bold().cyan),
+          ...'NOTE:'.split('').map((v) => pc.bold(pc.cyan(v))),
           ' ',
           ...note
         )
@@ -662,7 +656,7 @@ function reportBlock(sources, diagnostics, flush) {
         output.length,
         RowTypes.Diagnostic,
         ...' '.repeat(PADDING),
-        ...'NOTES:'.split('').map(kleur.bold().cyan)
+        ...'NOTES:'.split('').map((v) => pc.bold(pc.cyan(v)))
       )
 
       function renderNotes(notes, level = 0) {
@@ -676,7 +670,7 @@ function reportBlock(sources, diagnostics, flush) {
               output.length,
               RowTypes.Diagnostic,
               ...' '.repeat(PADDING + 2 + level * 2),
-              kleur.dim('-'),
+              pc.dim('-'),
               ' ',
               ...note
             )
@@ -693,18 +687,18 @@ function reportBlock(sources, diagnostics, flush) {
     // Opening block
     [
       ...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH),
-      kleur.dim(Chars.TLSquare),
-      kleur.dim(Chars.H),
-      kleur.dim('['),
-      kleur.bold(
+      pc.dim(Chars.TLSquare),
+      pc.dim(Chars.H),
+      pc.dim('['),
+      pc.bold(
         ((relative) =>
           relative.startsWith('.') || relative.startsWith('/') ? relative : `./${relative}`)(
           path.relative(process.cwd(), path.resolve(file))
         )
       ),
-      kleur.dim(']'),
+      pc.dim(']'),
     ],
-    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.V].map(kleur.dim),
+    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.V].map((v) => pc.dim(v)),
 
     // Gutter + existing output
     ...output.map((row) => {
@@ -717,39 +711,39 @@ function reportBlock(sources, diagnostics, flush) {
         [RowTypes.Code]() {
           return [
             ...' '.repeat(GUTTER_WIDTH - 2),
-            kleur.bold().red(Chars.bigdot),
+            pc.bold(pc.red(Chars.bigdot)),
             ' ',
             ...lineNumber,
             ' ',
-            kleur.dim(Chars.V),
+            pc.dim(Chars.V),
             formatCode(row, (raw) => h(raw)),
           ]
         },
         [RowTypes.ContextLine]() {
           return [
             ...' '.repeat(GUTTER_WIDTH),
-            ...lineNumber.split('').map(kleur.dim),
+            ...lineNumber.split('').map((v) => pc.dim(v)),
             ' ',
-            kleur.dim(Chars.V),
-            formatCode(row, (raw) => kleur.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
+            pc.dim(Chars.V),
+            formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
           ]
         },
         [RowTypes.Diagnostic]() {
-          return [...emptyIndent, ' ', kleur.dim(Chars.dot), ...row]
+          return [...emptyIndent, ' ', pc.dim(Chars.dot), ...row]
         },
         [RowTypes.LineNumberSeparator]() {
-          return [...emptyIndent, ' ', kleur.dim(Chars.VSeparator), ...row]
+          return [...emptyIndent, ' ', pc.dim(Chars.VSeparator), ...row]
         },
         [RowTypes.StartOfNote]() {
-          return [...emptyIndent, ' ', kleur.dim(Chars.LConnector), ...row]
+          return [...emptyIndent, ' ', pc.dim(Chars.LConnector), ...row]
         },
         [RowTypes.ContextLine | RowTypes.Diagnostic]() {
           return [
             ...' '.repeat(GUTTER_WIDTH),
-            ...lineNumber.split('').map(kleur.dim),
+            ...lineNumber.split('').map((v) => pc.dim(v)),
             ' ',
-            kleur.dim(Chars.V),
-            formatCode(row, (raw) => kleur.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
+            pc.dim(Chars.V),
+            formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
           ]
         },
       }[type]()
@@ -757,9 +751,9 @@ function reportBlock(sources, diagnostics, flush) {
 
     // Closing block
     notes.length <= 0
-      ? [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.V].map(kleur.dim)
+      ? [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.V].map((v) => pc.dim(v))
       : null,
-    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.BLSquare, Chars.H].map(kleur.dim),
+    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.BLSquare, Chars.H].map((v) => pc.dim(v)),
   ].filter(Boolean)
 
   // Flush everything

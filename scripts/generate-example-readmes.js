@@ -1,8 +1,5 @@
 let fs = require('fs/promises')
 let path = require('path')
-let kleur = require('kleur')
-
-kleur.enabled = false
 
 let root = process.cwd()
 

@@ -1,7 +1,4 @@
-let kleur = require('kleur')
 let printer = require('./printer')
-
-kleur.enabled = false
 
 let html = String.raw
 let css = String.raw
@@ -348,6 +345,7 @@ it('should be possible to print messages across different lines', () => {
     <span class="bg-never-500"></span>
     <span class="bg-give-500"></span>
   `
+
   let diagnostics = [
     diagnose('gonna', findLocation(code, 'never')),
     diagnose('you up', findLocation(code, 'give')),
@@ -897,7 +895,7 @@ describe('multi-line diagnostics', () => {
     └─`)
   })
 
-  it.skip('should be possible to print multiple related diagnostics together spread across multiple lines', () => {
+  xit('should be possible to print multiple related diagnostics together spread across multiple lines', () => {
     let code = `
       a b c d e f g
       These lines are connected
