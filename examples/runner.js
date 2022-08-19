@@ -1,11 +1,11 @@
 let fs = require('fs')
 let path = require('path')
 
-let { printer } = require('./src')
+let { printer } = require('../src')
 
-let css = require('./examples/css/diagnostics.js')
-let js = require('./examples/javascript/diagnostics.js')
-let html = require('./examples/tailwind/diagnostics.js')
+let css = require('./css/diagnostics.js')
+let js = require('./javascript/diagnostics.js')
+let html = require('./tailwind/diagnostics.js')
 
 let filePaths = process.argv.slice(2)
 if (filePaths.length <= 0) {
