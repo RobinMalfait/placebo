@@ -77,7 +77,6 @@ A beautiful new language agnostic diagnostics printer!
 
 <summary>The actual diagnostics input for this readme can be found here.</summary>
 
-
 ```json
 [
   {
@@ -189,7 +188,6 @@ A beautiful new language agnostic diagnostics printer!
 
 </details>
 
-
 <img src="./images/example-screenshot.png" />
 
 ---
@@ -197,7 +195,6 @@ A beautiful new language agnostic diagnostics printer!
 **Note**, this is still in active development. Currently there is no real API
 to use it yet, the diagnostics format can still change, and we may or may not
 want to introduce configuration options.
-
 
 ### Examples
 
