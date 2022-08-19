@@ -12,7 +12,7 @@ let sources = new Map([[file, source]])
 let executed = module.parent === null
 
 async function run(flush = console.log) {
-  printer(sources, await diagnostics(source, { file }), flush)
+  printer(sources, diagnostics(source, { file }), flush)
 }
 
 if (executed) {
