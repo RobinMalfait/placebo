@@ -659,7 +659,7 @@ function reportBlock(sources, diagnostics, flush) {
             inject(output.length, RowTypes.Diagnostic)
           } else {
             // Starting with a number like "1."
-            if (/\d*\./.test(note)) {
+            if (/^\d*\./.test(note)) {
               let [, number, rest] = note.split(/(\d*\.)\s*(.*)/)
               inject(
                 output.length,
