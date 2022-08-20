@@ -6,9 +6,8 @@ let { env } = require('../env')
 let { range } = require('../utils/range')
 let { wordWrap } = require('../utils/word-wrap')
 
-
 let Chars = require('./char-maps/fancy')
-
+let WITH_COLOR = pc.isColorSupported
 let SuperScriptMap = {
   0: '⁰',
   1: '¹',
@@ -54,7 +53,7 @@ function formatCode(row, highlightCode) {
   let joined = ''
   for (let char of row) joined += char ?? ' '
 
-  // A list of "off" escapes: All attributes off, bold off, undefline off,
+  // A list of "off" escapes: All attributes off, bold off, underline off,
   // blink off, default foreground, default background
   // let offs = /((?:\x1B\[0m|\x1B\[21m|\x1B\[24m|\x1B\[25m|\x1B\[39m|\x1B\[49m)+)/g
   let offs = ['\x1B[0m', '\x1B[21m', '\x1B[24m', '\x1B[25m', '\x1B[39m', '\x1B[49m']
@@ -90,7 +89,7 @@ function reportBlock(sources, diagnostics, flush) {
   // cross those file boundaries so that is going to be interesting...
   let file = diagnostics[0].file
 
-  let h = pc.isColorSupported
+  let h = WITH_COLOR
     ? (input) => {
         try {
           return highlight(input, {
