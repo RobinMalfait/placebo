@@ -60,16 +60,50 @@ A beautiful new language agnostic diagnostics printer!
 ```
      ┌─[./README.md]
      │
-∙ 25 │   Last but not least, we have the `notes` feature. You can add notes to your
+∙ 25 │   We can also write messages that are very long.
+     ·                                       ────┬──── ╭─
+     ·                                           ╰─────┤ Like this message. We have a lot to
+     ·                                                 │ say here so it might not be ideal if
+     ·                                                 │ everything was just written on the same
+     ·                                                 │ line. Instead we will use the width of your
+     ·                                                 │ terminal to decide when to start wrapping.
+     ·                                                 ╰─
+     │
+     └─
+```
+
+```
+     ┌─[./README.md]
+     │
+∙ 29 │   Last but not least, we have the `notes` feature. You can add notes to your
      ·                                   ───┬────
      ·                                      ╰────── This diagnostic contains some notes.
      ·
-  26 │   diagnostics if you want to provide even more information.
+  30 │   diagnostics if you want to provide even more information.
      ·
      ├─
      ·   NOTES:
      ·     - This note can contain more information about the specific diagnostic.
      ·     - What do you think? More info at https://github.com/RobinMalfait/placebo!
+     └─
+```
+
+```
+     ┌─[./README.md]
+     │
+  34 │   Oh, and we can also add notes to different diagnostics within the same block. We can do this by
+∙ 35 │   adding superscript indicators next to each message and before each note. This allows you to visually
+     ·          ──────────┬─────────── ─┬──
+     ·                    │             ╰──── This will also have a note⁽¹⁾
+     ·                    ╰────────────────── This is an example of the superscript indicator⁽²⁾
+     ·
+  36 │   see which note belongs to which diagnostic.
+     ·
+     ├─
+     ·   NOTES:
+     ·     1. This note belongs to the other diagnostic
+     ·     2. This note belongs to the superscript indicator.
+     ·     2. This note also belongs to the superscript indicator.
      └─
 ```
 
@@ -80,107 +114,133 @@ A beautiful new language agnostic diagnostics printer!
 ```json
 [
   {
-    "block": "7A6B0B17-EFBE-4CCB-8E48-9462D8128BD6",
-    "file": "./README.md",
+    "file": "README.md",
     "message": "A beautiful new language agnostic diagnostics printer!",
     "loc": {
-      "row": 0,
-      "col": 8,
+      "row": 1,
+      "col": 9,
       "len": 8
-    },
-    "notes": []
+    }
   },
   {
-    "block": "94B410B6-A139-41FB-A9F5-F74E6229F459",
-    "file": "./README.md",
+    "file": "README.md",
     "message": "Messages will be rendered",
     "loc": {
-      "row": 5,
-      "col": 32,
+      "row": 6,
+      "col": 33,
       "len": 8
     },
-    "notes": []
+    "block": "70304f08-0d29-4634-a659-06ae8bfb7d8e"
   },
   {
-    "block": "94B410B6-A139-41FB-A9F5-F74E6229F459",
-    "file": "./README.md",
+    "file": "README.md",
     "message": "underneath eachother just",
     "loc": {
-      "row": 5,
-      "col": 23,
+      "row": 6,
+      "col": 24,
       "len": 8
     },
-    "notes": []
+    "block": "70304f08-0d29-4634-a659-06ae8bfb7d8e"
   },
   {
-    "block": "94B410B6-A139-41FB-A9F5-F74E6229F459",
-    "file": "./README.md",
+    "file": "README.md",
     "message": "like the messages you see here.",
     "loc": {
-      "row": 5,
-      "col": 14,
+      "row": 6,
+      "col": 15,
       "len": 8
     },
-    "notes": []
+    "block": "70304f08-0d29-4634-a659-06ae8bfb7d8e"
   },
   {
-    "block": "740B3267-B481-4AEE-A72C-96DDAA06F633",
-    "file": "./README.md",
+    "file": "README.md",
     "message": "You wrote `the` twice!",
     "loc": {
-      "row": 11,
-      "col": 27,
+      "row": 12,
+      "col": 28,
       "len": 3
     },
-    "notes": []
+    "block": "288a9911-a541-40fc-8d91-0769d61bfc7d"
   },
   {
-    "block": "740B3267-B481-4AEE-A72C-96DDAA06F633",
-    "file": "./README.md",
+    "file": "README.md",
     "message": "You wrote `the` twice!",
     "loc": {
-      "row": 11,
-      "col": 31,
+      "row": 12,
+      "col": 32,
       "len": 3
     },
-    "notes": []
+    "block": "288a9911-a541-40fc-8d91-0769d61bfc7d"
   },
   {
-    "block": "4DE8B3B8-C418-4F8D-B6D1-8E09A2BC8507",
-    "context": "0A8B6E18-8CB1-49A0-A70C-E6DAF3907FA3",
-    "file": "./README.md",
+    "file": "README.md",
     "message": "Yay, found my `context` friends!",
     "loc": {
-      "row": 17,
-      "col": 64,
+      "row": 18,
+      "col": 65,
       "len": 9
     },
-    "notes": []
+    "block": "7e5172ec-5602-46f3-b1d8-43f88a58e008",
+    "context": "eb2a53ff-5cfe-4199-86ee-e5da4e997597"
   },
   {
-    "block": "4DE8B3B8-C418-4F8D-B6D1-8E09A2BC8507",
-    "context": "0A8B6E18-8CB1-49A0-A70C-E6DAF3907FA3",
-    "file": "./README.md",
+    "file": "README.md",
     "message": "Yay, found my `context` friends!",
     "loc": {
-      "row": 20,
-      "col": 0,
+      "row": 21,
+      "col": 1,
       "len": 9
     },
-    "notes": []
+    "block": "7e5172ec-5602-46f3-b1d8-43f88a58e008",
+    "context": "eb2a53ff-5cfe-4199-86ee-e5da4e997597"
   },
   {
-    "block": "50F4FF45-EF2A-48EC-B14C-DA17C260EFD5",
-    "file": "./README.md",
+    "file": "README.md",
+    "message": "Like this message. We have a lot to say here so it might not be ideal if everything was just written on the same line. Instead we will use the width of your terminal to decide when to start wrapping.",
+    "loc": {
+      "row": 25,
+      "col": 37,
+      "len": 9
+    }
+  },
+  {
+    "file": "README.md",
     "message": "This diagnostic contains some notes.",
     "loc": {
-      "row": 24,
-      "col": 32,
+      "row": 29,
+      "col": 33,
       "len": 8
     },
     "notes": [
       "This note can contain more information about the specific diagnostic.",
       "What do you think? More info at https://github.com/RobinMalfait/placebo!"
+    ]
+  },
+  {
+    "file": "README.md",
+    "message": "This is an example of the superscript indicator",
+    "loc": {
+      "row": 35,
+      "col": 8,
+      "len": 22
+    },
+    "block": "8c9faddb-49f4-4a72-8df5-9316b14ff542",
+    "notes": [
+      "This note belongs to the superscript indicator.",
+      "This note also belongs to the superscript indicator."
+    ]
+  },
+  {
+    "file": "README.md",
+    "message": "This will also have a note",
+    "loc": {
+      "row": 35,
+      "col": 31,
+      "len": 4
+    },
+    "block": "8c9faddb-49f4-4a72-8df5-9316b14ff542",
+    "notes": [
+      "This note belongs to the other diagnostic"
     ]
   }
 ]
