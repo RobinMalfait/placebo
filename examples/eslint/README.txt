@@ -4,7 +4,7 @@
 ∙ 1 │   let abc = '123'
   2 │       ─┬─        ┬
     ·        │         ╰── Missing semicolon.⁽¹⁾
-    ·        ╰──────────── 'abc' is assigned a value but never used.⁽³⁾
+    ·        ├──────────── 'abc' is assigned a value but never used.⁽³⁾
     ·        ╰──────────── 'abc' is never reassigned. Use 'const' instead.⁽²⁾
     ·
   3 │   function   hello() {
