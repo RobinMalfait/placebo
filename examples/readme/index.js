@@ -7,7 +7,7 @@ let { printer } = require('../../src')
 let file = path.resolve(__dirname, './code.md')
 
 let source = fs.readFileSync(file, 'utf8')
-let sources = new Map([[file, source]])
+let sources = new Map([['README.md', source]])
 
 let executed = module.parent === null
 

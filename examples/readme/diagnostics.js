@@ -1,6 +1,8 @@
 let { randomUUID } = require('crypto')
 
-module.exports = function run(source, { file }) {
+module.exports = function run(source) {
+  let file = 'README.md'
+
   function group(...diagnostics) {
     let id = randomUUID()
     return diagnostics.map((diagnostic) => ({ ...diagnostic, block: id }))
