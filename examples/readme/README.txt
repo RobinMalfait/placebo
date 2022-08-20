@@ -47,14 +47,44 @@
 
      ┌─[./examples/readme/code.md]
      │
-∙ 25 │   Last but not least, we have the `notes` feature. You can add notes to your
+∙ 25 │   We can also write messages that are very long.
+     ·                                       ────┬──── ╭─
+     ·                                           ╰─────┤ Like this message. We have a lot to
+     ·                                                 │ say here so it might not be ideal if
+     ·                                                 │ everything was just written on the same
+     ·                                                 │ line. Instead we will use the width of your
+     ·                                                 │ terminal to decide when to start wrapping.
+     ·                                                 ╰─
+     │
+     └─
+
+     ┌─[./examples/readme/code.md]
+     │
+∙ 29 │   Last but not least, we have the `notes` feature. You can add notes to your
      ·                                   ───┬────
      ·                                      ╰────── This diagnostic contains some notes.
      ·
-  26 │   diagnostics if you want to provide even more information.
+  30 │   diagnostics if you want to provide even more information.
      ·
      ├─
      ·   NOTES:
      ·     - This note can contain more information about the specific diagnostic.
      ·     - What do you think? More info at https://github.com/RobinMalfait/placebo!
+     └─
+
+     ┌─[./examples/readme/code.md]
+     │
+  34 │   Oh, and we can also add notes to different diagnostics within the same block. We can do this by
+∙ 35 │   adding superscript indicators next to each message and before each note. This allows you to visually
+     ·          ──────────┬─────────── ─┬──
+     ·                    │             ╰──── This will also have a note⁽¹⁾
+     ·                    ╰────────────────── This is an example of the superscript indicator⁽²⁾
+     ·
+  36 │   see which note belongs to which diagnostic.
+     ·
+     ├─
+     ·   NOTES:
+     ·     1. This note belongs to the other diagnostic
+     ·     2. This note belongs to the superscript indicator.
+     ·     2. This note also belongs to the superscript indicator.
      └─
