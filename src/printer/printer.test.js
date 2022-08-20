@@ -30,7 +30,7 @@ function magic(source, diagnostics = [], file = './example.txt') {
     collector
   )
 
-  return '\n' + lines.join('\n')
+  return lines.join('\n').trimEnd()
 }
 
 it('should print a message', () => {
