@@ -5,30 +5,39 @@ module.exports = function run(source, { file }) {
 
   let block = randomUUID()
   for (let [rowIdx, row] of source.split('\n').entries()) {
-    if (row.match(/(\w*)\s*([-+/*])\s*(\2*)/g)) {
+    if (row.match(/=\s*(\w*)\s*([-+/*])\s*(\2*)/g)) {
       let [_, lhs, operator, rhs] = /(\w*)\s*([-+/*])\s*(\w*)/g.exec(row)
       let offset = row.indexOf(_)
 
       let [lhsType, lhsDefintionLocation] = (() => {
         let lhsLineIdx = source.split('\n').findIndex((line) => line.includes(`let ${lhs} `))
         let lhsLine = source.split('\n')[lhsLineIdx]
-        let [_, lhsName, lhsValue] = /let (\w*) = (['"`]?\w*['"`]?)/.exec(lhsLine)
-        if (Number(lhsValue.trim()).toString() === lhsValue.trim()) {
-          return ['number', location(lhsLineIdx, lhsLine.indexOf(lhsValue), lhsValue.length)]
+        let match = /let (\w*) = (['"`]?\w*['"`]?)/.exec(lhsLine)
+        if (match) {
+          let [, , lhsValue] = match
+          if (Number(lhsValue.trim()).toString() === lhsValue.trim()) {
+            return ['number', location(lhsLineIdx, lhsLine.indexOf(lhsValue), lhsValue.length)]
+          }
+
+          return ['string', location(lhsLineIdx, lhsLine.indexOf(lhsValue), lhsValue.length)]
         }
 
-        return ['string', location(lhsLineIdx, lhsLine.indexOf(lhsValue), lhsValue.length)]
+        return []
       })()
 
       let [rhsType, rhsDefintionLocation] = (() => {
         let rhsLineIdx = source.split('\n').findIndex((line) => line.includes(`let ${rhs} `))
         let rhsLine = source.split('\n')[rhsLineIdx]
-        let [_, rhsName, rhsValue] = /let (\w*) = (['"`]?\w*['"`]?)/.exec(rhsLine)
-        if (Number(rhsValue.trim()).toString() === rhsValue.trim()) {
-          return ['number', location(rhsLineIdx, rhsLine.indexOf(rhsValue), rhsValue.length)]
-        }
+        let match = /let (\w*) = (['"`]?\w*['"`]?)/.exec(rhsLine)
+        if (match) {
+          let [, , rhsValue] = match
+          if (Number(rhsValue.trim()).toString() === rhsValue.trim()) {
+            return ['number', location(rhsLineIdx, rhsLine.indexOf(rhsValue), rhsValue.length)]
+          }
 
-        return ['string', location(rhsLineIdx, rhsLine.indexOf(rhsValue), rhsValue.length)]
+          return ['string', location(rhsLineIdx, rhsLine.indexOf(rhsValue), rhsValue.length)]
+        }
+        return []
       })()
 
       let messagesByOperator = {
