@@ -5,7 +5,7 @@ A beautiful new language agnostic diagnostics printer!
 ```
     ┌─[./README.md]
     │
-> 1 │   What is Placebo?
+∙ 1 │   What is Placebo?
     ·           ───┬────
     ·              ╰────── A beautiful new language agnostic diagnostics printer!
     │
@@ -16,7 +16,7 @@ A beautiful new language agnostic diagnostics printer!
     ┌─[./README.md]
     │
   5 │   It will also add these context lines, to get more insight about your code.
-> 6 │   It can render multiple messages together.
+∙ 6 │   It can render multiple messages together.
     ·                 ───┬──── ───┬──── ───┬────
     ·                    │        │        ╰────── Messages will be rendered
     ·                    │        ╰─────────────── underneath eachother just
@@ -31,7 +31,7 @@ A beautiful new language agnostic diagnostics printer!
 ```
      ┌─[./README.md]
      │
-> 12 │   Sometimes you want to show the the same message on the same line. If the same
+∙ 12 │   Sometimes you want to show the the same message on the same line. If the same
      ·                              ─┬─ ─┬─
      ·                               ╰───┴─── You wrote `the` twice!
      ·
@@ -44,13 +44,13 @@ A beautiful new language agnostic diagnostics printer!
 ```
      ┌─[./README.md]
      │
-> 18 │    It is also possible to group related diagnostics together via a `context`
+∙ 18 │    It is also possible to group related diagnostics together via a `context`
      ·                                                                    ────┬────
      · ╭──────────────────────────────────────────────────────────────────────╯
      · │
   19 │ │  property. This is a unique identifier per `block`. This will be useful, if you
   20 │ │  have some diagnostics that are located further away from eachother. The same
-> 21 │ │  `context` will be your friend here.
+∙ 21 │ │  `context` will be your friend here.
      · │  ────┬────
      · ╰──────┴────── Yay, found my `context` friends!
      │
@@ -60,7 +60,7 @@ A beautiful new language agnostic diagnostics printer!
 ```
      ┌─[./README.md]
      │
-> 25 │   Last but not least, we have the `notes` feature. You can add notes to your
+∙ 25 │   Last but not least, we have the `notes` feature. You can add notes to your
      ·                                   ───┬────
      ·                                      ╰────── This diagnostic contains some notes.
      ·
