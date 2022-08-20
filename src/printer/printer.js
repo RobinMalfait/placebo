@@ -36,6 +36,19 @@ let Chars = {
   /* ┊ */ VSeparator: '\u250A',
 }
 
+let SuperScriptMap = {
+  0: '⁰',
+  1: '¹',
+  2: '²',
+  3: '³',
+  4: '⁴',
+  5: '⁵',
+  6: '⁶',
+  7: '⁷',
+  8: '⁸',
+  9: '⁹',
+}
+
 let colors = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan, pc.white].map(
   (f) => (v) => pc.bold(f(v))
 )
@@ -851,13 +864,21 @@ function visuallyLinkNotesToDiagnostics(diagnostics) {
       .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)) {
       if (diagnostic.notes?.length > 0) {
         let myCount = ++count
-        diagnostic.message = `${diagnostic.message} (${myCount})`
+        diagnostic.message = `${diagnostic.message}${superScript(myCount)}`
         for (let i = 0; i < diagnostic.notes.length; i++) {
-          diagnostic.notes[i] = `${diagnostic.notes[i]} (${myCount})`
+          diagnostic.notes[i] = `${superScript(myCount)}${diagnostic.notes[i]}`
         }
       }
     }
   }
 
   return diagnostics
+}
+
+function superScript(n) {
+  return n
+    .toString()
+    .split('')
+    .map((c) => SuperScriptMap[c])
+    .join('')
 }
