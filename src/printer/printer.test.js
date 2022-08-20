@@ -266,14 +266,14 @@ it('should print multiple messages with multiple notes', () => {
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
-    ·                │     ╰──── Message 2¹
-    ·                ╰────────── Message 1²
+    ·                │     ╰──── Message 2⁽¹⁾
+    ·                ╰────────── Message 1⁽²⁾
     ·
     ├─
     ·   NOTES:
-    ·     - ¹I am also a note
-    ·     - ¹With another note
-    ·     - ²I am a note
+    ·     1. I am also a note
+    ·     1. With another note
+    ·     2. I am a note
     └─`)
 })
 
@@ -460,16 +460,16 @@ it('should be possible to print messages across different lines and group them i
     │
 ∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
-    ·                     ╰──── gonna¹
+    ·                     ╰──── gonna⁽¹⁾
     ·
 ∙ 3 │   <span class="bg-give-500"></span>
     ·                   ─┬──
-    ·                    ╰──── you up²
+    ·                    ╰──── you up⁽²⁾
     ·
     ├─
     ·   NOTES:
-    ·     - ¹I am a note from message 1
-    ·     - ²I am a note from message 2
+    ·     1. I am a note from message 1
+    ·     2. I am a note from message 2
     └─`)
 })
 

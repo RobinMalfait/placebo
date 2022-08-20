@@ -47,6 +47,8 @@ let SuperScriptMap = {
   7: '⁷',
   8: '⁸',
   9: '⁹',
+  '(': '⁽',
+  ')': '⁾',
 }
 
 let colors = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan, pc.white].map(
@@ -684,14 +686,30 @@ function reportBlock(sources, diagnostics, flush) {
           } else if (!note || note.trim() === '') {
             inject(output.length, RowTypes.Diagnostic)
           } else {
-            inject(
-              output.length,
-              RowTypes.Diagnostic,
-              ...' '.repeat(PADDING + 2 + level * 2),
-              pc.dim('-'),
-              ' ',
-              ...decorate(note)
-            )
+            // Starting with a number like "1."
+            if (/\d*\./.test(note)) {
+              let [, number, rest] = note.split(/(\d*\.)\s*(.*)/)
+              inject(
+                output.length,
+                RowTypes.Diagnostic,
+                ...' '.repeat(PADDING + 2 + level * 2),
+                pc.dim(number),
+                ' ',
+                ...decorate(rest)
+              )
+            }
+
+            // Not starting with a number, just use `- {...note}`
+            else {
+              inject(
+                output.length,
+                RowTypes.Diagnostic,
+                ...' '.repeat(PADDING + 2 + level * 2),
+                pc.dim('-'),
+                ' ',
+                ...decorate(note)
+              )
+            }
           }
         }
       }
@@ -881,9 +899,9 @@ function visuallyLinkNotesToDiagnostics(diagnostics) {
       .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)) {
       if (diagnostic.notes?.length > 0) {
         let myCount = ++count
-        diagnostic.message = `${diagnostic.message}${superScript(myCount)}`
+        diagnostic.message = `${diagnostic.message}${superScript(`(${myCount})`)}`
         for (let i = 0; i < diagnostic.notes.length; i++) {
-          diagnostic.notes[i].note = `${superScript(myCount)}${diagnostic.notes[i].note}`
+          diagnostic.notes[i].note = `${myCount}. ${diagnostic.notes[i].note}`
         }
       }
     }
