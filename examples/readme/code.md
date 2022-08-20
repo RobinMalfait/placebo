@@ -22,5 +22,16 @@ have some diagnostics that are located further away from eachother. The same
 
 
 
+We can also write messages that are very long.
+
+
+
 Last but not least, we have the `notes` feature. You can add notes to your
 diagnostics if you want to provide even more information.
+
+
+
+Oh, and we can also add notes to different diagnostics within the same block. We can do this by
+adding superscript indicators next to each message and before each note. This allows you to visually
+see which note belongs to which diagnostic.
+

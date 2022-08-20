@@ -34,11 +34,26 @@ module.exports = function run(source, { file }) {
         diagnose('Yay, found my `context` friends!', location(21, 1, 9))
       )
     ),
-    diagnose('This diagnostic contains some notes.', location(25, 33, 8), {
+    diagnose(
+      'Like this message. We have a lot to say here so it might not be ideal if everything was just written on the same line. Instead we will use the width of your terminal to decide when to start wrapping.',
+      location(25, 37, 9)
+    ),
+    diagnose('This diagnostic contains some notes.', location(29, 33, 8), {
       notes: [
         'This note can contain more information about the specific diagnostic.',
         'What do you think? More info at https://github.com/RobinMalfait/placebo!',
       ],
     }),
+    ...group(
+      diagnose('This is an example of the superscript indicator', location(35, 8, 22), {
+        notes: [
+          'This note belongs to the superscript indicator.',
+          'This note also belongs to the superscript indicator.',
+        ],
+      }),
+      diagnose('This will also have a note', location(35, 31, 4), {
+        notes: ['This note belongs to the other diagnostic'],
+      })
+    ),
   ]
 }
