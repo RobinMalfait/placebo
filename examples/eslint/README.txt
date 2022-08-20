@@ -2,17 +2,17 @@
     │
 ∙ 1 │   let abc = '123'
   2 │       ─┬─        ┬
-    ·        │         ╰── Missing semicolon. (1)
-    ·        ╰──────────── 'abc' is assigned a value but never used. (3)
-    ·        ╰──────────── 'abc' is never reassigned. Use 'const' instead. (2)
+    ·        │         ╰── Missing semicolon.¹
+    ·        ╰──────────── 'abc' is assigned a value but never used.³
+    ·        ╰──────────── 'abc' is never reassigned. Use 'const' instead.²
     ·
   3 │   function   hello() {
     ·
     ├─
     ·   NOTES:
-    ·     - semi (1)
-    ·     - prefer-const (2)
-    ·     - no-unused-vars (3)
+    ·     - ¹semi
+    ·     - ²prefer-const
+    ·     - ³no-unused-vars
     └─
 
     ┌─[./examples/eslint/code.js]
@@ -21,17 +21,17 @@
   2 │
 ∙ 3 │   function   hello() {
   4 │           ─┬───┬──   ┬
-  5 │            │   │     ╰── Block must not be padded by blank lines. (1)
-    ·            │   ╰──────── 'hello' is defined but never used. (2)
-    ·            ╰──────────── Multiple spaces found before 'hello'. (3)
+  5 │            │   │     ╰── Block must not be padded by blank lines.¹
+    ·            │   ╰──────── 'hello' is defined but never used.²
+    ·            ╰──────────── Multiple spaces found before 'hello'.³
     ·
   6 │         return "sup"
     ·
     ├─
     ·   NOTES:
-    ·     - padded-blocks (1)
-    ·     - no-unused-vars (2)
-    ·     - no-multi-spaces (3)
+    ·     - ¹padded-blocks
+    ·     - ²no-unused-vars
+    ·     - ³no-multi-spaces
     └─
 
     ┌─[./examples/eslint/code.js]
@@ -56,17 +56,17 @@
   5 │
 ∙ 6 │         return "sup"
     ·   ──┬───       ──┬──┬
-    ·     │            │  ╰── Missing semicolon. (1)
-    ·     │            ╰───── Strings must use singlequote. (2)
-    ·     ╰────────────────── Expected indentation of 2 spaces but found 6. (3)
+    ·     │            │  ╰── Missing semicolon.¹
+    ·     │            ╰───── Strings must use singlequote.²
+    ·     ╰────────────────── Expected indentation of 2 spaces but found 6.³
     ·
   7 │     }
     ·
     ├─
     ·   NOTES:
-    ·     - semi (1)
-    ·     - quotes (2)
-    ·     - indent (3)
+    ·     - ¹semi
+    ·     - ²quotes
+    ·     - ³indent
     └─
 
     ┌─[./examples/eslint/code.js]
