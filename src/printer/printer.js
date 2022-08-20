@@ -830,10 +830,11 @@ module.exports = function (sources, diagnostics, flush = console.log) {
 
   // Report per block, that will be cleaner from a UI perspective
   let blocks = Array.from(grouped.values())
-  for (let [idx, diagnostics] of blocks.entries()) {
+  flush('')
+  for (let diagnostics of blocks) {
     visuallyLinkNotesToDiagnostics(diagnostics)
     reportBlock(sources, diagnostics, flush)
-    if (idx !== blocks.length - 1) flush('')
+    flush('')
   }
 }
 
