@@ -6,7 +6,8 @@
   "scripts": {
     "format": "prettier --write .",
     "test": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=100 jest",
-    "examples:generate-readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=100 node ./scripts/generate-example-readmes.js"
+    "examples:generate-readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=100 node ./scripts/generate-example-readmes.js",
+    "postinstall": "npm install --prefix examples"
   },
   "prettier": {
     "printWidth": 100,
