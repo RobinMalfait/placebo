@@ -412,7 +412,9 @@ function reportBlock(sources, diagnostics, flush) {
 
       // Rounded corner
       if (!diagnostic.context) {
-        lastLine[connectorIdx] = decorate(Chars.BLRound)
+        lastLine[connectorIdx] = decorate(
+          lastLine[connectorIdx] === undefined ? Chars.BLRound : Chars.LConnector
+        )
       } else {
         if (isLastDiagnosticInContext(diagnostic)) {
           lastLine[connectorIdx] = decorate(Chars.BConnector)

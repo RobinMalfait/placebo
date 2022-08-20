@@ -206,6 +206,26 @@ it('should squash multiple equal messages #2', () => {
     └─`)
 })
 
+it('should properly render multiple messages for the same location', () => {
+  let code = html`<div class="flex block" />`
+  let diagnostics = [
+    diagnose('This is an attribute in HTML', findLocation(code, 'class')),
+    diagnose('This is a prop in React', findLocation(code, 'class')),
+  ]
+
+  let result = magic(code, diagnostics, './example.html')
+
+  expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="flex block" />
+    ·        ──┬──
+    ·          ├──── This is a prop in React
+    ·          ╰──── This is an attribute in HTML
+    │
+    └─`)
+})
+
 it('should not squash multiple equal messages if there is a message in between', () => {
   let code = html`<div class="flex hidden block" />`
   let diagnostics = [
