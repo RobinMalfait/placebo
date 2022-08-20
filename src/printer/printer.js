@@ -665,7 +665,7 @@ function reportBlock(sources, diagnostics, flush) {
           ...' '.repeat(PADDING),
           ...'NOTE:'.split('').map((v) => pc.bold(pc.cyan(v))),
           ' ',
-          ...note
+          ...note.note
         )
       }
     } else {
@@ -677,7 +677,8 @@ function reportBlock(sources, diagnostics, flush) {
       )
 
       function renderNotes(notes, level = 0) {
-        for (let note of notes) {
+        for (let { note, diagnostic } of notes) {
+          let decorate = diagnosticToColor.get(diagnostic)
           if (Array.isArray(note)) {
             renderNotes(note, level + 1)
           } else if (!note || note.trim() === '') {
@@ -689,7 +690,7 @@ function reportBlock(sources, diagnostics, flush) {
               ...' '.repeat(PADDING + 2 + level * 2),
               pc.dim('-'),
               ' ',
-              ...note
+              ...decorate(note)
             )
           }
         }
@@ -803,11 +804,27 @@ module.exports = function (sources, diagnostics, flush = console.log) {
     loc: { ...d.loc, row: d.loc.row - 1, col: d.loc.col - 1 },
   }))
 
-  // Ensure that all notes are arrays
-  diagnostics = diagnostics.map((d) => ({
-    ...d,
-    notes: [].concat(d.notes).filter(Boolean),
-  }))
+  function noteObj(note, diagnostic) {
+    if (Array.isArray(note)) {
+      return {
+        note: note.map((n) => noteObj(n, diagnostic)),
+        diagnostic,
+      }
+    }
+
+    return {
+      note,
+      diagnostic,
+    }
+  }
+
+  // Ensure that all notes are array of objects with a link to their (parent) diagnostic
+  diagnostics.forEach((d) => {
+    d.notes = []
+      .concat(d.notes)
+      .filter(Boolean)
+      .map((n) => noteObj(n, d))
+  })
 
   //
   let multipleMessagesWithNotes = 0
@@ -866,7 +883,7 @@ function visuallyLinkNotesToDiagnostics(diagnostics) {
         let myCount = ++count
         diagnostic.message = `${diagnostic.message}${superScript(myCount)}`
         for (let i = 0; i < diagnostic.notes.length; i++) {
-          diagnostic.notes[i] = `${superScript(myCount)}${diagnostic.notes[i]}`
+          diagnostic.notes[i].note = `${superScript(myCount)}${diagnostic.notes[i].note}`
         }
       }
     }
