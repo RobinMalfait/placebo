@@ -239,9 +239,7 @@ A beautiful new language agnostic diagnostics printer!
       "len": 4
     },
     "block": "8c9faddb-49f4-4a72-8df5-9316b14ff542",
-    "notes": [
-      "This note belongs to the other diagnostic"
-    ]
+    "notes": ["This note belongs to the other diagnostic"]
   }
 ]
 ```
