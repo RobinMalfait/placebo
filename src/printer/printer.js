@@ -816,18 +816,6 @@ module.exports = function (sources, diagnostics, flush = console.log) {
       .map((n) => noteObj(n, d))
   })
 
-  //
-  let multipleMessagesWithNotes = 0
-  for (let diagnostic of diagnostics) {
-    if (diagnostic.notes?.length > 0) {
-      multipleMessagesWithNotes++
-    }
-    if (multipleMessagesWithNotes > 1) {
-      break
-    }
-  }
-  multipleMessagesWithNotes = multipleMessagesWithNotes > 1
-
   // Group by block
   let grouped = new Map()
   for (let diagnostic of diagnostics) {
