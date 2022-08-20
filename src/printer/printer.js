@@ -679,7 +679,7 @@ function reportBlock(sources, diagnostics, flush) {
                 ...' '.repeat(PADDING + 2 + level * 2),
                 pc.dim('-'),
                 ' ',
-                ...decorate(note)
+                ...note
               )
             }
           }
