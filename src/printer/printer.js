@@ -629,6 +629,10 @@ function reportBlock(sources, diagnostics, flush) {
     new Set(
       Array.from(groupedByRow.values())
         .flat(Infinity)
+        // We print them from top row to bottom row, however we also print the diagnostic from left to
+        // right which means that the left most (first) will be rendered at the bottom, that's why we
+        // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
+        .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)
         .flatMap((diagnostic) => diagnostic.notes ?? [])
     )
   )
@@ -786,6 +790,24 @@ module.exports = function (sources, diagnostics, flush = console.log) {
     loc: { ...d.loc, row: d.loc.row - 1, col: d.loc.col - 1 },
   }))
 
+  // Ensure that all notes are arrays
+  diagnostics = diagnostics.map((d) => ({
+    ...d,
+    notes: [].concat(d.notes).filter(Boolean),
+  }))
+
+  //
+  let multipleMessagesWithNotes = 0
+  for (let diagnostic of diagnostics) {
+    if (diagnostic.notes?.length > 0) {
+      multipleMessagesWithNotes++
+    }
+    if (multipleMessagesWithNotes > 1) {
+      break
+    }
+  }
+  multipleMessagesWithNotes = multipleMessagesWithNotes > 1
+
   // Group by block
   let grouped = new Map()
   for (let diagnostic of diagnostics) {
@@ -801,7 +823,41 @@ module.exports = function (sources, diagnostics, flush = console.log) {
   // Report per block, that will be cleaner from a UI perspective
   let blocks = Array.from(grouped.values())
   for (let [idx, diagnostics] of blocks.entries()) {
+    visuallyLinkNotesToDiagnostics(diagnostics)
     reportBlock(sources, diagnostics, flush)
     if (idx !== blocks.length - 1) flush('')
   }
+}
+
+function visuallyLinkNotesToDiagnostics(diagnostics) {
+  let hasMultipleNotes = 0
+
+  for (let diagnostic of diagnostics) {
+    if (diagnostic.notes?.length > 0) {
+      if (++hasMultipleNotes > 1) {
+        break
+      }
+    }
+  }
+
+  if (hasMultipleNotes > 1) {
+    let count = 0
+
+    for (let diagnostic of diagnostics
+      .slice()
+      // We print them from top row to bottom row, however we also print the diagnostic from left to
+      // right which means that the left most (first) will be rendered at the bottom, that's why we
+      // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
+      .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)) {
+      if (diagnostic.notes?.length > 0) {
+        let myCount = ++count
+        diagnostic.message = `${diagnostic.message} (${myCount})`
+        for (let i = 0; i < diagnostic.notes.length; i++) {
+          diagnostic.notes[i] = `${diagnostic.notes[i]} (${myCount})`
+        }
+      }
+    }
+  }
+
+  return diagnostics
 }
