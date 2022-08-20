@@ -1,3 +1,4 @@
+/* eslint-disable */
 let fs = require('fs')
 let path = require('path')
 let diagnostics = require('./diagnostics')
