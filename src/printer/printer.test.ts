@@ -963,7 +963,7 @@ describe('multi-line diagnostics', () => {
     ]
 
     let result = magic(code, diagnostics)
-    expect(result).toEqual()
+    expect(result).toEqual('')
     expect(result).toEqual(`
     ┌─[./example.txt]
     │

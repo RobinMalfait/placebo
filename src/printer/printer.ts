@@ -27,7 +27,7 @@ interface Diagnostic {
   //
   file?: string
   type?: string
-  locations: Location[]
+  locations?: Location[]
 }
 
 let WITH_COLOR = pc.isColorSupported
