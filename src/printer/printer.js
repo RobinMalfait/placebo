@@ -123,7 +123,7 @@ function reportBlock(sources, diagnostics, flush) {
           return input
         }
       }
-    : (input) => input //noop
+    : (input) => input // noop
 
   let source = sources.get(file)
   let lines = source.split('\n')
