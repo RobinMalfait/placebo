@@ -6,9 +6,9 @@ let { env } = require('../env')
 let { range } = require('../utils/range')
 let { wordWrap } = require('../utils/word-wrap')
 
-let Chars = require('./char-maps/fancy')
+let CHARS = require('./char-maps/fancy')
 let WITH_COLOR = pc.isColorSupported
-let SuperScriptMap = {
+let SUPER_SCRIPT_MAP = {
   0: '⁰',
   1: '¹',
   2: '²',
@@ -23,7 +23,7 @@ let SuperScriptMap = {
   ')': '⁾',
 }
 
-let colors = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan, pc.white].map(
+let COLORS = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan, pc.white].map(
   (f) => (v) => pc.bold(f(v))
 )
 
@@ -235,10 +235,10 @@ function reportBlock(sources, diagnostics, flush) {
       if (diagnosticToColor.has(firstDiagnostic)) {
         diagnosticToColor.set(diagnostic, diagnosticToColor.get(firstDiagnostic))
       } else {
-        diagnosticToColor.set(diagnostic, colors[idx % colors.length])
+        diagnosticToColor.set(diagnostic, COLORS[idx % COLORS.length])
       }
     } else {
-      diagnosticToColor.set(diagnostic, colors[idx % colors.length])
+      diagnosticToColor.set(diagnostic, COLORS[idx % COLORS.length])
     }
   }
 
@@ -372,11 +372,11 @@ function reportBlock(sources, diagnostics, flush) {
 
       // Underline
       for (let position of range(diagnostic.loc.col, diagnostic.loc.col + diagnostic.loc.len)) {
-        nextLine[position + 1] = decorate(Chars.H)
+        nextLine[position + 1] = decorate(CHARS.H)
       }
 
       // Connector
-      nextLine[connectorIdx] = decorate(Chars.TConnector)
+      nextLine[connectorIdx] = decorate(CHARS.TConnector)
 
       // Vertical lines
       let requiredVerticalLines = diagnostics.length - idx - 1
@@ -393,10 +393,10 @@ function reportBlock(sources, diagnostics, flush) {
           for (let { col, len } of diagnostic.locations) {
             let attachmentIdx = col + Math.floor((len - 1) / 2) + 1 // Center of the highlighted word
 
-            nextLine[attachmentIdx] = decorate(Chars.V)
+            nextLine[attachmentIdx] = decorate(CHARS.V)
           }
         } else {
-          nextLine[connectorIdx] = decorate(Chars.V)
+          nextLine[connectorIdx] = decorate(CHARS.V)
         }
       }
 
@@ -413,20 +413,20 @@ function reportBlock(sources, diagnostics, flush) {
       // Rounded corner
       if (!diagnostic.context) {
         lastLine[connectorIdx] = decorate(
-          lastLine[connectorIdx] === undefined ? Chars.BLRound : Chars.LConnector
+          lastLine[connectorIdx] === undefined ? CHARS.BLRound : CHARS.LConnector
         )
       } else {
         if (isLastDiagnosticInContext(diagnostic)) {
-          lastLine[connectorIdx] = decorate(Chars.BConnector)
+          lastLine[connectorIdx] = decorate(CHARS.BConnector)
         } else {
-          lastLine[connectorIdx] = decorate(Chars.BRRound)
+          lastLine[connectorIdx] = decorate(CHARS.BRRound)
         }
       }
 
       // Horizontal line next to rounded corner
       if (!diagnostic.context || isLastDiagnosticInContext(diagnostic)) {
         for (let x of range(lastPosition - connectorIdx + 1)) {
-          lastLine[connectorIdx + 1 + x] = decorate(Chars.H)
+          lastLine[connectorIdx + 1 + x] = decorate(CHARS.H)
         }
       }
 
@@ -437,15 +437,15 @@ function reportBlock(sources, diagnostics, flush) {
             2 /* To have some breathing room between each line */
 
         for (let x of range(offset, connectorIdx)) {
-          lastLine[x] = decorate(Chars.H)
+          lastLine[x] = decorate(CHARS.H)
         }
 
         if (isFirstDiagnosticInContext(diagnostic)) {
-          lastLine[offset] = decorate(Chars.TLRound)
+          lastLine[offset] = decorate(CHARS.TLRound)
         } else if (isLastDiagnosticInContext(diagnostic)) {
-          lastLine[offset] = decorate(Chars.BLRound)
+          lastLine[offset] = decorate(CHARS.BLRound)
         } else {
-          lastLine[offset] = decorate(Chars.LConnector)
+          lastLine[offset] = decorate(CHARS.LConnector)
         }
       }
 
@@ -455,15 +455,15 @@ function reportBlock(sources, diagnostics, flush) {
 
           // Underline
           for (let position of range(col, col + len)) {
-            nextLine[position + 1] = decorate(Chars.H)
+            nextLine[position + 1] = decorate(CHARS.H)
           }
 
           // Connector
-          nextLine[attachmentIdx] = decorate(Chars.TConnector)
+          nextLine[attachmentIdx] = decorate(CHARS.TConnector)
 
           // Connect to the friend line below
           output[rowIdx + 1 + (diagnostics.length - idx)][attachmentIdx] = decorate(
-            Chars.BConnector
+            CHARS.BConnector
           )
         }
       }
@@ -487,16 +487,16 @@ function reportBlock(sources, diagnostics, flush) {
         if (availableSpace >= diagnostic.message.length) {
           lastLine.push(' ', ...diagnostic.message.split('').map((v) => decorate(v)))
         } else {
-          output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = decorate(Chars.TLRound)
-          output[output.indexOf(lastLine) - 1][lastLineOffset] = decorate(Chars.H)
+          output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = decorate(CHARS.TLRound)
+          output[output.indexOf(lastLine) - 1][lastLineOffset] = decorate(CHARS.H)
 
-          lastLine[lastLine.length - 1] = decorate(Chars.RConnector)
+          lastLine[lastLine.length - 1] = decorate(CHARS.RConnector)
           let sentences = wordWrap(diagnostic.message, availableSpace)
           for (let [idx, sentence] of sentences.entries()) {
             if (idx === 0) {
               lastLine.push(' ', ...sentence.split('').map((v) => decorate(v)))
             } else {
-              lastLine.push(decorate(Chars.V), ' ', ...sentence.split('').map((v) => decorate(v)))
+              lastLine.push(decorate(CHARS.V), ' ', ...sentence.split('').map((v) => decorate(v)))
             }
 
             lastLine = injectIfEnoughRoom(
@@ -507,7 +507,7 @@ function reportBlock(sources, diagnostics, flush) {
             lastLine[lastLineOffset - 1] = ''
           }
 
-          lastLine.push(decorate(Chars.BLRound), decorate(Chars.H))
+          lastLine.push(decorate(CHARS.BLRound), decorate(CHARS.H))
         }
       }
     }
@@ -606,9 +606,9 @@ function reportBlock(sources, diagnostics, flush) {
 
     for (let position = startRowIdx; position <= endRowIdx; position++) {
       if (inbetweenPositions.has(position)) {
-        output[position][offset] = decorate(Chars.LConnector)
+        output[position][offset] = decorate(CHARS.LConnector)
       } else {
-        output[position][offset] = decorate(Chars.V)
+        output[position][offset] = decorate(CHARS.V)
       }
     }
   }
@@ -631,7 +631,7 @@ function reportBlock(sources, diagnostics, flush) {
       inject(output.length, RowTypes.Diagnostic)
     }
 
-    inject(output.length, RowTypes.StartOfNote, pc.dim(Chars.H))
+    inject(output.length, RowTypes.StartOfNote, pc.dim(CHARS.H))
 
     if (notes.length === 1) {
       for (let note of notes) {
@@ -697,8 +697,8 @@ function reportBlock(sources, diagnostics, flush) {
     // Opening block
     [
       ...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH),
-      pc.dim(Chars.TLSquare),
-      pc.dim(Chars.H),
+      pc.dim(CHARS.TLSquare),
+      pc.dim(CHARS.H),
       pc.dim('['),
       pc.bold(
         ((relative) =>
@@ -708,7 +708,7 @@ function reportBlock(sources, diagnostics, flush) {
       ),
       pc.dim(']'),
     ],
-    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.V].map((v) => pc.dim(v)),
+    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), CHARS.V].map((v) => pc.dim(v)),
 
     // Gutter + existing output
     ...output.map((row) => {
@@ -721,11 +721,11 @@ function reportBlock(sources, diagnostics, flush) {
         [RowTypes.Code]() {
           return [
             ...' '.repeat(GUTTER_WIDTH - 2),
-            pc.bold(pc.red(Chars.bigdot)),
+            pc.bold(pc.red(CHARS.bigdot)),
             ' ',
             ...lineNumber,
             ' ',
-            pc.dim(Chars.V),
+            pc.dim(CHARS.V),
             formatCode(row, (raw) => h(raw)),
           ]
         },
@@ -734,25 +734,25 @@ function reportBlock(sources, diagnostics, flush) {
             ...' '.repeat(GUTTER_WIDTH),
             ...lineNumber.split('').map((v) => pc.dim(v)),
             ' ',
-            pc.dim(Chars.V),
+            pc.dim(CHARS.V),
             formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
           ]
         },
         [RowTypes.Diagnostic]() {
-          return [...emptyIndent, ' ', pc.dim(Chars.dot), ...row]
+          return [...emptyIndent, ' ', pc.dim(CHARS.dot), ...row]
         },
         [RowTypes.LineNumberSeparator]() {
-          return [...emptyIndent, ' ', pc.dim(Chars.VSeparator), ...row]
+          return [...emptyIndent, ' ', pc.dim(CHARS.VSeparator), ...row]
         },
         [RowTypes.StartOfNote]() {
-          return [...emptyIndent, ' ', pc.dim(Chars.LConnector), ...row]
+          return [...emptyIndent, ' ', pc.dim(CHARS.LConnector), ...row]
         },
         [RowTypes.ContextLine | RowTypes.Diagnostic]() {
           return [
             ...' '.repeat(GUTTER_WIDTH),
             ...lineNumber.split('').map((v) => pc.dim(v)),
             ' ',
-            pc.dim(Chars.V),
+            pc.dim(CHARS.V),
             formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
           ]
         },
@@ -761,9 +761,9 @@ function reportBlock(sources, diagnostics, flush) {
 
     // Closing block
     notes.length <= 0
-      ? [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.V].map((v) => pc.dim(v))
+      ? [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), CHARS.V].map((v) => pc.dim(v))
       : null,
-    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), Chars.BLSquare, Chars.H].map((v) => pc.dim(v)),
+    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), CHARS.BLSquare, CHARS.H].map((v) => pc.dim(v)),
   ].filter(Boolean)
 
   // Flush everything
@@ -877,6 +877,6 @@ function superScript(n) {
   return n
     .toString()
     .split('')
-    .map((c) => SuperScriptMap[c])
+    .map((c) => SUPER_SCRIPT_MAP[c])
     .join('')
 }
