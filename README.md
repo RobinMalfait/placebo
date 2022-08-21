@@ -256,10 +256,10 @@ want to introduce configuration options.
 
 ### Examples
 
-```sh
-node ./examples/javascript
-```
-
-```sh
-node ./examples/css
-```
+| Project                                        | Script                       |
+| ---------------------------------------------- | ---------------------------- |
+| [CSS](./examples/css/README.txt)               | `node ./examples/css`        |
+| [ESLint](./examples/eslint/README.txt)         | `node ./examples/eslint`     |
+| [JavaScript](./examples/javascript/README.txt) | `node ./examples/javascript` |
+| [README](./examples/readme/README.txt)         | `node ./examples/readme`     |
+| [Tailwind CSS](./examples/tailwind/README.txt) | `node ./examples/tailwind`   |
