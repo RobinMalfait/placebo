@@ -256,6 +256,11 @@ want to introduce configuration options.
 
 ### Examples
 
+1. `git clone https://github.com/RobinMalfait/placebo && cd placebo`
+2. `npm install`
+3. `npm run build`
+4. See below...
+
 | Project                                        | Script                       |
 | ---------------------------------------------- | ---------------------------- |
 | [CSS](./examples/css/README.txt)               | `node ./examples/css`        |
