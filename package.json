@@ -4,7 +4,7 @@
   "description": "Placebo, the beautiful diagnostics printer",
   "main": "src/index.js",
   "scripts": {
-    "build": "esbuild ./src/index.js --bundle --outdir=dist --platform=node --minify",
+    "build": "esbuild ./src/index.js --bundle --outdir=dist --platform=node --minify --external:cli-highlight --external:picocolors",
     "format": "prettier --write .",
     "test": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=100 jest",
     "examples:generate-readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=100 node ./scripts/generate-example-readmes.js",
@@ -28,10 +28,10 @@
     "esbuild": "^0.15.5",
     "jest": "^28.1.3",
     "prettier": "^2.7.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "@types/jest": "^28.1.7"
   },
   "dependencies": {
-    "@types/jest": "^28.1.7",
     "cli-highlight": "^2.1.11",
     "picocolors": "^1.0.0"
   }
