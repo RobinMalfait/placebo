@@ -1,1 +1,1 @@
-module.exports.printer = require('./printer/printer')
+export * from './printer/printer'

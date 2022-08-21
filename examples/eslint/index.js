@@ -3,7 +3,7 @@ let fs = require('fs')
 let path = require('path')
 let diagnostics = require('./diagnostics')
 
-let { printer } = require('../../src')
+let { printer } = require('../../dist')
 
 let file = path.resolve(__dirname, './code.js')
 

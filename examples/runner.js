@@ -1,7 +1,7 @@
 let fs = require('fs')
 let path = require('path')
 
-let { printer } = require('../src')
+let { printer } = require('../dist')
 
 let css = require('./css/diagnostics.js')
 let js = require('./javascript/diagnostics.js')
