@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   /* ─ */ H: '\u2500',
   /* │ */ V: '\u2502',
 

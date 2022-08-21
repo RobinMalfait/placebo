@@ -1,4 +1,4 @@
-let { wordWrap } = require('./word-wrap')
+import { wordWrap } from './word-wrap'
 
 it('should be possible to wrap a sentence based on a given width', () => {
   expect(wordWrap('This is a sentence that we want to split into smaller chunks.', 30)).toEqual([

@@ -1,12 +1,35 @@
-let path = require('path')
-let pc = require('picocolors')
-let { highlight, plain } = require('cli-highlight')
+import path from 'path'
+import pc from 'picocolors'
+import { highlight, plain } from 'cli-highlight'
 
-let { env } = require('../env')
-let { range } = require('../utils/range')
-let { wordWrap } = require('../utils/word-wrap')
+import { env } from '../env'
+import { range } from '../utils/range'
+import { wordWrap } from '../utils/word-wrap'
 
-let CHARS = require('./char-maps/fancy')
+import CHARS from './char-maps/fancy'
+
+interface DeepArray<T> extends Array<T | DeepArray<T>> {}
+type Notes = DeepArray<string>
+
+interface Location {
+  row: number
+  col: number
+  len: number
+}
+
+interface Diagnostic {
+  message: string
+  loc: Location
+  notes: Notes
+  block?: string
+  context?: string | number
+
+  //
+  file?: string
+  type?: string
+  locations: Location[]
+}
+
 let WITH_COLOR = pc.isColorSupported
 let SUPER_SCRIPT_MAP = {
   0: '⁰',
@@ -24,7 +47,7 @@ let SUPER_SCRIPT_MAP = {
 }
 
 let COLORS = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan, pc.white].map(
-  (f) => (v) => pc.bold(f(v))
+  (f) => (v: string) => pc.bold(f(v))
 )
 
 // The default indentation to add some padding in the box.
@@ -33,23 +56,23 @@ let PADDING = 3
 // The margin before the line numbers
 let GUTTER_WIDTH = 2
 
-let RowTypes = {
+enum RowType {
   // Code
-  Code: 1 << 0,
-  ContextLine: 1 << 1,
+  Code = 1 << 0,
+  ContextLine = 1 << 1,
 
   // Diagnostics
-  Diagnostic: 1 << 2,
+  Diagnostic = 1 << 2,
 
   // Separator
-  LineNumberSeparator: 1 << 3,
+  LineNumberSeparator = 1 << 3,
 
   // Notes
-  Note: 1 << 4,
-  StartOfNote: 1 << 5,
+  Note = 1 << 4,
+  StartOfNote = 1 << 5,
 }
 
-function formatCode(row, highlightCode) {
+function formatCode(row: string[], highlightCode: (v: string) => string) {
   let joined = ''
   for (let char of row) joined += char ?? ' '
 
@@ -73,7 +96,11 @@ function formatCode(row, highlightCode) {
   return joined
 }
 
-function reportBlock(sources, diagnostics, flush) {
+function reportBlock(
+  sources: Map<string, string>,
+  diagnostics: Diagnostic[],
+  flush: (input: string) => void
+) {
   // Group by same line
   let groupedByRow = new Map()
   for (let diagnostic of diagnostics) {
@@ -87,10 +114,10 @@ function reportBlock(sources, diagnostics, flush) {
   // TODO: This should probably be an array when we are rendering issues across
   // different files in the same block. In addition, diagnostic lines _can_
   // cross those file boundaries so that is going to be interesting...
-  let file = diagnostics[0].file
+  let file = diagnostics[0].file!
 
   let h = WITH_COLOR
-    ? (input) => {
+    ? (input: string) => {
         try {
           return highlight(input, {
             language: path.extname(file).slice(1),
@@ -107,8 +134,8 @@ function reportBlock(sources, diagnostics, flush) {
               function: pc.yellow,
               comment: pc.green,
               doctag: pc.green,
-              meta: pc.grey,
-              tag: pc.grey,
+              meta: pc.gray,
+              tag: pc.gray,
               name: pc.blue,
               'builtin-name': plain,
               attr: pc.cyan,
@@ -123,9 +150,9 @@ function reportBlock(sources, diagnostics, flush) {
           return input
         }
       }
-    : (input) => input // noop
+    : (input: string) => input // noop
 
-  let source = sources.get(file)
+  let source = sources.get(file)!
   let lines = source.split('\n')
 
   // Find all printable lines. Lines with issues + context lines. We'll use
@@ -208,20 +235,22 @@ function reportBlock(sources, diagnostics, flush) {
     }
   }
 
-  // Keep track of things
-  let output = []
-  let rowInfo = new Map()
-  let lineNumberToRow = new Map()
-  let diagnosticToColor = new Map()
+  type Row = string[]
 
-  let diagnosticsByContextIdentifier = new Map()
+  // Keep track of things
+  let output: Row[] = []
+  let rowInfo = new Map<Row, { lineNumber: number; type: RowType }>()
+  let lineNumberToRow = new Map<number, Row>()
+  let diagnosticToColor = new Map<Diagnostic, (input: string) => string>()
+
+  let diagnosticsByContextIdentifier = new Map<string | number | undefined, Diagnostic[]>()
 
   // Group by context
   for (let diagnostic of diagnostics) {
     if (!diagnostic.context) continue
 
     if (diagnosticsByContextIdentifier.has(diagnostic.context)) {
-      diagnosticsByContextIdentifier.get(diagnostic.context).push(diagnostic)
+      diagnosticsByContextIdentifier.get(diagnostic.context)!.push(diagnostic)
     } else {
       diagnosticsByContextIdentifier.set(diagnostic.context, [diagnostic])
     }
@@ -230,10 +259,10 @@ function reportBlock(sources, diagnostics, flush) {
   // Find the correct color per diagnostic
   for (let [idx, diagnostic] of diagnostics.entries()) {
     if (diagnosticsByContextIdentifier.has(diagnostic.context)) {
-      let [firstDiagnostic] = diagnosticsByContextIdentifier.get(diagnostic.context)
+      let [firstDiagnostic] = diagnosticsByContextIdentifier.get(diagnostic.context)!
 
       if (diagnosticToColor.has(firstDiagnostic)) {
-        diagnosticToColor.set(diagnostic, diagnosticToColor.get(firstDiagnostic))
+        diagnosticToColor.set(diagnostic, diagnosticToColor.get(firstDiagnostic)!)
       } else {
         diagnosticToColor.set(diagnostic, COLORS[idx % COLORS.length])
       }
@@ -268,19 +297,19 @@ function reportBlock(sources, diagnostics, flush) {
   }
 
   // Inject a row of a certain type at a certain position
-  function inject(idx, type, ...row) {
+  function inject(idx: number, type: RowType, ...row: string[]) {
     output.splice(idx, 0, row)
     rowInfo.set(row, { type })
     return output[idx]
   }
 
-  function isLastDiagnosticInContext(diagnostic) {
-    let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)
+  function isLastDiagnosticInContext(diagnostic: Diagnostic) {
+    let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)!
     return diagnosticsInContext[diagnosticsInContext.length - 1] === diagnostic
   }
 
-  function isFirstDiagnosticInContext(diagnostic) {
-    let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)
+  function isFirstDiagnosticInContext(diagnostic: Diagnostic) {
+    let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)!
     return diagnosticsInContext[0] === diagnostic
   }
 
@@ -297,7 +326,7 @@ function reportBlock(sources, diagnostics, flush) {
     let rowIdx = output.push(line.split('')) - 1
 
     rowInfo.set(output[rowIdx], {
-      type: hasDiagnostics ? RowTypes.Code : RowTypes.ContextLine,
+      type: hasDiagnostics ? RowType.Code : RowType.ContextLine,
       lineNumber,
     })
 
@@ -307,7 +336,7 @@ function reportBlock(sources, diagnostics, flush) {
   // Add connector lines
   for (let [lineNumber, diagnosticz] of groupedByRow.entries()) {
     // Group diagnostics that belong together, together
-    let diagnostics = []
+    let diagnostics: Diagnostic[] = []
     for (let diagnostic of diagnosticz) {
       let last = diagnostics[diagnostics.length - 1]
       if (last && last.message === diagnostic.message) {
@@ -333,10 +362,10 @@ function reportBlock(sources, diagnostics, flush) {
     })()
 
     for (let [idx, diagnostic] of diagnostics.entries()) {
-      let decorate = diagnosticToColor.get(diagnostic)
-      let rowIdx = output.indexOf(lineNumberToRow.get(lineNumber))
+      let decorate = diagnosticToColor.get(diagnostic)!
+      let rowIdx = output.indexOf(lineNumberToRow.get(lineNumber)!)
 
-      let nextLine = output[rowIdx + 1] ?? inject(rowIdx + 1, RowTypes.Diagnostic)
+      let nextLine = output[rowIdx + 1] ?? inject(rowIdx + 1, RowType.Diagnostic)
 
       // Reserve empty lines (if necessary) so that we can ensure we don't
       // print the diagnostics _over_ the context lines. We only have to do
@@ -346,7 +375,7 @@ function reportBlock(sources, diagnostics, flush) {
         for (let offset of range(1, diagnostics.length + 2)) {
           let emptyRowIdx = rowIdx + offset
           if (!output[emptyRowIdx] || output[emptyRowIdx].slice(diagnostic.loc.col).length > 0) {
-            inject(emptyRowIdx, RowTypes.Diagnostic)
+            inject(emptyRowIdx, RowType.Diagnostic)
           }
         }
 
@@ -360,7 +389,7 @@ function reportBlock(sources, diagnostics, flush) {
       // around the code to the left. We have to make sure that we can draw
       // that by reserving empty lines.
       if (diagnostic.context && nextLine.slice(0, diagnostic.loc.col).length > 0) {
-        nextLine = inject(rowIdx + 1, RowTypes.Diagnostic)
+        nextLine = inject(rowIdx + 1, RowType.Diagnostic)
       }
 
       // When highlighting a word, we will have 3 sections, a before
@@ -387,7 +416,7 @@ function reportBlock(sources, diagnostics, flush) {
           1 /* 1 line under the code has the `underline` */ +
           1 /* An additional line under the `underline` */
 
-        let nextLine = output[nextLineIdx] ?? inject(nextLineIdx, RowTypes.Diagnostic)
+        let nextLine = output[nextLineIdx] ?? inject(nextLineIdx, RowType.Diagnostic)
 
         if (diagnostic.type === 'combined') {
           for (let { col, len } of diagnostic.locations) {
@@ -404,10 +433,10 @@ function reportBlock(sources, diagnostics, flush) {
         ? rowIdx + 2
         : rowIdx + (diagnostics.length - idx) + 1
 
-      let lastLine = output[lastLineIdx] ?? inject(lastLineIdx, RowTypes.Diagnostic)
+      let lastLine = output[lastLineIdx] ?? inject(lastLineIdx, RowType.Diagnostic)
 
       if (diagnostic.context && lastLine.slice(0, connectorIdx).length > 0) {
-        lastLine = inject(lastLineIdx, RowTypes.Diagnostic)
+        lastLine = inject(lastLineIdx, RowType.Diagnostic)
       }
 
       // Rounded corner
@@ -468,7 +497,7 @@ function reportBlock(sources, diagnostics, flush) {
         }
       }
 
-      function injectIfEnoughRoom(idx, start, type) {
+      function injectIfEnoughRoom(idx: number, start: number, type: RowType) {
         if (!output[idx] || output[idx].slice(start).length > 0) {
           return inject(idx, type)
         }
@@ -502,7 +531,7 @@ function reportBlock(sources, diagnostics, flush) {
             lastLine = injectIfEnoughRoom(
               output.indexOf(lastLine) + 1,
               lastLineOffset - 1,
-              RowTypes.Diagnostic
+              RowType.Diagnostic
             )
             lastLine[lastLineOffset - 1] = ''
           }
@@ -522,9 +551,9 @@ function reportBlock(sources, diagnostics, flush) {
 
     if (
       // Check structure
-      previousRowType === RowTypes.Diagnostic &&
-      currentRowType === RowTypes.ContextLine &&
-      nextRowType === RowTypes.Diagnostic &&
+      previousRowType === RowType.Diagnostic &&
+      currentRowType === RowType.ContextLine &&
+      nextRowType === RowType.Diagnostic &&
       // Check validity of the context line
       output[rowIdx].join('').trim() === ''
     ) {
@@ -543,12 +572,12 @@ function reportBlock(sources, diagnostics, flush) {
     let { type: previousRowType } = rowInfo.get(output[rowIdx - 1])
 
     if (
-      previousRowType === RowTypes.Diagnostic &&
-      [RowTypes.Code, RowTypes.ContextLine].includes(currentRowType)
+      previousRowType === RowType.Diagnostic &&
+      [RowType.Code, RowType.ContextLine].includes(currentRowType)
     ) {
       // Inject empty line between a code line and a non-code line. This will
       // later get turned into a non-code line.
-      inject(rowIdx, RowTypes.Diagnostic)
+      inject(rowIdx, RowType.Diagnostic)
     }
   }
 
@@ -557,13 +586,13 @@ function reportBlock(sources, diagnostics, flush) {
     let { type: currentRowType, lineNumber: currentLineNumber } = rowInfo.get(output[rowIdx])
     let { type: previousRowType, lineNumber: previousLineNumber } = rowInfo.get(output[rowIdx - 1])
 
-    if (![RowTypes.Code, RowTypes.ContextLine].includes(currentRowType)) continue
-    if (![RowTypes.Code, RowTypes.ContextLine].includes(previousRowType)) continue
+    if (![RowType.Code, RowType.ContextLine].includes(currentRowType)) continue
+    if (![RowType.Code, RowType.ContextLine].includes(previousRowType)) continue
 
     if (Number(currentLineNumber) - Number(previousLineNumber) > 1) {
       // Inject empty line between a code line and a non-code line. This will
       // later get turned into a non-code line.
-      inject(rowIdx, RowTypes.LineNumberSeparator)
+      inject(rowIdx, RowType.LineNumberSeparator)
     }
   }
 
@@ -574,28 +603,28 @@ function reportBlock(sources, diagnostics, flush) {
     if (seen.has(diagnostic.context)) continue
     seen.add(diagnostic.context)
 
-    let decorate = diagnosticToColor.get(diagnostic)
+    let decorate = diagnosticToColor.get(diagnostic)!
     let offset =
       1 /* Offset for the gutter line */ +
       contextIdentifiers.indexOf(diagnostic.context) *
         2 /* To have some breathing room between each line */
 
-    let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context).slice()
+    let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)!.slice()
     let startRowIdx = diagnosticsInContext.reduce(
       (smallestRowIdx, diagnostic) => Math.min(smallestRowIdx, diagnostic.loc.row),
       Infinity
     )
-    startRowIdx = output.indexOf(lineNumberToRow.get(startRowIdx)) + 3
+    startRowIdx = output.indexOf(lineNumberToRow.get(startRowIdx)!) + 3
     let endRowIdx = diagnosticsInContext.reduce(
       (largestRowIdx, diagnostic) => Math.max(largestRowIdx, diagnostic.loc.row),
       -Infinity
     )
-    endRowIdx = output.indexOf(lineNumberToRow.get(endRowIdx)) + 1
+    endRowIdx = output.indexOf(lineNumberToRow.get(endRowIdx)!) + 1
 
     // Diagnostics in this group in between the start & end positions
     let inbetweenPositions = new Set()
     for (let diagnostic of diagnosticsInContext.slice(1, -1)) {
-      let row = lineNumberToRow.get(diagnostic.loc.row)
+      let row = lineNumberToRow.get(diagnostic.loc.row)!
       let rowIdx = output.indexOf(row)
 
       inbetweenPositions.add(
@@ -628,16 +657,16 @@ function reportBlock(sources, diagnostics, flush) {
 
   if (notes.length > 0) {
     for (let _ of range(1)) {
-      inject(output.length, RowTypes.Diagnostic)
+      inject(output.length, RowType.Diagnostic)
     }
 
-    inject(output.length, RowTypes.StartOfNote, pc.dim(CHARS.H))
+    inject(output.length, RowType.StartOfNote, pc.dim(CHARS.H))
 
     if (notes.length === 1) {
       for (let note of notes) {
         inject(
           output.length,
-          RowTypes.Diagnostic,
+          RowType.Diagnostic,
           ...' '.repeat(PADDING),
           ...'NOTE:'.split('').map((v) => pc.bold(pc.cyan(v))),
           ' ',
@@ -647,25 +676,27 @@ function reportBlock(sources, diagnostics, flush) {
     } else {
       inject(
         output.length,
-        RowTypes.Diagnostic,
+        RowType.Diagnostic,
         ...' '.repeat(PADDING),
         ...'NOTES:'.split('').map((v) => pc.bold(pc.cyan(v)))
       )
 
-      function renderNotes(notes, level = 0) {
+      type MyNotes = { note: string | MyNotes; diagnostic: Diagnostic }[]
+
+      function renderNotes(notes: MyNotes, level = 0) {
         for (let { note, diagnostic } of notes) {
-          let decorate = diagnosticToColor.get(diagnostic)
+          let decorate = diagnosticToColor.get(diagnostic)!
           if (Array.isArray(note)) {
             renderNotes(note, level + 1)
           } else if (!note || note.trim() === '') {
-            inject(output.length, RowTypes.Diagnostic)
+            inject(output.length, RowType.Diagnostic)
           } else {
             // Starting with a number like "1."
             if (/^\d*\./.test(note)) {
               let [, number, rest] = note.split(/(\d*\.)\s*(.*)/)
               inject(
                 output.length,
-                RowTypes.Diagnostic,
+                RowType.Diagnostic,
                 ...' '.repeat(PADDING + 2 + level * 2),
                 pc.dim(number),
                 ' ',
@@ -677,7 +708,7 @@ function reportBlock(sources, diagnostics, flush) {
             else {
               inject(
                 output.length,
-                RowTypes.Diagnostic,
+                RowType.Diagnostic,
                 ...' '.repeat(PADDING + 2 + level * 2),
                 pc.dim('-'),
                 ' ',
@@ -712,13 +743,13 @@ function reportBlock(sources, diagnostics, flush) {
 
     // Gutter + existing output
     ...output.map((row) => {
-      let { type, lineNumber } = rowInfo.get(row)
+      let { type, lineNumber: _lineNumber } = rowInfo.get(row)!
       let emptyIndent = ' '.repeat(gutterWidth + GUTTER_WIDTH)
 
-      lineNumber = (lineNumber + 1).toString().padStart(gutterWidth, ' ')
+      let lineNumber = (_lineNumber + 1).toString().padStart(gutterWidth, ' ')
 
       return {
-        [RowTypes.Code]() {
+        [RowType.Code]() {
           return [
             ...' '.repeat(GUTTER_WIDTH - 2),
             pc.bold(pc.red(CHARS.bigdot)),
@@ -729,7 +760,7 @@ function reportBlock(sources, diagnostics, flush) {
             formatCode(row, (raw) => h(raw)),
           ]
         },
-        [RowTypes.ContextLine]() {
+        [RowType.ContextLine]() {
           return [
             ...' '.repeat(GUTTER_WIDTH),
             ...lineNumber.split('').map((v) => pc.dim(v)),
@@ -738,16 +769,16 @@ function reportBlock(sources, diagnostics, flush) {
             formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
           ]
         },
-        [RowTypes.Diagnostic]() {
+        [RowType.Diagnostic]() {
           return [...emptyIndent, ' ', pc.dim(CHARS.dot), ...row]
         },
-        [RowTypes.LineNumberSeparator]() {
+        [RowType.LineNumberSeparator]() {
           return [...emptyIndent, ' ', pc.dim(CHARS.VSeparator), ...row]
         },
-        [RowTypes.StartOfNote]() {
+        [RowType.StartOfNote]() {
           return [...emptyIndent, ' ', pc.dim(CHARS.LConnector), ...row]
         },
-        [RowTypes.ContextLine | RowTypes.Diagnostic]() {
+        [RowType.ContextLine | RowType.Diagnostic]() {
           return [
             ...' '.repeat(GUTTER_WIDTH),
             ...lineNumber.split('').map((v) => pc.dim(v)),
@@ -781,7 +812,11 @@ function reportBlock(sources, diagnostics, flush) {
   }
 }
 
-module.exports = function (sources, diagnostics, flush = console.log) {
+export function printer(
+  sources: Map<string, string>,
+  diagnostics: Diagnostic[],
+  flush = console.log
+) {
   // Sort diagnostics by location, first by row then by column so that it is
   // sorted top to bottom, left to right
   diagnostics = diagnostics.slice().sort((a, z) => a.loc.row - z.loc.row || a.loc.col - z.loc.col)
@@ -796,7 +831,8 @@ module.exports = function (sources, diagnostics, flush = console.log) {
     loc: { ...d.loc, row: d.loc.row - 1, col: d.loc.col - 1 },
   }))
 
-  function noteObj(note, diagnostic) {
+  type MyNotes = { note: string | MyNotes[]; diagnostic: Diagnostic }
+  function noteObj(note: string | DeepArray<string>, diagnostic: Diagnostic): MyNotes {
     if (Array.isArray(note)) {
       return {
         note: note.map((n) => noteObj(n, diagnostic)),
@@ -840,7 +876,7 @@ module.exports = function (sources, diagnostics, flush = console.log) {
   }
 }
 
-function visuallyLinkNotesToDiagnostics(diagnostics) {
+function visuallyLinkNotesToDiagnostics(diagnostics: Diagnostic[]) {
   let hasMultipleNotes = 0
 
   for (let diagnostic of diagnostics) {
@@ -873,10 +909,10 @@ function visuallyLinkNotesToDiagnostics(diagnostics) {
   return diagnostics
 }
 
-function superScript(n) {
+function superScript(n: string) {
   return n
     .toString()
     .split('')
-    .map((c) => SUPER_SCRIPT_MAP[c])
+    .map((c) => SUPER_SCRIPT_MAP[c] ?? c)
     .join('')
 }

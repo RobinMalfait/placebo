@@ -1,9 +1,9 @@
-let { range } = require('./range')
+import { range } from './range'
 
 // Ref: https://xxyxyz.org/line-breaking/
 // This is implemented in O(n ^ 2), however I'm assuming that every diagnostic
 // message is not too big and therefore this isn't a big problem.
-module.exports.wordWrap = function wordWrap(text, width) {
+export function wordWrap(text: string, width: number) {
   let words = text.split(' ')
   let count = words.length
   let slack = Array.from({ length: count }, () => Array(count).fill(0))

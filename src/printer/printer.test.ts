@@ -1,14 +1,43 @@
-let printer = require('./printer')
+import { printer } from './printer'
 
 let html = String.raw
 let css = String.raw
 let javascript = String.raw
 
-function diagnose(message, location, { notes = [], block, context } = {}) {
+interface DeepArray<T> extends Array<T | DeepArray<T>> {}
+type Notes = DeepArray<string>
+
+interface Location {
+  row: number
+  col: number
+  len: number
+}
+
+interface Diagnostic {
+  message: string
+  loc: Location
+  notes: Notes
+  block?: string
+  context?: string | number
+}
+
+function diagnose(
+  message: string,
+  location: Location,
+  {
+    notes = [],
+    block,
+    context,
+  }: {
+    notes?: Notes
+    block?: string
+    context?: string | number
+  } = {}
+): Diagnostic {
   return { block, context, message, loc: location, notes }
 }
 
-function findLocation(code, word) {
+function findLocation(code: string, word: string) {
   let row = code.split('\n').findIndex((row) => row.includes(word))
   let col = code.split('\n')[row].indexOf(word)
   let len = word.length
@@ -16,11 +45,11 @@ function findLocation(code, word) {
   return { row: row + 1, col: col + 1, len }
 }
 
-function magic(source, diagnostics = [], file = './example.txt') {
+function magic(source: string, diagnostics: Diagnostic[] = [], file = './example.txt') {
   let sources = new Map([[file, source]])
 
-  let lines = []
-  function collector(...args) {
+  let lines: string[] = []
+  function collector(...args: string[]) {
     lines.push(args.join(' '))
   }
 

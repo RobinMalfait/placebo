@@ -1,4 +1,4 @@
-module.exports.range = function* range(start, end, step = 1) {
+export function* range(start: number, end?: number, step = 1) {
   if (!end) {
     end = start
     start = 0
