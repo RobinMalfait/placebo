@@ -76,8 +76,8 @@ A beautiful new language agnostic diagnostics printer!
      ┌─[./README.md]
      │
 ∙ 29 │   Last but not least, we have the `notes` feature. You can add notes to your
-     ·                                   ───┬────
-     ·                                      ╰────── This diagnostic contains some notes.
+     ·                                   ───┬───
+     ·                                      ╰───── This diagnostic contains some notes.
      ·
   30 │   diagnostics if you want to provide even more information.
      ·
@@ -209,7 +209,7 @@ A beautiful new language agnostic diagnostics printer!
     "loc": {
       "row": 29,
       "col": 33,
-      "len": 8
+      "len": 7
     },
     "notes": [
       "This note can contain more information about the specific diagnostic.",

@@ -40,7 +40,7 @@ module.exports = function run(source) {
       'Like this message. We have a lot to say here so it might not be ideal if everything was just written on the same line. Instead we will use the width of your terminal to decide when to start wrapping.',
       location(25, 37, 9)
     ),
-    diagnose('This diagnostic contains some notes.', location(29, 33, 8), {
+    diagnose('This diagnostic contains some notes.', location(29, 33, 7), {
       notes: [
         'This note can contain more information about the specific diagnostic.',
         'What do you think? More info at https://github.com/RobinMalfait/placebo!',

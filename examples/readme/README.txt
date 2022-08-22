@@ -62,8 +62,8 @@
      ┌─[./README.md]
      │
 ∙ 29 │   Last but not least, we have the `notes` feature. You can add notes to your
-     ·                                   ───┬────
-     ·                                      ╰────── This diagnostic contains some notes.
+     ·                                   ───┬───
+     ·                                      ╰───── This diagnostic contains some notes.
      ·
   30 │   diagnostics if you want to provide even more information.
      ·
