@@ -46,7 +46,7 @@ let SUPER_SCRIPT_MAP = {
   ')': '⁾',
 }
 
-let COLORS = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan, pc.white].map(
+let COLORS = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan].map(
   (f) => (v: string) => pc.bold(f(v))
 )
 
