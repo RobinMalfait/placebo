@@ -1,6 +1,6 @@
 import path from 'path'
 import pc from 'picocolors'
-import { highlight, plain } from 'cli-highlight'
+import { highlightCode } from '../utils/highlight-code'
 
 import { env } from '../env'
 import { range } from '../utils/range'
@@ -30,7 +30,6 @@ interface Diagnostic {
   locations?: Location[]
 }
 
-let WITH_COLOR = pc.isColorSupported
 let SUPER_SCRIPT_MAP = {
   0: '⁰',
   1: '¹',
@@ -116,41 +115,7 @@ function reportBlock(
   // cross those file boundaries so that is going to be interesting...
   let file = diagnostics[0].file!
 
-  let h = WITH_COLOR
-    ? (input: string) => {
-        try {
-          return highlight(input, {
-            language: path.extname(file).slice(1),
-            ignoreIllegals: true,
-            theme: {
-              keyword: pc.blue,
-              built_in: pc.cyan,
-              type: (v) => pc.cyan(pc.dim(v)),
-              literal: pc.blue,
-              number: pc.magenta,
-              regexp: pc.red,
-              string: pc.green,
-              class: pc.blue,
-              function: pc.yellow,
-              comment: pc.green,
-              doctag: pc.green,
-              meta: pc.gray,
-              tag: pc.gray,
-              name: pc.blue,
-              'builtin-name': plain,
-              attr: pc.cyan,
-              emphasis: pc.italic,
-              strong: pc.bold,
-              link: pc.underline,
-              addition: pc.green,
-              deletion: pc.red,
-            },
-          })
-        } catch (err) {
-          return input
-        }
-      }
-    : (input: string) => input // noop
+  let h = (input: string) => highlightCode(input, path.extname(file).slice(1))
 
   let source = sources.get(file)!
   let lines = source.split('\n')
