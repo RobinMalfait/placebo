@@ -481,6 +481,10 @@ function reportBlock(
         if (availableSpace >= diagnostic.message.length) {
           lastLine.push(' ', ...diagnostic.message.split('').map((v) => decorate(v)))
         } else {
+          // For the additional character that we are about to put in front of the multi-line
+          // message. (1*)
+          availableSpace -= 1
+
           output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = decorate(CHARS.TLRound)
           output[output.indexOf(lastLine) - 1][lastLineOffset] = decorate(CHARS.H)
 
@@ -490,7 +494,12 @@ function reportBlock(
             if (idx === 0) {
               lastLine.push(' ', ...sentence.split('').map((v) => decorate(v)))
             } else {
-              lastLine.push(decorate(CHARS.V), ' ', ...sentence.split('').map((v) => decorate(v)))
+              lastLine.push(
+                /* (1*) This extra character is why we added `availableSpace -= 1` */
+                decorate(CHARS.V),
+                ' ',
+                ...sentence.split('').map((v) => decorate(v))
+              )
             }
 
             lastLine = injectIfEnoughRoom(
