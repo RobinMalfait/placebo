@@ -7,10 +7,12 @@ module.exports = function run(source) {
     let id = randomUUID()
     return diagnostics.map((diagnostic) => ({ ...diagnostic, block: id }))
   }
+
   function groupContext(...diagnostics) {
     let id = randomUUID()
     return diagnostics.map((diagnostic) => ({ ...diagnostic, context: id }))
   }
+
   function diagnose(message, location, { block, context, notes } = {}) {
     return { file, message, loc: location, block, context, notes }
   }
