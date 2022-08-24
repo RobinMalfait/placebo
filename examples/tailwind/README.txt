@@ -52,8 +52,9 @@
   4 │
 ∙ 5 │   <div class="underline block text-gray-100 antialiased flex line-through">
     ·               ────┬────                                      ─────┬────── ╭─
-    ·                   ╰───────────────────────────────────────────────┴───────┤ Colliding classes,
-  6 │     <div class="text-gray-200 text-gray-300"></div>                       │ they operate
+    ·                   ╰───────────────────────────────────────────────┴───────┤ Colliding
+  6 │     <div class="text-gray-200 text-gray-300"></div>                       │ classes,
+    ·                                                                           │ they operate
     ·                                                                           │ on the same
     ·                                                                           │ "text-decoration"
     ·                                                                           │ property.
@@ -71,8 +72,9 @@
   4 │
 ∙ 5 │   <div class="underline block text-gray-100 antialiased flex line-through">
     ·                         ──┬──                           ─┬── ╭─
-    ·                           ╰──────────────────────────────┴───┤ Colliding classes, they operate
-  6 │     <div class="text-gray-200 text-gray-300"></div>          │ on the same "display" property.
+    ·                           ╰──────────────────────────────┴───┤ Colliding classes, they
+  6 │     <div class="text-gray-200 text-gray-300"></div>          │ operate on the same
+    ·                                                              │ "display" property.
     ·                                                              ╰─
     ·
   7 │     <div class="truncate text-gray-200 overflow-ellipsis overflow-scroll"></div>
@@ -86,8 +88,9 @@
   6 │     <div class="text-gray-200 text-gray-300"></div>
 ∙ 7 │     <div class="truncate text-gray-200 overflow-ellipsis overflow-scroll"></div>
   8 │   </div>        ───┬────                                 ───────┬─────── ╭─
-    ·                    ╰────────────────────────────────────────────┴────────┤ Colliding classes,
-    ·                                                                          │ they operate on the
+    ·                    ╰────────────────────────────────────────────┴────────┤ Colliding
+    ·                                                                          │ classes, they
+    ·                                                                          │ operate on the
     ·                                                                          │ same "overflow"
     ·                                                                          │ property.
     ·                                                                          ╰─
