@@ -722,7 +722,7 @@ function reportBlock(
             ...lineNumber,
             ' ',
             pc.dim(CHARS.V),
-            formatCode(row, (raw) => h(raw)),
+            ...formatCode(row, (raw) => h(raw)),
           ]
         },
         [RowType.ContextLine]() {
@@ -731,7 +731,7 @@ function reportBlock(
             ...lineNumber.split('').map((v) => pc.dim(v)),
             ' ',
             pc.dim(CHARS.V),
-            formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
+            ...formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
           ]
         },
         [RowType.Diagnostic]() {
@@ -749,7 +749,7 @@ function reportBlock(
             ...lineNumber.split('').map((v) => pc.dim(v)),
             ' ',
             pc.dim(CHARS.V),
-            formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
+            ...formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
           ]
         },
       }[type]()
