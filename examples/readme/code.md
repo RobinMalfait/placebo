@@ -4,7 +4,7 @@ What is Placebo?
 
 It will also add these context lines, to get more insight about your code.
 It can render multiple messages together.
-These lines will make it easier to locate your code and know what these mesages
+These lines will make it easier to locate your code and know what these messages
 are about from the error messages in your terminal alone!
 
 

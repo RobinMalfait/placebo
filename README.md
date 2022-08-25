@@ -22,7 +22,7 @@ A beautiful new language agnostic diagnostics printer!
     ·                    │        ╰─────────────── underneath eachother just
     ·                    ╰──────────────────────── like the messages you see here.
     ·
-  7 │   These lines will make it easier to locate your code and know what these mesages
+  7 │   These lines will make it easier to locate your code and know what these messages
   8 │   are about from the error messages in your terminal alone!
     │
     └─
