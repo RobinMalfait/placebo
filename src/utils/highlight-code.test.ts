@@ -15,7 +15,7 @@ let html = String.raw
 it('should highlight code', () => {
   process.env.FORCE_COLOR = 'true'
   delete process.env.NO_COLOR
-  let { highlightCode } = require('./highlight-code')
+  let { highlightCode } = require('~/utils/highlight-code')
 
   let result = highlightCode(html`<span>Hello</span>`, 'html')
   expect(result).toEqual(
@@ -25,7 +25,7 @@ it('should highlight code', () => {
 
 // This is a bit stupid, but this just result in an array where each item is a character.
 it('should rasterize the code (without highlight)', () => {
-  let { rasterizeCode } = require('./highlight-code')
+  let { rasterizeCode } = require('~/utils/highlight-code')
   let result = rasterizeCode(html`<span>Hello</span>`)
 
   expect(result).toEqual([
@@ -36,7 +36,7 @@ it('should rasterize the code (without highlight)', () => {
 it('should rasterize the code (with highlight)', () => {
   process.env.FORCE_COLOR = 'true'
   delete process.env.NO_COLOR
-  let { highlightCode, rasterizeCode } = require('./highlight-code')
+  let { highlightCode, rasterizeCode } = require('~/utils/highlight-code')
 
   let result = rasterizeCode(highlightCode(html`<span>Hello</span>`, 'html'))
 

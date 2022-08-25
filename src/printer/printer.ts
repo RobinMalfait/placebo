@@ -1,12 +1,12 @@
 import path from 'path'
 import pc from 'picocolors'
-import { highlightCode } from '../utils/highlight-code'
+import { highlightCode, rasterizeCode } from '~/utils/highlight-code'
 
-import { env } from '../env'
-import { range } from '../utils/range'
-import { wordWrap } from '../utils/word-wrap'
+import { env } from '~/env'
+import { range } from '~/utils/range'
+import { wordWrap } from '~/utils/word-wrap'
 
-import CHARS from './char-maps/fancy'
+import CHARS from '~/printer/char-maps/fancy'
 
 interface DeepArray<T> extends Array<T | DeepArray<T>> {}
 type Notes = DeepArray<string>

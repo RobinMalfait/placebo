@@ -1,1 +1,1 @@
-export * from './printer/printer'
+export * from '~/printer/printer'

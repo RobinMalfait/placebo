@@ -1,4 +1,4 @@
-import { range } from './range'
+import { range } from '~/utils/range'
 
 // Ref: https://xxyxyz.org/line-breaking/
 // This is implemented in O(n ^ 2), however I'm assuming that every diagnostic

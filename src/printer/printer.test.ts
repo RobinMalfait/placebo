@@ -1,4 +1,4 @@
-import { printer } from './printer'
+import { printer } from '~/printer/printer'
 
 let html = String.raw
 let css = String.raw
