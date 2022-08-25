@@ -7,7 +7,7 @@
     "build": "esbuild ./src/index.js --bundle --outdir=dist --platform=node --minify --external:cli-highlight --external:picocolors",
     "format": "prettier --write .",
     "test": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=100 jest",
-    "examples:generate-readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=100 node ./scripts/generate-example-readmes.js",
+    "examples:generate-readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=150 node ./scripts/generate-example-readmes.js",
     "preexamples:generate-readme": "npm run build",
     "postinstall": "npm install --prefix examples"
   },
