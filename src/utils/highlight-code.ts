@@ -116,3 +116,7 @@ export function rasterizeCode(input: string) {
     })
   })
 }
+
+export function clearAnsiEscapes(input: string) {
+  return input.replace(ESCAPE, '')
+}

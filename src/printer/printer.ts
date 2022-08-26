@@ -1,6 +1,6 @@
 import path from 'path'
 import pc from 'picocolors'
-import { highlightCode, rasterizeCode } from '~/utils/highlight-code'
+import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
 
 import { env } from '~/env'
 import { range } from '~/utils/range'
@@ -56,44 +56,25 @@ let PADDING = 3
 let GUTTER_WIDTH = 2
 
 enum RowType {
+  None = 0,
+
   // Code
   Code = 1 << 0,
-  ContextLine = 1 << 1,
+  Whitespace = 1 << 1,
+  ContextLine = 1 << 2,
 
   // Diagnostics
-  Diagnostic = 1 << 2,
+  Diagnostic = 1 << 3,
 
   // Separator
-  LineNumberSeparator = 1 << 3,
+  LineNumberSeparator = 1 << 4,
 
   // Notes
-  Note = 1 << 4,
-  StartOfNote = 1 << 5,
+  Note = 1 << 5,
+  StartOfNote = 1 << 6,
 }
 
-function formatCode(row: string[], highlightCode: (v: string) => string) {
-  let joined = ''
-  for (let char of row) joined += char ?? ' '
-
-  // A list of "off" escapes: All attributes off, bold off, underline off,
-  // blink off, default foreground, default background
-  // let offs = /((?:\x1B\[0m|\x1B\[21m|\x1B\[24m|\x1B\[25m|\x1B\[39m|\x1B\[49m)+)/g
-  let offs = ['\x1B[0m', '\x1B[21m', '\x1B[24m', '\x1B[25m', '\x1B[39m', '\x1B[49m']
-
-  let ansiIdx = joined.indexOf('\x1b')
-  if (ansiIdx === -1) {
-    joined = highlightCode(joined)
-  } else {
-    let lastAnsiIdx = Math.max(...offs.map((off) => joined.lastIndexOf(off)))
-    let codeBefore = joined.slice(0, ansiIdx)
-    let diagnostics = joined.slice(ansiIdx, lastAnsiIdx)
-    let codeAfter = joined.slice(lastAnsiIdx)
-
-    joined = highlightCode(codeBefore) + diagnostics + highlightCode(codeAfter)
-  }
-
-  return joined
-}
+type Row = Array<{ type: RowType; value: string }>
 
 function reportBlock(
   sources: Map<string, string>,
@@ -114,36 +95,47 @@ function reportBlock(
   // different files in the same block. In addition, diagnostic lines _can_
   // cross those file boundaries so that is going to be interesting...
   let file = diagnostics[0].file!
-
-  let h = (input: string) => highlightCode(input, path.extname(file).slice(1))
+  let extension = path.extname(file).slice(1)
 
   let source = sources.get(file)!
   let lines = source.split('\n')
 
-  // Find all printable lines. Lines with issues + context lines. We'll use
-  // an object for now which will make it easier for overlapping context
-  // lines.
-  let printableLines = new Map()
+  function typeCode(input: string[][]) {
+    return input.map((row) =>
+      row.map((value) => {
+        let type = RowType.Code
+        if (value === ' ') type |= RowType.Whitespace
+
+        return { type, value }
+      })
+    )
+  }
+
+  let code = typeCode(rasterizeCode(highlightCode(source, extension)))
+
+  // Find all printable lines. Lines with issues + context lines. We'll use an object for now which
+  // will make it easier for overlapping context lines.
+  let printableLines = new Map<number, typeof code[number]>()
   for (let lineNumber of groupedByRow.keys()) {
     // Before context lines
     let beforeStart = Math.max(lineNumber - env.BEFORE_CONTEXT_LINES_COUNT, 0)
-    for (let [idx, line] of lines.slice(beforeStart, lineNumber).entries()) {
+    for (let [idx, line] of code.slice(beforeStart, lineNumber).entries()) {
       printableLines.set(beforeStart + idx, line)
     }
 
     // Line with diagnostics
-    printableLines.set(lineNumber, lines[lineNumber])
+    printableLines.set(lineNumber, code[lineNumber])
 
     // After context lines
     let afterEnd = Math.min(lineNumber + 1 + env.AFTER_CONTEXT_LINES_COUNT, lines.length - 1)
-    for (let [idx, line] of lines.slice(lineNumber + 1, afterEnd).entries()) {
+    for (let [idx, line] of code.slice(lineNumber + 1, afterEnd).entries()) {
       printableLines.set(lineNumber + 1 + idx, line)
     }
   }
 
   // Drop leading empty context lines, they are only noise
   for (let [lineNumber, line] of printableLines.entries()) {
-    if (line.trim()) break // Has contents in the line
+    if (line.length > 0) break // Has contents in the line
     if (groupedByRow.has(lineNumber)) break // Has diagnostics attached
 
     printableLines.delete(lineNumber)
@@ -151,7 +143,7 @@ function reportBlock(
 
   // Drop trailing empty context lines, they are only noise
   for (let [lineNumber, line] of Array.from(printableLines.entries()).reverse()) {
-    if (line.trim()) break // Has contents in the line
+    if (line.length > 0) break // Has contents in the line
     if (groupedByRow.has(lineNumber)) break // Has diagnostics attached
 
     printableLines.delete(lineNumber)
@@ -160,19 +152,18 @@ function reportBlock(
   // Strip leading whitespace
   let smallestIndentWidth = Infinity
   for (let line of printableLines.values()) {
-    if (!line.trim()) continue
-
-    let leadingWhitespace = line.length - line.trimStart().length
-    smallestIndentWidth = Math.min(smallestIndentWidth, leadingWhitespace)
+    if (line.length === 0) continue // Empty line
+    smallestIndentWidth = Math.min(
+      smallestIndentWidth,
+      Math.max(
+        0,
+        line.findIndex((v) => !(v.type & RowType.Whitespace))
+      )
+    )
   }
 
   // Re-indent the lines
   for (let [lineNumber, line] of printableLines.entries()) {
-    if (!line.trim()) {
-      printableLines.set(lineNumber, line)
-      continue
-    }
-
     printableLines.set(lineNumber, line.slice(smallestIndentWidth))
   }
 
@@ -185,12 +176,15 @@ function reportBlock(
 
   // Add padding to the lines
   for (let [lineNumber, line] of printableLines.entries()) {
-    if (!line.trim()) {
+    if (line.length <= 0) {
       printableLines.set(lineNumber, line)
       continue
     }
 
-    printableLines.set(lineNumber, ' '.repeat(PADDING) + line)
+    printableLines.set(lineNumber, [
+      ...Array.from(range(PADDING)).map(() => ({ type: RowType.Whitespace, value: ' ' })),
+      ...line,
+    ])
   }
 
   // Adjust column offsets for padding
@@ -200,11 +194,9 @@ function reportBlock(
     }
   }
 
-  type Row = string[]
-
   // Keep track of things
   let output: Row[] = []
-  let rowInfo = new Map<Row, { lineNumber: number; type: RowType }>()
+  let rowInfo = new Map<Row, { lineNumber?: number; type: RowType }>()
   let lineNumberToRow = new Map<number, Row>()
   let diagnosticToColor = new Map<Diagnostic, (input: string) => string>()
 
@@ -251,7 +243,13 @@ function reportBlock(
 
   // Reserve whitespace for vertical context lines
   for (let [lineNumber, line] of printableLines.entries()) {
-    printableLines.set(lineNumber, ' '.repeat(diagnosticsByContextIdentifier.size) + line)
+    printableLines.set(lineNumber, [
+      ...Array.from(range(diagnosticsByContextIdentifier.size)).map(() => ({
+        type: RowType.Whitespace,
+        value: ' ',
+      })),
+      ...line,
+    ])
   }
 
   // Adjust column offsets for vertical context lines
@@ -262,7 +260,7 @@ function reportBlock(
   }
 
   // Inject a row of a certain type at a certain position
-  function inject(idx: number, type: RowType, ...row: string[]) {
+  function inject(idx: number, type: RowType, ...row: Row) {
     output.splice(idx, 0, row)
     rowInfo.set(row, { type })
     return output[idx]
@@ -288,10 +286,15 @@ function reportBlock(
   // Add printable lines to output
   for (let [lineNumber, line] of printableLines.entries()) {
     let hasDiagnostics = groupedByRow.has(lineNumber)
-    let rowIdx = output.push(line.split('')) - 1
+    let type = hasDiagnostics
+      ? line.reduce((type, cell) => type | cell.type, RowType.None)
+      : RowType.ContextLine
+
+    let rowIdx = output.push(line) - 1
 
     rowInfo.set(output[rowIdx], {
-      type: hasDiagnostics ? RowType.Code : RowType.ContextLine,
+      // type: hasDiagnostics ? RowType.Code : RowType.ContextLine,
+      type,
       lineNumber,
     })
 
@@ -366,11 +369,11 @@ function reportBlock(
 
       // Underline
       for (let position of range(diagnostic.loc.col, diagnostic.loc.col + diagnostic.loc.len)) {
-        nextLine[position + 1] = decorate(CHARS.H)
+        nextLine[position + 1] = { type: RowType.Diagnostic, value: decorate(CHARS.H) }
       }
 
       // Connector
-      nextLine[connectorIdx] = decorate(CHARS.TConnector)
+      nextLine[connectorIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.TConnector) }
 
       // Vertical lines
       let requiredVerticalLines = diagnostics.length - idx - 1
@@ -387,10 +390,10 @@ function reportBlock(
           for (let { col, len } of diagnostic.locations) {
             let attachmentIdx = col + Math.floor((len - 1) / 2) + 1 // Center of the highlighted word
 
-            nextLine[attachmentIdx] = decorate(CHARS.V)
+            nextLine[attachmentIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.V) }
           }
         } else {
-          nextLine[connectorIdx] = decorate(CHARS.V)
+          nextLine[connectorIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.V) }
         }
       }
 
@@ -406,21 +409,22 @@ function reportBlock(
 
       // Rounded corner
       if (!diagnostic.context) {
-        lastLine[connectorIdx] = decorate(
-          lastLine[connectorIdx] === undefined ? CHARS.BLRound : CHARS.LConnector
-        )
+        lastLine[connectorIdx] = {
+          type: RowType.Diagnostic,
+          value: decorate(lastLine[connectorIdx] === undefined ? CHARS.BLRound : CHARS.LConnector),
+        }
       } else {
         if (isLastDiagnosticInContext(diagnostic)) {
-          lastLine[connectorIdx] = decorate(CHARS.BConnector)
+          lastLine[connectorIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.BConnector) }
         } else {
-          lastLine[connectorIdx] = decorate(CHARS.BRRound)
+          lastLine[connectorIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.BRRound) }
         }
       }
 
       // Horizontal line next to rounded corner
       if (!diagnostic.context || isLastDiagnosticInContext(diagnostic)) {
         for (let x of range(lastPosition - connectorIdx + 1)) {
-          lastLine[connectorIdx + 1 + x] = decorate(CHARS.H)
+          lastLine[connectorIdx + 1 + x] = { type: RowType.Diagnostic, value: decorate(CHARS.H) }
         }
       }
 
@@ -431,15 +435,15 @@ function reportBlock(
             2 /* To have some breathing room between each line */
 
         for (let x of range(offset, connectorIdx)) {
-          lastLine[x] = decorate(CHARS.H)
+          lastLine[x] = { type: RowType.Diagnostic, value: decorate(CHARS.H) }
         }
 
         if (isFirstDiagnosticInContext(diagnostic)) {
-          lastLine[offset] = decorate(CHARS.TLRound)
+          lastLine[offset] = { type: RowType.Diagnostic, value: decorate(CHARS.TLRound) }
         } else if (isLastDiagnosticInContext(diagnostic)) {
-          lastLine[offset] = decorate(CHARS.BLRound)
+          lastLine[offset] = { type: RowType.Diagnostic, value: decorate(CHARS.BLRound) }
         } else {
-          lastLine[offset] = decorate(CHARS.LConnector)
+          lastLine[offset] = { type: RowType.Diagnostic, value: decorate(CHARS.LConnector) }
         }
       }
 
@@ -449,16 +453,17 @@ function reportBlock(
 
           // Underline
           for (let position of range(col, col + len)) {
-            nextLine[position + 1] = decorate(CHARS.H)
+            nextLine[position + 1] = { type: RowType.Diagnostic, value: decorate(CHARS.H) }
           }
 
           // Connector
-          nextLine[attachmentIdx] = decorate(CHARS.TConnector)
+          nextLine[attachmentIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.TConnector) }
 
           // Connect to the friend line below
-          output[rowIdx + 1 + (diagnostics.length - idx)][attachmentIdx] = decorate(
-            CHARS.BConnector
-          )
+          output[rowIdx + 1 + (diagnostics.length - idx)][attachmentIdx] = {
+            type: RowType.Diagnostic,
+            value: decorate(CHARS.BConnector),
+          }
         }
       }
 
@@ -467,7 +472,7 @@ function reportBlock(
           return inject(idx, type)
         }
 
-        let info = rowInfo.get(output[idx])
+        let info = rowInfo.get(output[idx])!
         info.type |= type // Add the current type to the existing type
 
         return output[idx]
@@ -479,26 +484,43 @@ function reportBlock(
         let lastLineOffset = lastLine.length
         let availableSpace = env.PRINT_WIDTH - startPosition
         if (availableSpace >= diagnostic.message.length) {
-          lastLine.push(' ', ...diagnostic.message.split('').map((v) => decorate(v)))
+          lastLine.push(
+            { type: RowType.Diagnostic | RowType.Whitespace, value: ' ' },
+            ...diagnostic.message
+              .split('')
+              .map((v) => ({ type: RowType.Diagnostic, value: decorate(v) }))
+          )
         } else {
           // For the additional character that we are about to put in front of the multi-line
           // message. (1*)
           availableSpace -= 1
 
-          output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = decorate(CHARS.TLRound)
-          output[output.indexOf(lastLine) - 1][lastLineOffset] = decorate(CHARS.H)
+          output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = {
+            type: RowType.Diagnostic,
+            value: decorate(CHARS.TLRound),
+          }
+          output[output.indexOf(lastLine) - 1][lastLineOffset] = {
+            type: RowType.Diagnostic,
+            value: decorate(CHARS.H),
+          }
 
-          lastLine[lastLine.length - 1] = decorate(CHARS.RConnector)
+          lastLine[lastLine.length - 1] = {
+            type: RowType.Diagnostic,
+            value: decorate(CHARS.RConnector),
+          }
           let sentences = wordWrap(diagnostic.message, availableSpace)
           for (let [idx, sentence] of sentences.entries()) {
             if (idx === 0) {
-              lastLine.push(' ', ...sentence.split('').map((v) => decorate(v)))
+              lastLine.push(
+                { type: RowType.Diagnostic | RowType.Whitespace, value: ' ' },
+                ...sentence.split('').map((v) => ({ type: RowType.Diagnostic, value: decorate(v) }))
+              )
             } else {
               lastLine.push(
                 /* (1*) This extra character is why we added `availableSpace -= 1` */
-                decorate(CHARS.V),
-                ' ',
-                ...sentence.split('').map((v) => decorate(v))
+                { type: RowType.Diagnostic, value: decorate(CHARS.V) },
+                { type: RowType.Diagnostic | RowType.Whitespace, value: ' ' },
+                ...sentence.split('').map((v) => ({ type: RowType.Diagnostic, value: decorate(v) }))
               )
             }
 
@@ -507,10 +529,13 @@ function reportBlock(
               lastLineOffset - 1,
               RowType.Diagnostic
             )
-            lastLine[lastLineOffset - 1] = ''
+            lastLine[lastLineOffset - 1] = { type: RowType.Diagnostic, value: '' }
           }
 
-          lastLine.push(decorate(CHARS.BLRound), decorate(CHARS.H))
+          lastLine.push(
+            { type: RowType.Diagnostic, value: decorate(CHARS.BLRound) },
+            { type: RowType.Diagnostic, value: decorate(CHARS.H) }
+          )
         }
       }
     }
@@ -519,21 +544,21 @@ function reportBlock(
   // Drop "useless" context lines. A useless context line is one that is empty
   // surrounded by diagnostic lines.
   for (let rowIdx = output.length - 1; rowIdx > 0; rowIdx--) {
-    let { type: currentRowType, lineNumber } = rowInfo.get(output[rowIdx]) ?? {}
-    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1]) ?? {}
-    let { type: nextRowType } = rowInfo.get(output[rowIdx + 1]) ?? {}
+    let { type: currentRowType, lineNumber } = rowInfo.get(output[rowIdx]) ?? { type: RowType.None }
+    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1]) ?? { type: RowType.None }
+    let { type: nextRowType } = rowInfo.get(output[rowIdx + 1]) ?? { type: RowType.None }
 
     if (
       // Check structure
-      previousRowType === RowType.Diagnostic &&
-      currentRowType === RowType.ContextLine &&
-      nextRowType === RowType.Diagnostic &&
+      previousRowType & RowType.Diagnostic &&
+      currentRowType & RowType.ContextLine &&
+      nextRowType & RowType.Diagnostic &&
       // Check validity of the context line
-      output[rowIdx].join('').trim() === ''
+      output[rowIdx].every((v) => v.type === RowType.Whitespace)
     ) {
       // Drop information about this line
       rowInfo.delete(output[rowIdx])
-      lineNumberToRow.delete(lineNumber)
+      lineNumberToRow.delete(lineNumber!)
 
       // Remove line from output
       output.splice(rowIdx, 2) // TODO: Hmm, is this `2` correct? Why?
@@ -542,12 +567,17 @@ function reportBlock(
 
   // Inject breathing room between code lines and diagnostic lines
   for (let rowIdx = output.length - 1; rowIdx > 0; rowIdx--) {
-    let { type: currentRowType } = rowInfo.get(output[rowIdx])
-    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1])
+    let { type: currentRowType, lineNumber } = rowInfo.get(output[rowIdx])!
+    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1])!
+
+    // Both are diagnostic lines, so no need to inject breathing room between them
+    if (previousRowType & RowType.Diagnostic && currentRowType & RowType.Diagnostic) {
+      continue
+    }
 
     if (
-      previousRowType === RowType.Diagnostic &&
-      [RowType.Code, RowType.ContextLine].includes(currentRowType)
+      previousRowType & RowType.Diagnostic &&
+      (currentRowType & RowType.ContextLine || currentRowType & RowType.Code)
     ) {
       // Inject empty line between a code line and a non-code line. This will
       // later get turned into a non-code line.
@@ -557,8 +587,12 @@ function reportBlock(
 
   // Inject separator
   for (let rowIdx = output.length - 1; rowIdx > 0; rowIdx--) {
-    let { type: currentRowType, lineNumber: currentLineNumber } = rowInfo.get(output[rowIdx])
-    let { type: previousRowType, lineNumber: previousLineNumber } = rowInfo.get(output[rowIdx - 1])
+    let { type: currentRowType, lineNumber: currentLineNumber } = rowInfo.get(output[rowIdx]) ?? {
+      type: RowType.None,
+    }
+    let { type: previousRowType, lineNumber: previousLineNumber } = rowInfo.get(
+      output[rowIdx - 1]
+    ) ?? { type: RowType.None }
 
     if (![RowType.Code, RowType.ContextLine].includes(currentRowType)) continue
     if (![RowType.Code, RowType.ContextLine].includes(previousRowType)) continue
@@ -609,9 +643,9 @@ function reportBlock(
 
     for (let position = startRowIdx; position <= endRowIdx; position++) {
       if (inbetweenPositions.has(position)) {
-        output[position][offset] = decorate(CHARS.LConnector)
+        output[position][offset] = { type: RowType.Diagnostic, value: decorate(CHARS.LConnector) }
       } else {
-        output[position][offset] = decorate(CHARS.V)
+        output[position][offset] = { type: RowType.Diagnostic, value: decorate(CHARS.V) }
       }
     }
   }
@@ -634,25 +668,34 @@ function reportBlock(
       inject(output.length, RowType.Diagnostic)
     }
 
-    inject(output.length, RowType.StartOfNote, pc.dim(CHARS.H))
+    inject(output.length, RowType.StartOfNote, {
+      type: RowType.StartOfNote,
+      value: pc.dim(CHARS.H),
+    })
 
     if (notes.length === 1) {
       for (let note of notes) {
         inject(
           output.length,
           RowType.Diagnostic,
-          ...' '.repeat(PADDING),
-          ...'NOTE:'.split('').map((v) => pc.bold(pc.cyan(v))),
-          ' ',
-          ...note.note
+          ...Array.from(range(PADDING)).map(() => ({
+            type: RowType.Note,
+            value: ' ',
+          })),
+          ...'NOTE:'.split('').map((v) => ({ type: RowType.Note, value: pc.bold(pc.cyan(v)) })),
+          { type: RowType.Note, value: ' ' },
+          ...note.note.split('').map((v: string) => ({ type: RowType.Note, value: v }))
         )
       }
     } else {
       inject(
         output.length,
         RowType.Diagnostic,
-        ...' '.repeat(PADDING),
-        ...'NOTES:'.split('').map((v) => pc.bold(pc.cyan(v)))
+        ...Array.from(range(PADDING)).map(() => ({
+          type: RowType.Note,
+          value: ' ',
+        })),
+        ...'NOTES:'.split('').map((v) => ({ type: RowType.Note, value: pc.bold(pc.cyan(v)) }))
       )
 
       type MyNotes = { note: string | MyNotes; diagnostic: Diagnostic }[]
@@ -671,10 +714,13 @@ function reportBlock(
               inject(
                 output.length,
                 RowType.Diagnostic,
-                ...' '.repeat(PADDING + 2 + level * 2),
-                pc.dim(number),
-                ' ',
-                ...decorate(rest)
+                ...Array.from(range(PADDING + 2 + level * 2)).map(() => ({
+                  type: RowType.Note,
+                  value: ' ',
+                })),
+                { type: RowType.Note, value: pc.dim(number) },
+                { type: RowType.Note, value: ' ' },
+                ...rest.split('').map((v) => ({ type: RowType.Note, value: decorate(v) }))
               )
             }
 
@@ -683,10 +729,13 @@ function reportBlock(
               inject(
                 output.length,
                 RowType.Diagnostic,
-                ...' '.repeat(PADDING + 2 + level * 2),
-                pc.dim('-'),
-                ' ',
-                ...note
+                ...Array.from(range(PADDING + 2 + level * 2)).map(() => ({
+                  type: RowType.Note,
+                  value: ' ',
+                })),
+                { type: RowType.Note, value: pc.dim('-') },
+                { type: RowType.Note, value: ' ' },
+                ...note.split('').map((v) => ({ type: RowType.Note, value: decorate(v) }))
               )
             }
           }
@@ -723,6 +772,9 @@ function reportBlock(
       let lineNumber = (_lineNumber + 1).toString().padStart(gutterWidth, ' ')
 
       return {
+        [RowType.None]() {
+          return []
+        },
         [RowType.Code]() {
           return [
             ...' '.repeat(GUTTER_WIDTH - 2),
@@ -731,7 +783,18 @@ function reportBlock(
             ...lineNumber,
             ' ',
             pc.dim(CHARS.V),
-            ...formatCode(row, (raw) => h(raw)),
+            ...row.map((data) => data.value),
+          ]
+        },
+        [RowType.Code | RowType.Whitespace]() {
+          return [
+            ...' '.repeat(GUTTER_WIDTH - 2),
+            pc.bold(pc.red(CHARS.bigdot)),
+            ' ',
+            ...lineNumber,
+            ' ',
+            pc.dim(CHARS.V),
+            ...row.map((data) => data.value),
           ]
         },
         [RowType.ContextLine]() {
@@ -740,17 +803,27 @@ function reportBlock(
             ...lineNumber.split('').map((v) => pc.dim(v)),
             ' ',
             pc.dim(CHARS.V),
-            ...formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
+            ...row.map(
+              env.COLOR_CONTEXT_LINES
+                ? (data) => data.value
+                : (data) => {
+                    if (data.type & RowType.Code) {
+                      return pc.dim(clearAnsiEscapes(data.value))
+                    }
+
+                    return data.value
+                  }
+            ),
           ]
         },
         [RowType.Diagnostic]() {
-          return [...emptyIndent, ' ', pc.dim(CHARS.dot), ...row]
+          return [...emptyIndent, ' ', pc.dim(CHARS.dot), ...row.map((data) => data.value)]
         },
         [RowType.LineNumberSeparator]() {
-          return [...emptyIndent, ' ', pc.dim(CHARS.VSeparator), ...row]
+          return [...emptyIndent, ' ', pc.dim(CHARS.VSeparator), ...row.map((data) => data.value)]
         },
         [RowType.StartOfNote]() {
-          return [...emptyIndent, ' ', pc.dim(CHARS.LConnector), ...row]
+          return [...emptyIndent, ' ', pc.dim(CHARS.LConnector), ...row.map((data) => data.value)]
         },
         [RowType.ContextLine | RowType.Diagnostic]() {
           return [
@@ -758,7 +831,17 @@ function reportBlock(
             ...lineNumber.split('').map((v) => pc.dim(v)),
             ' ',
             pc.dim(CHARS.V),
-            ...formatCode(row, (raw) => pc.dim(env.COLOR_CONTEXT_LINES ? h(raw) : raw)),
+            ...row.map(
+              env.COLOR_CONTEXT_LINES
+                ? (data) => data.value
+                : (data) => {
+                    if (data.type & RowType.Code) {
+                      return pc.dim(clearAnsiEscapes(data.value))
+                    }
+
+                    return data.value
+                  }
+            ),
           ]
         },
       }[type]()
