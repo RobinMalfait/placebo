@@ -39,7 +39,7 @@
     │
   3 │   function   hello() {
   4 │
-∙ 5 │
+
     ·   ┬
     ·   ╰── More than 1 blank line not allowed.
     ·
