@@ -10,9 +10,7 @@ import { wordWrap } from '~/utils/word-wrap'
 import { parseNotes } from '~/printer/parse-notes'
 import CHARS from '~/printer/char-maps/fancy'
 
-let COLORS = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan].map(
-  (f) => (v: string) => pc.bold(f(v))
-)
+let COLORS = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan]
 
 // The default indentation to add some padding in the box.
 let PADDING = 3
