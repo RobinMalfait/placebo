@@ -567,8 +567,8 @@ function reportBlock(
 
   // Inject breathing room between code lines and diagnostic lines
   for (let rowIdx = output.length - 1; rowIdx > 0; rowIdx--) {
-    let { type: currentRowType, lineNumber } = rowInfo.get(output[rowIdx])!
-    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1])!
+    let { type: currentRowType } = rowInfo.get(output[rowIdx]) ?? { type: RowType.None }
+    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1]) ?? { type: RowType.None }
 
     // Both are diagnostic lines, so no need to inject breathing room between them
     if (previousRowType & RowType.Diagnostic && currentRowType & RowType.Diagnostic) {
@@ -766,7 +766,10 @@ function reportBlock(
 
     // Gutter + existing output
     ...output.map((row) => {
-      let { type, lineNumber: _lineNumber } = rowInfo.get(row)!
+      let { type, lineNumber: _lineNumber } = rowInfo.get(row) ?? {
+        type: RowType.None,
+        lineNumber: 0,
+      }
       let emptyIndent = ' '.repeat(gutterWidth + GUTTER_WIDTH)
 
       let lineNumber = (_lineNumber + 1).toString().padStart(gutterWidth, ' ')
