@@ -7,6 +7,7 @@ import { range } from '~/utils/range'
 import { wordWrap } from '~/utils/word-wrap'
 
 import CHARS from '~/printer/char-maps/fancy'
+import { superScript } from '~/utils/super-script'
 
 interface DeepArray<T> extends Array<T | DeepArray<T>> {}
 type Notes = DeepArray<string>
@@ -28,21 +29,6 @@ interface Diagnostic {
   file?: string
   type?: string
   locations?: Location[]
-}
-
-let SUPER_SCRIPT_MAP = {
-  0: '⁰',
-  1: '¹',
-  2: '²',
-  3: '³',
-  4: '⁴',
-  5: '⁵',
-  6: '⁶',
-  7: '⁷',
-  8: '⁸',
-  9: '⁹',
-  '(': '⁽',
-  ')': '⁾',
 }
 
 let COLORS = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan].map(
@@ -963,12 +949,4 @@ function visuallyLinkNotesToDiagnostics(diagnostics: Diagnostic[]) {
   }
 
   return diagnostics
-}
-
-function superScript(n: string) {
-  return n
-    .toString()
-    .split('')
-    .map((c) => SUPER_SCRIPT_MAP[c] ?? c)
-    .join('')
 }
