@@ -797,6 +797,22 @@ describe('message wrapping', () => {
     │
     └─`)
   })
+
+  fit('should render multi-line messages when there are multiple messages on the same line', () => {
+    let code = html`<div class="flex hidden block" />`
+    let diagnostics = [
+      diagnose(
+        'I am a very long message that I would like to split into multiple sections, otherwise it will not render properly because there is not enough room available to us',
+        findLocation(code, 'flex')
+      ),
+      diagnose('I am another message', findLocation(code, 'hidden')),
+      diagnose('I am a message', findLocation(code, 'block')),
+    ]
+
+    let result = magic(code, diagnostics, './example.html')
+
+    console.log(result)
+  })
 })
 
 describe('multi-line diagnostics', () => {

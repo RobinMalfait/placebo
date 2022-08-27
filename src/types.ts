@@ -51,6 +51,8 @@ export interface InternalDiagnostic {
   block?: string
   context?: string
 
+  // Things to clean up
   type?: string
   locations?: Location[]
+  messages?: string[]
 }
