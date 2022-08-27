@@ -82,10 +82,10 @@ function reportBlock(
   flush: (input: string) => void
 ) {
   // Group by same line
-  let groupedByRow = new Map()
+  let groupedByRow = new Map<number, Diagnostic[]>()
   for (let diagnostic of diagnostics) {
     if (groupedByRow.has(diagnostic.loc.row)) {
-      groupedByRow.get(diagnostic.loc.row).push(diagnostic)
+      groupedByRow.get(diagnostic.loc.row)!.push(diagnostic)
     } else {
       groupedByRow.set(diagnostic.loc.row, [diagnostic])
     }
@@ -100,7 +100,7 @@ function reportBlock(
   let source = sources.get(file)!
   let lines = source.split('\n')
 
-  function typeCode(input: string[][]) {
+  function typeCode(input: string[][]): Row[] {
     return input.map((row) =>
       row.map((value) => {
         let type = RowType.Code
@@ -115,7 +115,7 @@ function reportBlock(
 
   // Find all printable lines. Lines with issues + context lines. We'll use an object for now which
   // will make it easier for overlapping context lines.
-  let printableLines = new Map<number, typeof code[number]>()
+  let printableLines = new Map<number, Row>()
   for (let lineNumber of groupedByRow.keys()) {
     // Before context lines
     let beforeStart = Math.max(lineNumber - env.BEFORE_CONTEXT_LINES_COUNT, 0)
@@ -292,12 +292,7 @@ function reportBlock(
 
     let rowIdx = output.push(line) - 1
 
-    rowInfo.set(output[rowIdx], {
-      // type: hasDiagnostics ? RowType.Code : RowType.ContextLine,
-      type,
-      lineNumber,
-    })
-
+    rowInfo.set(output[rowIdx], { type, lineNumber })
     lineNumberToRow.set(lineNumber, output[rowIdx])
   }
 
@@ -312,7 +307,9 @@ function reportBlock(
           last.type = 'combined'
           last.locations = [last.loc]
         }
-        last.locations.push(diagnostic.loc)
+        if (last.locations) {
+          last.locations.push(diagnostic.loc)
+        }
         continue
       }
 
@@ -322,7 +319,7 @@ function reportBlock(
     let lastDiagnostic = diagnostics[diagnostics.length - 1]
     let lastPosition = (() => {
       if (lastDiagnostic.type === 'combined') {
-        let { col, len } = lastDiagnostic.locations[lastDiagnostic.locations.length - 1]
+        let { col, len } = lastDiagnostic.locations?.[lastDiagnostic.locations.length - 1]!
         return col + len + 1 /* Spacing */
       }
 
@@ -387,7 +384,7 @@ function reportBlock(
         let nextLine = output[nextLineIdx] ?? inject(nextLineIdx, RowType.Diagnostic)
 
         if (diagnostic.type === 'combined') {
-          for (let { col, len } of diagnostic.locations) {
+          for (let { col, len } of diagnostic.locations!) {
             let attachmentIdx = col + Math.floor((len - 1) / 2) + 1 // Center of the highlighted word
 
             nextLine[attachmentIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.V) }
@@ -448,7 +445,7 @@ function reportBlock(
       }
 
       if (diagnostic.type === 'combined') {
-        for (let { col, len } of diagnostic.locations.slice(1)) {
+        for (let { col, len } of diagnostic.locations!.slice(1)) {
           let attachmentIdx = col + Math.floor((len - 1) / 2) + 1
 
           // Underline
@@ -605,7 +602,7 @@ function reportBlock(
   }
 
   // Render vertical lines for diagnostics with the same context
-  let seen = new Set()
+  let seen = new Set<string | number>()
   for (let diagnostic of diagnostics) {
     if (!diagnostic.context) continue
     if (seen.has(diagnostic.context)) continue
@@ -630,7 +627,7 @@ function reportBlock(
     endRowIdx = output.indexOf(lineNumberToRow.get(endRowIdx)!) + 1
 
     // Diagnostics in this group in between the start & end positions
-    let inbetweenPositions = new Set()
+    let inbetweenPositions = new Set<number>()
     for (let diagnostic of diagnosticsInContext.slice(1, -1)) {
       let row = lineNumberToRow.get(diagnostic.loc.row)!
       let rowIdx = output.indexOf(row)
@@ -651,10 +648,9 @@ function reportBlock(
   }
 
   // NOTES
-  let notes = Array.from(
+  let notes: Notes = Array.from(
     new Set(
-      Array.from(groupedByRow.values())
-        .flat(Infinity)
+      (Array.from(groupedByRow.values()).flat(Infinity) as Diagnostic[])
         // We print them from top row to bottom row, however we also print the diagnostic from left to
         // right which means that the left most (first) will be rendered at the bottom, that's why we
         // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
