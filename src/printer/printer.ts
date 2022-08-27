@@ -544,7 +544,7 @@ function reportBlock(
       currentRowType & RowType.ContextLine &&
       nextRowType & RowType.Diagnostic &&
       // Check validity of the context line
-      output[rowIdx].every((v) => v.type === RowType.Whitespace)
+      output[rowIdx].every((v) => v.type & RowType.Whitespace)
     ) {
       // Drop information about this line
       rowInfo.delete(output[rowIdx])
@@ -567,7 +567,7 @@ function reportBlock(
 
     if (
       previousRowType & RowType.Diagnostic &&
-      (currentRowType & RowType.ContextLine || currentRowType & RowType.Code)
+      currentRowType & (RowType.ContextLine | RowType.Code)
     ) {
       // Inject empty line between a code line and a non-code line. This will
       // later get turned into a non-code line.
@@ -582,8 +582,8 @@ function reportBlock(
     let { type: previousRowType, lineNumber: previousLineNumber } =
       rowInfo.get(output[rowIdx - 1]) ?? createNoneCell()
 
-    if (![RowType.Code, RowType.ContextLine].includes(currentRowType)) continue
-    if (![RowType.Code, RowType.ContextLine].includes(previousRowType)) continue
+    if (!(currentRowType & (RowType.Code | RowType.ContextLine))) continue
+    if (!(previousRowType & (RowType.Code | RowType.ContextLine))) continue
 
     if (Number(currentLineNumber) - Number(previousLineNumber) > 1) {
       // Inject empty line between a code line and a non-code line. This will
