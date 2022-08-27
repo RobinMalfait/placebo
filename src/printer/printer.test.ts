@@ -216,10 +216,10 @@ it('should squash multiple equal messages #1', () => {
 it('should squash multiple equal messages #2', () => {
   let code = html`<div class="flex block text-black text-white" />`
   let diagnostics = [
-    diagnose('Collding on the `display` property', findLocation(code, 'flex')),
-    diagnose('Collding on the `display` property', findLocation(code, 'block')),
-    diagnose('Collding on the `color` property', findLocation(code, 'text-black')),
-    diagnose('Collding on the `color` property', findLocation(code, 'text-white')),
+    diagnose('Colliding on the `display` property', findLocation(code, 'flex')),
+    diagnose('Colliding on the `display` property', findLocation(code, 'block')),
+    diagnose('Colliding on the `color` property', findLocation(code, 'text-black')),
+    diagnose('Colliding on the `color` property', findLocation(code, 'text-white')),
   ]
 
   let result = magic(code, diagnostics, './example.html')
@@ -229,8 +229,8 @@ it('should squash multiple equal messages #2', () => {
     │
 ∙ 1 │   <div class=\"flex block text-black text-white\" />
     ·               ─┬── ──┬── ────┬───── ────┬─────
-    ·                │     │       ╰──────────┴─────── Collding on the \`color\` property
-    ·                ╰─────┴────────────────────────── Collding on the \`display\` property
+    ·                │     │       ╰──────────┴─────── Colliding on the \`color\` property
+    ·                ╰─────┴────────────────────────── Colliding on the \`display\` property
     │
     └─`)
 })
