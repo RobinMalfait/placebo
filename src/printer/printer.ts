@@ -63,8 +63,10 @@ function createCell(value: string, type: RowType) {
   return { type, value }
 }
 
-function createCells<T>(amount: number, cb: () => T) {
-  return Array.from(range(amount)).map(cb)
+function* createCells<T>(amount: number, cb: () => T) {
+  for (let _ of range(amount)) {
+    yield cb()
+  }
 }
 
 function createDiagnosticCell(value: string) {
@@ -186,7 +188,7 @@ function reportBlock(
       continue
     }
 
-    printableLines.set(lineNumber, [...createCells(PADDING, () => createWhitespaceCell()), ...line])
+    printableLines.set(lineNumber, [...createCells(PADDING, createWhitespaceCell), ...line])
   }
 
   // Adjust column offsets for padding
@@ -246,7 +248,7 @@ function reportBlock(
   // Reserve whitespace for vertical context lines
   for (let [lineNumber, line] of printableLines.entries()) {
     printableLines.set(lineNumber, [
-      ...createCells(diagnosticsByContextIdentifier.size, () => createWhitespaceCell()),
+      ...createCells(diagnosticsByContextIdentifier.size, createWhitespaceCell),
       ...line,
     ])
   }
