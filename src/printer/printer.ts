@@ -1,34 +1,14 @@
 import path from 'path'
 import pc from 'picocolors'
-import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
+import type { Diagnostic, InternalDiagnostic, Notes } from '~/types'
 
 import { env } from '~/env'
+import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
 import { range } from '~/utils/range'
-import { wordWrap } from '~/utils/word-wrap'
-
-import CHARS from '~/printer/char-maps/fancy'
 import { superScript } from '~/utils/super-script'
-
-interface DeepArray<T> extends Array<T | DeepArray<T>> {}
-type Notes = DeepArray<string>
-
-interface Location {
-  row: number
-  col: number
-  len: number
-}
-
-interface Diagnostic {
-  file: string
-  message: string
-  loc: Location
-  notes: Notes
-  block?: string
-  context?: string | number
-
-  type?: string
-  locations?: Location[]
-}
+import { wordWrap } from '~/utils/word-wrap'
+import { parseNotes } from '~/printer/parse-notes'
+import CHARS from '~/printer/char-maps/fancy'
 
 let COLORS = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan].map(
   (f) => (v: string) => pc.bold(f(v))
@@ -85,11 +65,11 @@ type Row = Array<{ type: RowType; value: string }>
 
 function reportBlock(
   sources: Map<string, string>,
-  diagnostics: Diagnostic[],
+  diagnostics: InternalDiagnostic[],
   flush: (input: string) => void
 ) {
   // Group by same line
-  let groupedByRow = new Map<number, Diagnostic[]>()
+  let groupedByRow = new Map<number, InternalDiagnostic[]>()
   for (let diagnostic of diagnostics) {
     if (groupedByRow.has(diagnostic.loc.row)) {
       groupedByRow.get(diagnostic.loc.row)!.push(diagnostic)
@@ -202,9 +182,9 @@ function reportBlock(
   let output: Row[] = []
   let rowInfo = new Map<Row, { lineNumber?: number; type: RowType }>()
   let lineNumberToRow = new Map<number, Row>()
-  let diagnosticToColor = new Map<Diagnostic, (input: string) => string>()
+  let diagnosticToColor = new Map<InternalDiagnostic, (input: string) => string>()
 
-  let diagnosticsByContextIdentifier = new Map<string | number | undefined, Diagnostic[]>()
+  let diagnosticsByContextIdentifier = new Map<string | number | undefined, InternalDiagnostic[]>()
 
   // Group by context
   for (let diagnostic of diagnostics) {
@@ -267,12 +247,12 @@ function reportBlock(
     return output[idx]
   }
 
-  function isLastDiagnosticInContext(diagnostic: Diagnostic) {
+  function isLastDiagnosticInContext(diagnostic: InternalDiagnostic) {
     let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)!
     return diagnosticsInContext[diagnosticsInContext.length - 1] === diagnostic
   }
 
-  function isFirstDiagnosticInContext(diagnostic: Diagnostic) {
+  function isFirstDiagnosticInContext(diagnostic: InternalDiagnostic) {
     let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)!
     return diagnosticsInContext[0] === diagnostic
   }
@@ -300,7 +280,7 @@ function reportBlock(
   // Add connector lines
   for (let [lineNumber, diagnosticz] of groupedByRow.entries()) {
     // Group diagnostics that belong together, together
-    let diagnostics: Diagnostic[] = []
+    let diagnostics: InternalDiagnostic[] = []
     for (let diagnostic of diagnosticz) {
       let last = diagnostics[diagnostics.length - 1]
       if (last && last.message === diagnostic.message) {
@@ -641,7 +621,7 @@ function reportBlock(
   // NOTES
   let notes: Notes = Array.from(
     new Set(
-      (Array.from(groupedByRow.values()).flat(Infinity) as Diagnostic[])
+      (Array.from(groupedByRow.values()).flat(Infinity) as InternalDiagnostic[])
         // We print them from top row to bottom row, however we also print the diagnostic from left to
         // right which means that the left most (first) will be rendered at the bottom, that's why we
         // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
@@ -657,7 +637,7 @@ function reportBlock(
 
     inject(output.length, RowType.StartOfNote, createCell(pc.dim(CHARS.H), RowType.StartOfNote))
 
-    if (notes.length === 1) {
+    if (notes.length === 1 && notes[0].children.length === 0) {
       for (let note of notes) {
         inject(
           output.length,
@@ -665,7 +645,7 @@ function reportBlock(
           ...createCells(PADDING, () => createCell(' ', RowType.Note)),
           ...'NOTE:'.split('').map((v) => createCell(pc.bold(pc.cyan(v)), RowType.Note)),
           createCell(' ', RowType.Note),
-          ...note.note.split('').map((v: string) => createCell(v, RowType.Note))
+          ...note.message.split('').map((v: string) => createCell(v, RowType.Note))
         )
       }
     } else {
@@ -676,41 +656,36 @@ function reportBlock(
         ...'NOTES:'.split('').map((v) => createCell(pc.bold(pc.cyan(v)), RowType.Note))
       )
 
-      type MyNotes = { note: string | MyNotes; diagnostic: Diagnostic }[]
-
-      function renderNotes(notes: MyNotes, level = 0) {
-        for (let { note, diagnostic } of notes) {
+      function renderNotes(notes: Notes, depth = 0) {
+        for (let { message, children, diagnostic } of notes) {
           let decorate = diagnosticToColor.get(diagnostic)!
-          if (Array.isArray(note)) {
-            renderNotes(note, level + 1)
-          } else if (!note || note.trim() === '') {
-            inject(output.length, RowType.Diagnostic)
-          } else {
-            // Starting with a number like "1."
-            if (/^\d*\./.test(note)) {
-              let [, number, rest] = note.split(/(\d*\.)\s*(.*)/)
-              inject(
-                output.length,
-                RowType.Diagnostic,
-                ...createCells(PADDING + 2 + level * 2, () => createCell(' ', RowType.Note)),
-                createCell(pc.dim(number), RowType.Note),
-                createCell(' ', RowType.Note),
-                ...rest.split('').map((v) => createCell(decorate(v), RowType.Note))
-              )
-            }
 
-            // Not starting with a number, just use `- {...note}`
-            else {
-              inject(
-                output.length,
-                RowType.Diagnostic,
-                ...createCells(PADDING + 2 + level * 2, () => createCell(' ', RowType.Note)),
-                createCell(pc.dim('-'), RowType.Note),
-                createCell(' ', RowType.Note),
-                ...note.split('').map((v) => createCell(decorate(v), RowType.Note))
-              )
-            }
+          // Starting with a number like "1."
+          if (/^\d*\./.test(message)) {
+            let [, number, rest] = message.split(/(\d*\.)\s*(.*)/)
+            inject(
+              output.length,
+              RowType.Diagnostic,
+              ...createCells(PADDING + 2 + depth * 2, () => createCell(' ', RowType.Note)),
+              createCell(pc.dim(number), RowType.Note),
+              createCell(' ', RowType.Note),
+              ...rest.split('').map((v) => createCell(decorate(v), RowType.Note))
+            )
           }
+
+          // Not starting with a number, just use `- {...note}`
+          else {
+            inject(
+              output.length,
+              RowType.Diagnostic,
+              ...createCells(PADDING + 2 + depth * 2, () => createCell(' ', RowType.Note)),
+              createCell(pc.dim('-'), RowType.Note),
+              createCell(' ', RowType.Note),
+              ...message.split('').map((v) => createCell(decorate(v), RowType.Note))
+            )
+          }
+
+          renderNotes(children, depth + 1)
         }
       }
 
@@ -841,71 +816,59 @@ function reportBlock(
   }
 }
 
-export function printer(
-  sources: Map<string, string>,
-  diagnostics: Diagnostic[],
-  flush = console.log
-) {
-  // Sort diagnostics by location, first by row then by column so that it is
-  // sorted top to bottom, left to right
-  diagnostics = diagnostics.slice().sort((a, z) => a.loc.row - z.loc.row || a.loc.col - z.loc.col)
+function prepareDiagnostics(diagnostics: Diagnostic[]) {
+  let all = diagnostics
+    // `row` and `col` are 1-based when they come in. This is because most tools use `row` and
+    // `col` to point to a location in your editor and editors usually start with `1` instead of
+    // `0`. For now, let's make it a bit simpler and use them as 0-based values.
+    .map((d) => ({
+      ...d,
+      loc: { ...d.loc, row: d.loc.row - 1, col: d.loc.col - 1 },
+    }))
 
-  // Ensure that all required properties exist
-  diagnostics = diagnostics.map((d) => ({ message: '', file: '', ...d }))
+    // Sort diagnostics by location, first by row then by column so that it is sorted top to
+    // bottom, left to right.
+    .sort((a, z) => a.loc.row - z.loc.row || a.loc.col - z.loc.col)
 
-  // Row & Col are 1-based when they come in. For now, let's make it a bit
-  // simpler and use them as 0-based values.
-  diagnostics = diagnostics.map((d) => ({
-    ...d,
-    loc: { ...d.loc, row: d.loc.row - 1, col: d.loc.col - 1 },
-  }))
+    // Cleanup notes to a consistent nested structure.
+    .map((d) => {
+      let copy = { ...d }
+      // @ts-expect-error Uh yeah so w/e
+      copy.notes = parseNotes(d.notes, copy)
+      return copy as unknown as InternalDiagnostic
+    })
 
-  type MyNotes = { note: string | MyNotes[]; diagnostic: Diagnostic }
-  function noteObj(note: string | DeepArray<string>, diagnostic: Diagnostic): MyNotes {
-    if (Array.isArray(note)) {
-      return {
-        note: note.map((n) => noteObj(n, diagnostic)),
-        diagnostic,
-      }
-    }
-
-    return {
-      note,
-      diagnostic,
-    }
-  }
-
-  // Ensure that all notes are array of objects with a link to their (parent) diagnostic
-  diagnostics.forEach((d) => {
-    d.notes = []
-      .concat(d.notes)
-      .filter(Boolean)
-      .map((n) => noteObj(n, d))
-  })
-
-  // Group by block
-  let grouped = new Map()
-  for (let diagnostic of diagnostics) {
+  let grouped = new Map<string, InternalDiagnostic[]>()
+  for (let diagnostic of all) {
     let block = diagnostic.block ?? diagnostic.file + '-' + diagnostic.loc.row
 
     if (grouped.has(block)) {
-      grouped.get(block).push(diagnostic)
+      grouped.get(block)!.push(diagnostic)
     } else {
       grouped.set(block, [diagnostic])
     }
   }
 
+  return grouped
+}
+
+export function printer(
+  sources: Map<string, string>,
+  diagnostics: Diagnostic[],
+  flush = console.log
+) {
+  let diagnosticsPerBlock = prepareDiagnostics(diagnostics)
+
   // Report per block, that will be cleaner from a UI perspective
-  let blocks = Array.from(grouped.values())
   flush('')
-  for (let diagnostics of blocks) {
+  for (let diagnostics of diagnosticsPerBlock.values()) {
     visuallyLinkNotesToDiagnostics(diagnostics)
     reportBlock(sources, diagnostics, flush)
     flush('')
   }
 }
 
-function visuallyLinkNotesToDiagnostics(diagnostics: Diagnostic[]) {
+function visuallyLinkNotesToDiagnostics(diagnostics: InternalDiagnostic[]) {
   let hasMultipleNotes = 0
 
   for (let diagnostic of diagnostics) {
@@ -929,7 +892,7 @@ function visuallyLinkNotesToDiagnostics(diagnostics: Diagnostic[]) {
         let myCount = ++count
         diagnostic.message = `${diagnostic.message}${superScript(`(${myCount})`)}`
         for (let i = 0; i < diagnostic.notes.length; i++) {
-          diagnostic.notes[i].note = `${myCount}. ${diagnostic.notes[i].note}`
+          diagnostic.notes[i].message = `${myCount}. ${diagnostic.notes[i].message}`
         }
       }
     }
