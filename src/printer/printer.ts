@@ -19,14 +19,13 @@ interface Location {
 }
 
 interface Diagnostic {
+  file: string
   message: string
   loc: Location
   notes: Notes
   block?: string
   context?: string | number
 
-  //
-  file?: string
   type?: string
   locations?: Location[]
 }
@@ -58,6 +57,26 @@ enum RowType {
   // Notes
   Note = 1 << 5,
   StartOfNote = 1 << 6,
+}
+
+function createCell(value: string, type: RowType) {
+  return { type, value }
+}
+
+function createCells<T>(amount: number, cb: () => T) {
+  return Array.from(range(amount)).map(cb)
+}
+
+function createDiagnosticCell(value: string) {
+  return createCell(value, RowType.Diagnostic)
+}
+
+function createWhitespaceCell(value: string = ' ') {
+  return { type: RowType.Whitespace, value }
+}
+
+function createNoneCell() {
+  return { type: RowType.None, lineNumber: 0 }
 }
 
 type Row = Array<{ type: RowType; value: string }>
@@ -167,10 +186,7 @@ function reportBlock(
       continue
     }
 
-    printableLines.set(lineNumber, [
-      ...Array.from(range(PADDING)).map(() => ({ type: RowType.Whitespace, value: ' ' })),
-      ...line,
-    ])
+    printableLines.set(lineNumber, [...createCells(PADDING, () => createWhitespaceCell()), ...line])
   }
 
   // Adjust column offsets for padding
@@ -230,10 +246,7 @@ function reportBlock(
   // Reserve whitespace for vertical context lines
   for (let [lineNumber, line] of printableLines.entries()) {
     printableLines.set(lineNumber, [
-      ...Array.from(range(diagnosticsByContextIdentifier.size)).map(() => ({
-        type: RowType.Whitespace,
-        value: ' ',
-      })),
+      ...createCells(diagnosticsByContextIdentifier.size, () => createWhitespaceCell()),
       ...line,
     ])
   }
@@ -352,11 +365,11 @@ function reportBlock(
 
       // Underline
       for (let position of range(diagnostic.loc.col, diagnostic.loc.col + diagnostic.loc.len)) {
-        nextLine[position + 1] = { type: RowType.Diagnostic, value: decorate(CHARS.H) }
+        nextLine[position + 1] = createDiagnosticCell(decorate(CHARS.H))
       }
 
       // Connector
-      nextLine[connectorIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.TConnector) }
+      nextLine[connectorIdx] = createDiagnosticCell(decorate(CHARS.TConnector))
 
       // Vertical lines
       let requiredVerticalLines = diagnostics.length - idx - 1
@@ -373,10 +386,10 @@ function reportBlock(
           for (let { col, len } of diagnostic.locations!) {
             let attachmentIdx = col + Math.floor((len - 1) / 2) + 1 // Center of the highlighted word
 
-            nextLine[attachmentIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.V) }
+            nextLine[attachmentIdx] = createDiagnosticCell(decorate(CHARS.V))
           }
         } else {
-          nextLine[connectorIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.V) }
+          nextLine[connectorIdx] = createDiagnosticCell(decorate(CHARS.V))
         }
       }
 
@@ -392,22 +405,21 @@ function reportBlock(
 
       // Rounded corner
       if (!diagnostic.context) {
-        lastLine[connectorIdx] = {
-          type: RowType.Diagnostic,
-          value: decorate(lastLine[connectorIdx] === undefined ? CHARS.BLRound : CHARS.LConnector),
-        }
+        lastLine[connectorIdx] = createDiagnosticCell(
+          decorate(lastLine[connectorIdx] === undefined ? CHARS.BLRound : CHARS.LConnector)
+        )
       } else {
         if (isLastDiagnosticInContext(diagnostic)) {
-          lastLine[connectorIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.BConnector) }
+          lastLine[connectorIdx] = createDiagnosticCell(decorate(CHARS.BConnector))
         } else {
-          lastLine[connectorIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.BRRound) }
+          lastLine[connectorIdx] = createDiagnosticCell(decorate(CHARS.BRRound))
         }
       }
 
       // Horizontal line next to rounded corner
       if (!diagnostic.context || isLastDiagnosticInContext(diagnostic)) {
         for (let x of range(lastPosition - connectorIdx + 1)) {
-          lastLine[connectorIdx + 1 + x] = { type: RowType.Diagnostic, value: decorate(CHARS.H) }
+          lastLine[connectorIdx + 1 + x] = createDiagnosticCell(decorate(CHARS.H))
         }
       }
 
@@ -418,15 +430,15 @@ function reportBlock(
             2 /* To have some breathing room between each line */
 
         for (let x of range(offset, connectorIdx)) {
-          lastLine[x] = { type: RowType.Diagnostic, value: decorate(CHARS.H) }
+          lastLine[x] = createDiagnosticCell(decorate(CHARS.H))
         }
 
         if (isFirstDiagnosticInContext(diagnostic)) {
-          lastLine[offset] = { type: RowType.Diagnostic, value: decorate(CHARS.TLRound) }
+          lastLine[offset] = createDiagnosticCell(decorate(CHARS.TLRound))
         } else if (isLastDiagnosticInContext(diagnostic)) {
-          lastLine[offset] = { type: RowType.Diagnostic, value: decorate(CHARS.BLRound) }
+          lastLine[offset] = createDiagnosticCell(decorate(CHARS.BLRound))
         } else {
-          lastLine[offset] = { type: RowType.Diagnostic, value: decorate(CHARS.LConnector) }
+          lastLine[offset] = createDiagnosticCell(decorate(CHARS.LConnector))
         }
       }
 
@@ -436,17 +448,16 @@ function reportBlock(
 
           // Underline
           for (let position of range(col, col + len)) {
-            nextLine[position + 1] = { type: RowType.Diagnostic, value: decorate(CHARS.H) }
+            nextLine[position + 1] = createDiagnosticCell(decorate(CHARS.H))
           }
 
           // Connector
-          nextLine[attachmentIdx] = { type: RowType.Diagnostic, value: decorate(CHARS.TConnector) }
+          nextLine[attachmentIdx] = createDiagnosticCell(decorate(CHARS.TConnector))
 
           // Connect to the friend line below
-          output[rowIdx + 1 + (diagnostics.length - idx)][attachmentIdx] = {
-            type: RowType.Diagnostic,
-            value: decorate(CHARS.BConnector),
-          }
+          output[rowIdx + 1 + (diagnostics.length - idx)][attachmentIdx] = createDiagnosticCell(
+            decorate(CHARS.BConnector)
+          )
         }
       }
 
@@ -468,42 +479,36 @@ function reportBlock(
         let availableSpace = env.PRINT_WIDTH - startPosition
         if (availableSpace >= diagnostic.message.length) {
           lastLine.push(
-            { type: RowType.Diagnostic | RowType.Whitespace, value: ' ' },
-            ...diagnostic.message
-              .split('')
-              .map((v) => ({ type: RowType.Diagnostic, value: decorate(v) }))
+            createCell(' ', RowType.Diagnostic | RowType.Whitespace),
+            ...diagnostic.message.split('').map((v) => createDiagnosticCell(decorate(v)))
           )
         } else {
           // For the additional character that we are about to put in front of the multi-line
           // message. (1*)
           availableSpace -= 1
 
-          output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = {
-            type: RowType.Diagnostic,
-            value: decorate(CHARS.TLRound),
-          }
-          output[output.indexOf(lastLine) - 1][lastLineOffset] = {
-            type: RowType.Diagnostic,
-            value: decorate(CHARS.H),
-          }
+          output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = createDiagnosticCell(
+            decorate(CHARS.TLRound)
+          )
+          output[output.indexOf(lastLine) - 1][lastLineOffset] = createDiagnosticCell(
+            decorate(CHARS.H)
+          )
 
-          lastLine[lastLine.length - 1] = {
-            type: RowType.Diagnostic,
-            value: decorate(CHARS.RConnector),
-          }
+          lastLine[lastLine.length - 1] = createDiagnosticCell(decorate(CHARS.RConnector))
+
           let sentences = wordWrap(diagnostic.message, availableSpace)
           for (let [idx, sentence] of sentences.entries()) {
             if (idx === 0) {
               lastLine.push(
-                { type: RowType.Diagnostic | RowType.Whitespace, value: ' ' },
-                ...sentence.split('').map((v) => ({ type: RowType.Diagnostic, value: decorate(v) }))
+                createCell(' ', RowType.Diagnostic | RowType.Whitespace),
+                ...sentence.split('').map((v) => createDiagnosticCell(decorate(v)))
               )
             } else {
               lastLine.push(
                 /* (1*) This extra character is why we added `availableSpace -= 1` */
-                { type: RowType.Diagnostic, value: decorate(CHARS.V) },
-                { type: RowType.Diagnostic | RowType.Whitespace, value: ' ' },
-                ...sentence.split('').map((v) => ({ type: RowType.Diagnostic, value: decorate(v) }))
+                createDiagnosticCell(decorate(CHARS.V)),
+                createCell(' ', RowType.Diagnostic | RowType.Whitespace),
+                ...sentence.split('').map((v) => createDiagnosticCell(decorate(v)))
               )
             }
 
@@ -512,12 +517,12 @@ function reportBlock(
               lastLineOffset - 1,
               RowType.Diagnostic
             )
-            lastLine[lastLineOffset - 1] = { type: RowType.Diagnostic, value: '' }
+            lastLine[lastLineOffset - 1] = createDiagnosticCell('')
           }
 
           lastLine.push(
-            { type: RowType.Diagnostic, value: decorate(CHARS.BLRound) },
-            { type: RowType.Diagnostic, value: decorate(CHARS.H) }
+            createDiagnosticCell(decorate(CHARS.BLRound)),
+            createDiagnosticCell(decorate(CHARS.H))
           )
         }
       }
@@ -527,9 +532,9 @@ function reportBlock(
   // Drop "useless" context lines. A useless context line is one that is empty
   // surrounded by diagnostic lines.
   for (let rowIdx = output.length - 1; rowIdx > 0; rowIdx--) {
-    let { type: currentRowType, lineNumber } = rowInfo.get(output[rowIdx]) ?? { type: RowType.None }
-    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1]) ?? { type: RowType.None }
-    let { type: nextRowType } = rowInfo.get(output[rowIdx + 1]) ?? { type: RowType.None }
+    let { type: currentRowType, lineNumber } = rowInfo.get(output[rowIdx]) ?? createNoneCell()
+    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1]) ?? createNoneCell()
+    let { type: nextRowType } = rowInfo.get(output[rowIdx + 1]) ?? createNoneCell()
 
     if (
       // Check structure
@@ -550,8 +555,8 @@ function reportBlock(
 
   // Inject breathing room between code lines and diagnostic lines
   for (let rowIdx = output.length - 1; rowIdx > 0; rowIdx--) {
-    let { type: currentRowType } = rowInfo.get(output[rowIdx]) ?? { type: RowType.None }
-    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1]) ?? { type: RowType.None }
+    let { type: currentRowType } = rowInfo.get(output[rowIdx]) ?? createNoneCell()
+    let { type: previousRowType } = rowInfo.get(output[rowIdx - 1]) ?? createNoneCell()
 
     // Both are diagnostic lines, so no need to inject breathing room between them
     if (previousRowType & RowType.Diagnostic && currentRowType & RowType.Diagnostic) {
@@ -570,12 +575,10 @@ function reportBlock(
 
   // Inject separator
   for (let rowIdx = output.length - 1; rowIdx > 0; rowIdx--) {
-    let { type: currentRowType, lineNumber: currentLineNumber } = rowInfo.get(output[rowIdx]) ?? {
-      type: RowType.None,
-    }
-    let { type: previousRowType, lineNumber: previousLineNumber } = rowInfo.get(
-      output[rowIdx - 1]
-    ) ?? { type: RowType.None }
+    let { type: currentRowType, lineNumber: currentLineNumber } =
+      rowInfo.get(output[rowIdx]) ?? createNoneCell()
+    let { type: previousRowType, lineNumber: previousLineNumber } =
+      rowInfo.get(output[rowIdx - 1]) ?? createNoneCell()
 
     if (![RowType.Code, RowType.ContextLine].includes(currentRowType)) continue
     if (![RowType.Code, RowType.ContextLine].includes(previousRowType)) continue
@@ -626,9 +629,9 @@ function reportBlock(
 
     for (let position = startRowIdx; position <= endRowIdx; position++) {
       if (inbetweenPositions.has(position)) {
-        output[position][offset] = { type: RowType.Diagnostic, value: decorate(CHARS.LConnector) }
+        output[position][offset] = createDiagnosticCell(decorate(CHARS.LConnector))
       } else {
-        output[position][offset] = { type: RowType.Diagnostic, value: decorate(CHARS.V) }
+        output[position][offset] = createDiagnosticCell(decorate(CHARS.V))
       }
     }
   }
@@ -650,34 +653,25 @@ function reportBlock(
       inject(output.length, RowType.Diagnostic)
     }
 
-    inject(output.length, RowType.StartOfNote, {
-      type: RowType.StartOfNote,
-      value: pc.dim(CHARS.H),
-    })
+    inject(output.length, RowType.StartOfNote, createCell(pc.dim(CHARS.H), RowType.StartOfNote))
 
     if (notes.length === 1) {
       for (let note of notes) {
         inject(
           output.length,
           RowType.Diagnostic,
-          ...Array.from(range(PADDING)).map(() => ({
-            type: RowType.Note,
-            value: ' ',
-          })),
-          ...'NOTE:'.split('').map((v) => ({ type: RowType.Note, value: pc.bold(pc.cyan(v)) })),
-          { type: RowType.Note, value: ' ' },
-          ...note.note.split('').map((v: string) => ({ type: RowType.Note, value: v }))
+          ...createCells(PADDING, () => createCell(' ', RowType.Note)),
+          ...'NOTE:'.split('').map((v) => createCell(pc.bold(pc.cyan(v)), RowType.Note)),
+          createCell(' ', RowType.Note),
+          ...note.note.split('').map((v: string) => createCell(v, RowType.Note))
         )
       }
     } else {
       inject(
         output.length,
         RowType.Diagnostic,
-        ...Array.from(range(PADDING)).map(() => ({
-          type: RowType.Note,
-          value: ' ',
-        })),
-        ...'NOTES:'.split('').map((v) => ({ type: RowType.Note, value: pc.bold(pc.cyan(v)) }))
+        ...createCells(PADDING, () => createCell(' ', RowType.Note)),
+        ...'NOTES:'.split('').map((v) => createCell(pc.bold(pc.cyan(v)), RowType.Note))
       )
 
       type MyNotes = { note: string | MyNotes; diagnostic: Diagnostic }[]
@@ -696,13 +690,10 @@ function reportBlock(
               inject(
                 output.length,
                 RowType.Diagnostic,
-                ...Array.from(range(PADDING + 2 + level * 2)).map(() => ({
-                  type: RowType.Note,
-                  value: ' ',
-                })),
-                { type: RowType.Note, value: pc.dim(number) },
-                { type: RowType.Note, value: ' ' },
-                ...rest.split('').map((v) => ({ type: RowType.Note, value: decorate(v) }))
+                ...createCells(PADDING + 2 + level * 2, () => createCell(' ', RowType.Note)),
+                createCell(pc.dim(number), RowType.Note),
+                createCell(' ', RowType.Note),
+                ...rest.split('').map((v) => createCell(decorate(v), RowType.Note))
               )
             }
 
@@ -711,13 +702,10 @@ function reportBlock(
               inject(
                 output.length,
                 RowType.Diagnostic,
-                ...Array.from(range(PADDING + 2 + level * 2)).map(() => ({
-                  type: RowType.Note,
-                  value: ' ',
-                })),
-                { type: RowType.Note, value: pc.dim('-') },
-                { type: RowType.Note, value: ' ' },
-                ...note.split('').map((v) => ({ type: RowType.Note, value: decorate(v) }))
+                ...createCells(PADDING + 2 + level * 2, () => createCell(' ', RowType.Note)),
+                createCell(pc.dim('-'), RowType.Note),
+                createCell(' ', RowType.Note),
+                ...note.split('').map((v) => createCell(decorate(v), RowType.Note))
               )
             }
           }
@@ -748,13 +736,10 @@ function reportBlock(
 
     // Gutter + existing output
     ...output.map((row) => {
-      let { type, lineNumber: _lineNumber } = rowInfo.get(row) ?? {
-        type: RowType.None,
-        lineNumber: 0,
-      }
+      let { type, lineNumber: _lineNumber } = rowInfo.get(row) ?? createNoneCell()
       let emptyIndent = ' '.repeat(gutterWidth + GUTTER_WIDTH)
 
-      let lineNumber = (_lineNumber + 1).toString().padStart(gutterWidth, ' ')
+      let lineNumber = ((_lineNumber ?? 0) + 1).toString().padStart(gutterWidth, ' ')
 
       return {
         [RowType.None]() {
