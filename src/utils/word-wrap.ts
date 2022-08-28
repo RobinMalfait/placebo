@@ -5,6 +5,8 @@ import { range } from '~/utils/range'
 // message is not too big and therefore this isn't a big problem.
 export function wordWrap(text: string, width: number) {
   let words = text.split(' ')
+  width = Math.max(width, ...words.map((w) => w.length))
+
   let count = words.length
   let slack = Array.from({ length: count }, () => Array(count).fill(0))
 
