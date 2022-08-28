@@ -906,6 +906,98 @@ describe('message wrapping', () => {
   })
 })
 
+describe('notes wrapping', () => {
+  it('should wrap a single note that is too long', () => {
+    let code = html`<div class="text-grey-200"></div>`
+    let diagnostics = [
+      diagnose('This contains some notes', findLocation(code, 'class'), {
+        notes:
+          'The `class` you see here is an attribute in html, in React this is typically used as `className` instead. In Vue, you can use `class` but also use `:class` for more dynamic clases.',
+      }),
+    ]
+
+    let result = magic(code, diagnostics, './example.html')
+    expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class=\"text-grey-200\"></div>
+    ·        ──┬──
+    ·          ╰──── This contains some notes
+    ·
+    ├─
+    ·   NOTE: The \`class\` you see here is an attribute in html, in React
+    ·         this is typically used as \`className\` instead. In Vue, you can
+    ·         use \`class\` but also use \`:class\` for more dynamic clases.
+    └─`)
+  })
+
+  it('should wrap multiple notes that are too long', () => {
+    let code = html`<div class="text-grey-200"></div>`
+    let diagnostics = [
+      diagnose('This contains some notes', findLocation(code, 'class'), {
+        notes: [
+          'The `class` you see here is an attribute in html, in React this is typically used as `className` instead.',
+          'In Vue, you can use `class` but also use `:class` for more dynamic clases.',
+        ],
+      }),
+    ]
+
+    let result = magic(code, diagnostics, './example.html')
+    expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·        ──┬──
+    ·          ╰──── This contains some notes
+    ·
+    ├─
+    ·   NOTES:
+    ·     - The \`class\` you see here is an attribute in html, in
+    ·       React this is typically used as \`className\` instead.
+    ·     - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
+    └─`)
+  })
+
+  it('should wrap multiple nested notes that are too long', () => {
+    let code = html`<div class="text-grey-200"></div>`
+    let diagnostics = [
+      diagnose('This contains some notes', findLocation(code, 'class'), {
+        notes: [
+          'The `class` you see here is an attribute in html, in React this is typically used as `className` instead.',
+          'In Vue, you can use `class` but also use `:class` for more dynamic clases.',
+          [
+            'The same rules apply to the `style` prop, the `style` prop in React is still called `style`.',
+            [
+              'Also one small caveat is that in React the `style` prop requires an object instead of a string with all the styles.',
+            ],
+            'However, in Vue, you can use `style` but also use `:style` for more dynamic styles.',
+          ],
+        ],
+      }),
+    ]
+
+    let result = magic(code, diagnostics, './example.html')
+    expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·        ──┬──
+    ·          ╰──── This contains some notes
+    ·
+    ├─
+    ·   NOTES:
+    ·     - The \`class\` you see here is an attribute in html, in
+    ·       React this is typically used as \`className\` instead.
+    ·     - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
+    ·       - The same rules apply to the \`style\` prop, the
+    ·         \`style\` prop in React is still called \`style\`.
+    ·         - Also one small caveat is that in React the \`style\` prop
+    ·           requires an object instead of a string with all the styles.
+    ·       - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.
+    └─`)
+  })
+})
+
 describe('multi-line diagnostics', () => {
   it('should be possible to print related diagnostics together spread across multiple lines (2x)', () => {
     let code = javascript`

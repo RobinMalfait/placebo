@@ -689,14 +689,28 @@ function reportBlock(
 
     if (notes.length === 1 && notes[0].children.length === 0) {
       for (let note of notes) {
-        inject(
+        let lastLine = inject(
           output.length,
           RowType.Diagnostic,
           ...createCells(PADDING, () => createCell(' ', RowType.Note)),
           ...'NOTE:'.split('').map((v) => createCell(pc.bold(pc.cyan(v)), RowType.Note)),
-          createCell(' ', RowType.Note),
-          ...note.message.split('').map((v: string) => createCell(v, RowType.Note))
+          createCell(' ', RowType.Note)
         )
+        let indent = lastLine.length
+
+        let availableSpace = env.PRINT_WIDTH - indent
+        let wrapped = wordWrap(note.message, availableSpace)
+
+        for (let [idx, line] of wrapped.entries()) {
+          lastLine.push(...line.split('').map((v: string) => createCell(v, RowType.Note)))
+          if (idx !== wrapped.length - 1) {
+            lastLine = inject(
+              output.length,
+              RowType.Diagnostic,
+              ...createCells(indent, () => createCell(' ', RowType.Note))
+            )
+          }
+        }
       }
     } else {
       inject(
@@ -710,29 +724,43 @@ function reportBlock(
         for (let { message, children, diagnostic } of notes) {
           let decorate = diagnosticToColor.get(diagnostic)!
 
+          let lastLine = inject(
+            output.length,
+            RowType.Diagnostic,
+            ...createCells(PADDING + 2 + depth * 2, () => createCell(' ', RowType.Note))
+          )
+
+          let text: string = ''
+
           // Starting with a number like "1."
           if (/^\d*\./.test(message)) {
             let [, number, rest] = message.split(/(\d*\.)\s*(.*)/)
-            inject(
-              output.length,
-              RowType.Diagnostic,
-              ...createCells(PADDING + 2 + depth * 2, () => createCell(' ', RowType.Note)),
-              createCell(pc.dim(number), RowType.Note),
-              createCell(' ', RowType.Note),
-              ...rest.split('').map((v) => createCell(decorate(v), RowType.Note))
-            )
+            lastLine.push(createCell(pc.dim(number), RowType.Note), createCell(' ', RowType.Note))
+            text = rest
           }
 
           // Not starting with a number, just use `- {...note}`
           else {
-            inject(
-              output.length,
-              RowType.Diagnostic,
-              ...createCells(PADDING + 2 + depth * 2, () => createCell(' ', RowType.Note)),
-              createCell(pc.dim('-'), RowType.Note),
-              createCell(' ', RowType.Note),
-              ...message.split('').map((v) => createCell(decorate(v), RowType.Note))
+            lastLine.push(createCell(pc.dim('-'), RowType.Note), createCell(' ', RowType.Note))
+            text = message
+          }
+
+          let indent = lastLine.length
+
+          let availableSpace = env.PRINT_WIDTH - indent - gutterWidth - GUTTER_WIDTH - PADDING
+          let wrapped = wordWrap(text, availableSpace)
+
+          for (let [idx, line] of wrapped.entries()) {
+            lastLine.push(
+              ...line.split('').map((v: string) => createCell(decorate(v), RowType.Note))
             )
+            if (idx !== wrapped.length - 1) {
+              lastLine = inject(
+                output.length,
+                RowType.Diagnostic,
+                ...createCells(indent, () => createCell(' ', RowType.Note))
+              )
+            }
           }
 
           renderNotes(children, depth + 1)
