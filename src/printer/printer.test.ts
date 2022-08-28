@@ -5,7 +5,7 @@ let css = String.raw
 let javascript = String.raw
 
 interface DeepArray<T> extends Array<T | DeepArray<T>> {}
-type Notes = DeepArray<string>
+type Notes = string | DeepArray<string>
 
 interface Location {
   row: number
@@ -798,20 +798,111 @@ describe('message wrapping', () => {
     └─`)
   })
 
-  fit('should render multi-line messages when there are multiple messages on the same line', () => {
-    let code = html`<div class="flex hidden block" />`
+  it('should render 2 multi-line messages', () => {
+    let code = html`<div class="text-grey-200"></div>`
     let diagnostics = [
       diagnose(
-        'I am a very long message that I would like to split into multiple sections, otherwise it will not render properly because there is not enough room available to us',
-        findLocation(code, 'flex')
+        '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
+        findLocation(code, 'grey')
       ),
-      diagnose('I am another message', findLocation(code, 'hidden')),
-      diagnose('I am a message', findLocation(code, 'block')),
+      diagnose(
+        '(2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
+        findLocation(code, '200')
+      ),
     ]
-
     let result = magic(code, diagnostics, './example.html')
+    expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·                    ─┬── ─┬─ ╭─
+    ·                     │    ╰──┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing
+    ·                     │       │ elit. Donec pulvinar sapien sit amet tellus dapibus,
+    ·                     │       │ ut mollis massa porta. Vivamus hendrerit semper risus,
+    ·                     │       │ vel accumsan nisi iaculis non. Donec mollis massa sit
+    ·                     │       │ amet lectus sagittis, vel faucibus quam condimentum.
+    ·                     │       ╰─
+    ·                     │       ╭─
+    ·                     ╰───────┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing
+    ·                             │ elit. Donec pulvinar sapien sit amet tellus dapibus,
+    ·                             │ ut mollis massa porta. Vivamus hendrerit semper risus,
+    ·                             │ vel accumsan nisi iaculis non. Donec mollis massa sit
+    ·                             │ amet lectus sagittis, vel faucibus quam condimentum.
+    ·                             ╰─
+    │
+    └─`)
+  })
 
-    console.log(result)
+  it('should render 2 multi-line messages with a single one-liner in between', () => {
+    let code = html`<div class="text-grey-200"></div>`
+    let diagnostics = [
+      diagnose(
+        '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.',
+        findLocation(code, 'text')
+      ),
+      diagnose('(2) Lorem ipsum.', findLocation(code, 'grey')),
+      diagnose(
+        '(3) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.',
+        findLocation(code, '200')
+      ),
+    ]
+    let result = magic(code, diagnostics, './example.css')
+    expect(result).toEqual(`
+    ┌─[./example.css]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·               ─┬── ─┬── ─┬─ ╭─
+    ·                │    │    ╰──┤ (3) Lorem ipsum dolor sit amet, consectetur
+    ·                │    │       │ adipiscing elit. Donec pulvinar sapien sit
+    ·                │    │       │ amet tellus dapibus, ut mollis massa porta.
+    ·                │    │       ╰─
+    ·                │    ╰──────── (2) Lorem ipsum.
+    ·                │            ╭─
+    ·                ╰────────────┤ (1) Lorem ipsum dolor sit amet, consectetur
+    ·                             │ adipiscing elit. Donec pulvinar sapien sit
+    ·                             │ amet tellus dapibus, ut mollis massa porta.
+    ·                             ╰─
+    │
+    └─`)
+  })
+
+  it('should render 2 multi-line diagnostics for the same location', () => {
+    let code = html`<div class="text-grey-200"></div>`
+    let diagnostics = [
+      diagnose(
+        '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
+        findLocation(code, 'class'),
+        { notes: 'Note A' }
+      ),
+      diagnose(
+        '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
+        findLocation(code, 'class'),
+        { notes: 'Note B' }
+      ),
+    ]
+    let result = magic(code, diagnostics, './example.html')
+    expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·        ──┬── ╭─
+    ·          ├───┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+    ·          │   │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus
+    ·          │   │ hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis
+    ·          │   │ massa sit amet lectus sagittis, vel faucibus quam condimentum.⁽²⁾
+    ·          │   ╰─
+    ·          │   ╭─
+    ·          ╰───┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+    ·              │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus
+    ·              │ hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis
+    ·              │ massa sit amet lectus sagittis, vel faucibus quam condimentum.⁽¹⁾
+    ·              ╰─
+    ·
+    ├─
+    ·   NOTES:
+    ·     1. Note A
+    ·     2. Note B
+    └─`)
   })
 })
 
@@ -884,7 +975,56 @@ describe('multi-line diagnostics', () => {
     └─`)
   })
 
-  it('should be possible to print related diagnostics together spread across multiple lines (4x)', () => {
+  it('should be possible to print related diagnostics together spread across multiple lines but with very very large text (4x)', () => {
+    let code = javascript`
+      let sum = (() => {
+        let a = 123
+        let b = 321
+        return a + b
+      })()
+    `
+    let diagnostics = [
+      diagnose(
+        'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
+        findLocation(code, '{'),
+        { block: 'one', context: 'one' }
+      ),
+      diagnose(
+        'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
+        findLocation(code, 'b'),
+        { block: 'one', context: 'one' }
+      ),
+      diagnose(
+        'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
+        findLocation(code, '}'),
+        { block: 'one', context: 'one' }
+      ),
+    ]
+
+    let result = magic(code, diagnostics, './example.js')
+    expect(result).toEqual(`
+    ┌─[./example.js]
+    │
+∙ 2 │    let sum = (() => {
+    ·                     ┬
+    · ╭───────────────────╯
+    · │
+  3 │ │    let a = 123
+∙ 4 │ │    let b = 321
+    · │        ┬
+    · ├────────╯
+    · │
+  5 │ │    return a + b
+∙ 6 │ │  })()
+    · │  ┬ ╭─
+    · ╰──┴─┤ This is a group with a very long message so we should
+    ·      │ be able to render this as a multi-line message as well.
+    ·      ╰─
+    │
+    └─`)
+  })
+
+  it('should be possible to print related diagnostics together spread across multiple lines (5x)', () => {
     let code = javascript`
       let sum = (() => {
         let a = 123

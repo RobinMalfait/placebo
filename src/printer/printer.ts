@@ -28,13 +28,14 @@ enum RowType {
 
   // Diagnostics
   Diagnostic = 1 << 3,
+  DiagnosticVerticalConnector = 1 << 4,
 
   // Separator
-  LineNumberSeparator = 1 << 4,
+  LineNumberSeparator = 1 << 5,
 
   // Notes
-  Note = 1 << 5,
-  StartOfNote = 1 << 6,
+  Note = 1 << 6,
+  StartOfNote = 1 << 7,
 }
 
 function createCell(value: string, type: RowType) {
@@ -47,8 +48,8 @@ function* createCells<T>(amount: number, cb: () => T) {
   }
 }
 
-function createDiagnosticCell(value: string) {
-  return createCell(value, RowType.Diagnostic)
+function createDiagnosticCell(value: string, type = RowType.None) {
+  return createCell(value, type | RowType.Diagnostic)
 }
 
 function createWhitespaceCell(value: string = ' ') {
@@ -345,7 +346,10 @@ function reportBlock(
 
       // Underline
       for (let position of range(diagnostic.loc.col, diagnostic.loc.col + diagnostic.loc.len)) {
-        nextLine[position + 1] = createDiagnosticCell(decorate(CHARS.H))
+        nextLine[position + 1] = createDiagnosticCell(
+          decorate(CHARS.H),
+          RowType.DiagnosticVerticalConnector
+        )
       }
 
       // Connector
@@ -366,10 +370,16 @@ function reportBlock(
           for (let { col, len } of diagnostic.locations!) {
             let attachmentIdx = col + Math.floor((len - 1) / 2) + 1 // Center of the highlighted word
 
-            nextLine[attachmentIdx] = createDiagnosticCell(decorate(CHARS.V))
+            nextLine[attachmentIdx] = createDiagnosticCell(
+              decorate(CHARS.V),
+              RowType.DiagnosticVerticalConnector
+            )
           }
         } else {
-          nextLine[connectorIdx] = createDiagnosticCell(decorate(CHARS.V))
+          nextLine[connectorIdx] = createDiagnosticCell(
+            decorate(CHARS.V),
+            RowType.DiagnosticVerticalConnector
+          )
         }
       }
 
@@ -466,7 +476,23 @@ function reportBlock(
           // For the additional character that we are about to put in front of the multi-line
           // message. (1*)
           availableSpace -= 1
+          let sentences = wordWrap(diagnostic.message, availableSpace)
 
+          output[output.indexOf(lastLine)][connectorIdx] ??= createDiagnosticCell(decorate(CHARS.V))
+
+          // When the sentences are too long, we split them in multi-line messages which in turn
+          // will be "wrapped" in a little box which requires an additional line above and below.
+          // This will make sure that we get that _before_ new line to work with.
+          if (idx !== diagnostics.length - 1 && sentences.length > 1) {
+            inject(output.indexOf(lastLine), RowType.Diagnostic)
+          }
+
+          // The "before" box art
+          if (!output[output.indexOf(lastLine) - 1][connectorIdx]) {
+            output[output.indexOf(lastLine) - 1][connectorIdx] = createDiagnosticCell(
+              decorate(CHARS.V)
+            )
+          }
           output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = createDiagnosticCell(
             decorate(CHARS.TLRound)
           )
@@ -474,9 +500,9 @@ function reportBlock(
             decorate(CHARS.H)
           )
 
+          // Override the default `-` with a `|` to make the box look like a box.
           lastLine[lastLine.length - 1] = createDiagnosticCell(decorate(CHARS.RConnector))
 
-          let sentences = wordWrap(diagnostic.message, availableSpace)
           for (let [idx, sentence] of sentences.entries()) {
             if (idx === 0) {
               lastLine.push(
@@ -497,9 +523,41 @@ function reportBlock(
               lastLineOffset - 1,
               RowType.Diagnostic
             )
+
             lastLine[lastLineOffset - 1] = createDiagnosticCell('')
+
+            // Copy diagnostic lines from previous lines
+            let previousLine = output[output.indexOf(lastLine) - 1].slice(0, connectorIdx)
+            for (let [idx, cell] of previousLine.entries()) {
+              if (cell && cell.type & RowType.DiagnosticVerticalConnector) {
+                output[output.indexOf(lastLine)][idx] ??= { ...cell }
+              }
+            }
           }
 
+          // Fill in the blanks for all diagnostics that are not the first nor the last one, just
+          // the inbetween ones.
+          if (
+            idx !== 0 &&
+            diagnostics.filter(
+              (d) => d.loc.row === diagnostic.loc.row && d.loc.col === diagnostic.loc.col
+            ).length > 1
+          ) {
+            output[output.indexOf(lastLine) - 3][connectorIdx] ??= createDiagnosticCell(
+              decorate(CHARS.V)
+            )
+            output[output.indexOf(lastLine) - 2][connectorIdx] ??= createDiagnosticCell(
+              decorate(CHARS.V)
+            )
+            output[output.indexOf(lastLine) - 1][connectorIdx] ??= createDiagnosticCell(
+              decorate(CHARS.V)
+            )
+            output[output.indexOf(lastLine)][connectorIdx] ??= createDiagnosticCell(
+              decorate(CHARS.V)
+            )
+          }
+
+          // The "after" box art
           lastLine.push(
             createDiagnosticCell(decorate(CHARS.BLRound)),
             createDiagnosticCell(decorate(CHARS.H))
