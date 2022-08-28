@@ -543,18 +543,12 @@ function reportBlock(
               (d) => d.loc.row === diagnostic.loc.row && d.loc.col === diagnostic.loc.col
             ).length > 1
           ) {
-            output[output.indexOf(lastLine) - 3][connectorIdx] ??= createDiagnosticCell(
-              decorate(CHARS.V)
-            )
-            output[output.indexOf(lastLine) - 2][connectorIdx] ??= createDiagnosticCell(
-              decorate(CHARS.V)
-            )
-            output[output.indexOf(lastLine) - 1][connectorIdx] ??= createDiagnosticCell(
-              decorate(CHARS.V)
-            )
-            output[output.indexOf(lastLine)][connectorIdx] ??= createDiagnosticCell(
-              decorate(CHARS.V)
-            )
+            let offset = 0
+            let base = output.indexOf(lastLine)
+            while (output[base - offset]?.[connectorIdx] === undefined) {
+              output[base - offset][connectorIdx] ??= createDiagnosticCell(decorate(CHARS.V))
+              offset++
+            }
           }
 
           // The "after" box art
