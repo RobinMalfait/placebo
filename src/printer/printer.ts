@@ -60,6 +60,14 @@ function createNoneCell() {
   return { type: RowType.None, lineNumber: 0 }
 }
 
+function createNoteCells(input: string | number, decorate = (s: string) => pc.bold(pc.cyan(s))) {
+  if (typeof input === 'number') {
+    return createCells(input, () => createCell(' ', RowType.Note))
+  }
+
+  return input.split('').map((v) => createCell(decorate(v), RowType.Note))
+}
+
 type Row = Array<{ type: RowType; value: string }>
 
 function reportBlock(
@@ -697,8 +705,7 @@ function reportBlock(
           output.length,
           RowType.Diagnostic,
           ...createCells(PADDING, () => createCell(' ', RowType.Note)),
-          ...'NOTE:'.split('').map((v) => createCell(pc.bold(pc.cyan(v)), RowType.Note)),
-          createCell(' ', RowType.Note)
+          ...createNoteCells('NOTE: ')
         )
         let indent = lastLine.length
 
@@ -706,13 +713,9 @@ function reportBlock(
         let wrapped = wordWrap(note.message, availableSpace)
 
         for (let [idx, line] of wrapped.entries()) {
-          lastLine.push(...line.split('').map((v: string) => createCell(v, RowType.Note)))
+          lastLine.push(...createNoteCells(line))
           if (idx !== wrapped.length - 1) {
-            lastLine = inject(
-              output.length,
-              RowType.Diagnostic,
-              ...createCells(indent, () => createCell(' ', RowType.Note))
-            )
+            lastLine = inject(output.length, RowType.Diagnostic, ...createNoteCells(indent))
           }
         }
       }
@@ -720,8 +723,8 @@ function reportBlock(
       inject(
         output.length,
         RowType.Diagnostic,
-        ...createCells(PADDING, () => createCell(' ', RowType.Note)),
-        ...'NOTES:'.split('').map((v) => createCell(pc.bold(pc.cyan(v)), RowType.Note))
+        ...createNoteCells(PADDING),
+        ...createNoteCells('NOTES:')
       )
 
       function renderNotes(notes: Notes, depth = 0) {
@@ -731,7 +734,7 @@ function reportBlock(
           let lastLine = inject(
             output.length,
             RowType.Diagnostic,
-            ...createCells(PADDING + 2 + depth * 2, () => createCell(' ', RowType.Note))
+            ...createNoteCells(PADDING + 2 + depth * 2)
           )
 
           let text: string = ''
@@ -755,15 +758,9 @@ function reportBlock(
           let wrapped = wordWrap(text, availableSpace)
 
           for (let [idx, line] of wrapped.entries()) {
-            lastLine.push(
-              ...line.split('').map((v: string) => createCell(decorate(v), RowType.Note))
-            )
+            lastLine.push(...createNoteCells(line, decorate))
             if (idx !== wrapped.length - 1) {
-              lastLine = inject(
-                output.length,
-                RowType.Diagnostic,
-                ...createCells(indent, () => createCell(' ', RowType.Note))
-              )
+              lastLine = inject(output.length, RowType.Diagnostic, ...createNoteCells(indent))
             }
           }
 
