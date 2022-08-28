@@ -487,12 +487,16 @@ function reportBlock(
             inject(output.indexOf(lastLine), RowType.Diagnostic)
           }
 
-          // The "before" box art
-          if (!output[output.indexOf(lastLine) - 1][connectorIdx]) {
-            output[output.indexOf(lastLine) - 1][connectorIdx] = createDiagnosticCell(
-              decorate(CHARS.V)
-            )
+          {
+            let offset = 1
+            let base = output.indexOf(lastLine)
+            while (output[base - offset]?.[connectorIdx] === undefined) {
+              output[base - offset][connectorIdx] ??= createDiagnosticCell(decorate(CHARS.V))
+              offset++
+            }
           }
+
+          // The "before" box art
           output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = createDiagnosticCell(
             decorate(CHARS.TLRound)
           )
