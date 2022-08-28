@@ -60,12 +60,16 @@ function createNoneCell() {
   return { type: RowType.None, lineNumber: 0 }
 }
 
-function createNoteCells(input: string | number, decorate = (s: string) => pc.bold(pc.cyan(s))) {
+function createNoteCells(input: string | number, decorate = (s: string) => s) {
   if (typeof input === 'number') {
     return createCells(input, () => createCell(' ', RowType.Note))
   }
 
   return input.split('').map((v) => createCell(decorate(v), RowType.Note))
+}
+
+function createNoteTitle(input: string) {
+  return createNoteCells(input, (s) => pc.bold(pc.cyan(s)))
 }
 
 type Row = Array<{ type: RowType; value: string }>
@@ -705,7 +709,7 @@ function reportBlock(
           output.length,
           RowType.Diagnostic,
           ...createCells(PADDING, () => createCell(' ', RowType.Note)),
-          ...createNoteCells('NOTE: ')
+          ...createNoteTitle('NOTE: ')
         )
         let indent = lastLine.length
 
@@ -724,7 +728,7 @@ function reportBlock(
         output.length,
         RowType.Diagnostic,
         ...createNoteCells(PADDING),
-        ...createNoteCells('NOTES:')
+        ...createNoteTitle('NOTES:')
       )
 
       function renderNotes(notes: Notes, depth = 0) {
