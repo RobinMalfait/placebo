@@ -271,7 +271,7 @@ function reportBlock(
   // Calculate the biggest line number, so that we can pretty print it
   // correctly. E.g.: When we have 420 lines of code, then this number will be
   // `3`, because that's the amount of characters it requires.
-  let gutterWidth = Array.from(printableLines.keys())
+  let lineNumberGutterWidth = Array.from(printableLines.keys())
     .reduce((max, lineNumber) => Math.max(max, lineNumber + 1), -Infinity)
     .toString().length
 
@@ -476,7 +476,7 @@ function reportBlock(
 
       // Inject the message after the horizontal line
       if (!diagnostic.context || isLastDiagnosticInContext(diagnostic)) {
-        let startPosition = lastLine.length - gutterWidth + 1 + GUTTER_WIDTH + PADDING + 1
+        let startPosition = lastLine.length - lineNumberGutterWidth + 1 + GUTTER_WIDTH + PADDING + 1
         let lastLineOffset = lastLine.length
         let availableSpace = env.PRINT_WIDTH - startPosition
         let mustBeMultiLine = diagnostic.message.includes('\n')
@@ -761,7 +761,8 @@ function reportBlock(
 
           let indent = lastLine.length
 
-          let availableSpace = env.PRINT_WIDTH - indent - gutterWidth - GUTTER_WIDTH - PADDING
+          let availableSpace =
+            env.PRINT_WIDTH - indent - lineNumberGutterWidth - GUTTER_WIDTH - PADDING
           let wrapped = wordWrap(text, availableSpace)
 
           for (let [idx, line] of wrapped.entries()) {
@@ -783,7 +784,7 @@ function reportBlock(
   output = [
     // Opening block
     [
-      ...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH),
+      ...' '.repeat(lineNumberGutterWidth + 1 + GUTTER_WIDTH),
       pc.dim(CHARS.TLSquare),
       pc.dim(CHARS.H),
       pc.dim('['),
@@ -795,14 +796,14 @@ function reportBlock(
       ),
       pc.dim(']'),
     ],
-    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), CHARS.V].map((v) => pc.dim(v)),
+    [...' '.repeat(lineNumberGutterWidth + 1 + GUTTER_WIDTH), CHARS.V].map((v) => pc.dim(v)),
 
     // Gutter + existing output
     ...output.map((row) => {
       let { type, lineNumber: _lineNumber } = rowInfo.get(row) ?? createNoneCell()
-      let emptyIndent = ' '.repeat(gutterWidth + GUTTER_WIDTH)
+      let emptyIndent = ' '.repeat(lineNumberGutterWidth + GUTTER_WIDTH)
 
-      let lineNumber = ((_lineNumber ?? 0) + 1).toString().padStart(gutterWidth, ' ')
+      let lineNumber = ((_lineNumber ?? 0) + 1).toString().padStart(lineNumberGutterWidth, ' ')
 
       return {
         [RowType.None]() {
@@ -882,9 +883,11 @@ function reportBlock(
 
     // Closing block
     notes.length <= 0
-      ? [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), CHARS.V].map((v) => pc.dim(v))
+      ? [...' '.repeat(lineNumberGutterWidth + 1 + GUTTER_WIDTH), CHARS.V].map((v) => pc.dim(v))
       : null,
-    [...' '.repeat(gutterWidth + 1 + GUTTER_WIDTH), CHARS.BLSquare, CHARS.H].map((v) => pc.dim(v)),
+    [...' '.repeat(lineNumberGutterWidth + 1 + GUTTER_WIDTH), CHARS.BLSquare, CHARS.H].map((v) =>
+      pc.dim(v)
+    ),
   ].filter(Boolean)
 
   // Flush everything
