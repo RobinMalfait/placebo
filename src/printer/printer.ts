@@ -479,7 +479,8 @@ function reportBlock(
         let startPosition = lastLine.length - gutterWidth + 1 + GUTTER_WIDTH + PADDING + 1
         let lastLineOffset = lastLine.length
         let availableSpace = env.PRINT_WIDTH - startPosition
-        if (availableSpace >= diagnostic.message.length) {
+        let mustBeMultiLine = diagnostic.message.includes('\n')
+        if (!mustBeMultiLine && availableSpace >= diagnostic.message.length) {
           lastLine.push(
             createCell(' ', RowType.Diagnostic | RowType.Whitespace),
             ...diagnostic.message.split('').map((v) => createDiagnosticCell(decorate(v)))
@@ -488,7 +489,9 @@ function reportBlock(
           // For the additional character that we are about to put in front of the multi-line
           // message. (1*)
           availableSpace -= 1
-          let sentences = wordWrap(diagnostic.message, availableSpace)
+          let sentences = diagnostic.message
+            .split('\n')
+            .flatMap((line) => wordWrap(line, availableSpace))
 
           output[output.indexOf(lastLine)][connectorIdx] ??= createDiagnosticCell(decorate(CHARS.V))
 
