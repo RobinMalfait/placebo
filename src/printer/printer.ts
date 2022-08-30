@@ -523,19 +523,17 @@ function reportBlock(
           lastLine[lastLine.length - 1] = createDiagnosticCell(decorate(CHARS.RConnector))
 
           for (let [idx, sentence] of sentences.entries()) {
-            if (idx === 0) {
-              lastLine.push(
-                createCell(' ', RowType.Diagnostic | RowType.Whitespace),
-                ...sentence.split('').map((v) => createDiagnosticCell(decorate(v)))
-              )
-            } else {
+            if (idx !== 0) {
               lastLine.push(
                 /* (1*) This extra character is why we added `availableSpace -= 1` */
-                createDiagnosticCell(decorate(CHARS.V)),
-                createCell(' ', RowType.Diagnostic | RowType.Whitespace),
-                ...sentence.split('').map((v) => createDiagnosticCell(decorate(v)))
+                createDiagnosticCell(decorate(CHARS.V))
               )
             }
+
+            lastLine.push(
+              createCell(' ', RowType.Diagnostic | RowType.Whitespace),
+              ...sentence.split('').map((v) => createDiagnosticCell(decorate(v)))
+            )
 
             lastLine = injectIfEnoughRoom(
               output.indexOf(lastLine) + 1,
