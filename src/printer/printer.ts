@@ -944,6 +944,7 @@ export function printer(
   diagnostics: Diagnostic[],
   flush = console.log
 ) {
+  env.DEBUG && console.time('[PLACEBO]: Print')
   let diagnosticsPerBlock = prepareDiagnostics(diagnostics)
 
   // Report per block, that will be cleaner from a UI perspective
@@ -953,6 +954,7 @@ export function printer(
     reportBlock(sources, diagnostics, flush)
     flush('')
   }
+  env.DEBUG && console.timeEnd('[PLACEBO]: Print')
 }
 
 function visuallyLinkNotesToDiagnostics(diagnostics: InternalDiagnostic[]) {
