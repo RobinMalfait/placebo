@@ -102,7 +102,7 @@ function reportBlock(
     return input.map((row) =>
       row.map((value) => {
         let type = RowType.Code
-        if (value === ' ') type |= RowType.Whitespace
+        if (clearAnsiEscapes(value) === ' ') type |= RowType.Whitespace
 
         return { type, value }
       })
