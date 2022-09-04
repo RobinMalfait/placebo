@@ -927,7 +927,9 @@ function prepareDiagnostics(diagnostics: Diagnostic[]) {
 
   let grouped = new Map<string, InternalDiagnostic[]>()
   for (let diagnostic of all) {
-    let block = diagnostic.block ?? diagnostic.file + '-' + diagnostic.loc.row
+    let block = diagnostic.block
+      ? diagnostic.file + diagnostic.block // Scope per file and block
+      : diagnostic.file + '-' + diagnostic.loc.row // Scope by file and line number by default
 
     if (grouped.has(block)) {
       grouped.get(block)!.push(diagnostic)
