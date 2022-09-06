@@ -938,7 +938,7 @@ function prepareDiagnostics(diagnostics: Diagnostic[]) {
     }
   }
 
-  return grouped.values()
+  return Array.from(grouped.values())
 }
 
 export function printer(
@@ -950,8 +950,9 @@ export function printer(
   let diagnosticsPerBlock = prepareDiagnostics(diagnostics)
 
   // Report per block, that will be cleaner from a UI perspective
-  flush('')
-  for (let diagnostics of diagnosticsPerBlock) {
+  for (let [idx, diagnostics] of diagnosticsPerBlock.entries()) {
+    if (idx === 0) flush('')
+
     visuallyLinkNotesToDiagnostics(diagnostics)
     reportBlock(sources, diagnostics, flush)
     flush('')
