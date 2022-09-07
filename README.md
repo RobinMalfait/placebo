@@ -62,11 +62,9 @@ A beautiful new language agnostic diagnostics printer!
      │
 ∙ 25 │   We can also write messages that are very long.
      ·                                       ────┬──── ╭─
-     ·                                           ╰─────┤ Like this message. We have a lot to
-     ·                                                 │ say here so it might not be ideal if
-     ·                                                 │ everything was just written on the same
-     ·                                                 │ line. Instead we will use the width of your
-     ·                                                 │ terminal to decide when to start wrapping.
+     ·                                           ╰─────┤ Like this message. We have a lot to say here so it might not be ideal
+     ·                                                 │ if everything was just written on the same line. Instead we will
+     ·                                                 │ use the width of your terminal to decide when to start wrapping.
      ·                                                 ╰─
      │
      └─
