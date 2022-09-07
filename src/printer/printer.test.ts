@@ -1023,7 +1023,7 @@ describe('multi-line diagnostics', () => {
     · │
   3 │ │    let a = 123
   4 │ │    let b = 321
-  5 │ │
+    · │
   6 │ │    return a + b
 ∙ 7 │ │  })()
     · │  ┬
