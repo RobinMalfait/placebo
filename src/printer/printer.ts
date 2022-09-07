@@ -89,7 +89,6 @@ function reportBlock(
   let extension = path.extname(file).slice(1)
 
   let source = sources.get(file)!
-  let lines = source.split('\n')
 
   function typeCode(input: string[][]): Row[] {
     return input.map((row) =>
@@ -118,7 +117,7 @@ function reportBlock(
     printableLines.set(lineNumber, code[lineNumber])
 
     // After context lines
-    let afterEnd = Math.min(lineNumber + 1 + env.AFTER_CONTEXT_LINES_COUNT, lines.length - 1)
+    let afterEnd = Math.min(lineNumber + 1 + env.AFTER_CONTEXT_LINES_COUNT, code.length - 1)
     for (let [idx, line] of code.slice(lineNumber + 1, afterEnd).entries()) {
       printableLines.set(lineNumber + 1 + idx, line)
     }
