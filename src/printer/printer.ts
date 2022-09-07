@@ -30,12 +30,9 @@ enum Type {
   Diagnostic = 1 << 3,
   DiagnosticVerticalConnector = 1 << 4,
 
-  // Separator
-  LineNumberSeparator = 1 << 5,
-
   // Notes
-  Note = 1 << 6,
-  StartOfNote = 1 << 7,
+  Note = 1 << 5,
+  StartOfNote = 1 << 6,
 }
 
 function createCell(value: string, type: Type) {
