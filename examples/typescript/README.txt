@@ -3,9 +3,9 @@
     │
   4 │     role: 'Professor',
   5 │   }
-  6 │
+    ·
 ∙ 7 │   console.log(user.name)
-  8 │                    ─┬──
+    ·                    ─┬──
   9 │   // ---            ╰──── Property 'name' does not exist on type '{ firstName: string; lastName: string; role: string; }'.
     ·
     ├─
@@ -15,7 +15,7 @@
      ┌─[./examples/typescript/code.ts]
      │
    9 │   // ---
-  10 │
+     ·
 ∙ 11 │   function compact(arr) {
      ·                    ─┬─
      ·                     ╰─── Parameter 'arr' implicitly has an 'any' type.
@@ -31,7 +31,7 @@
      ┌─[./examples/typescript/code.ts]
      │
    9 │   // ---
-  10 │
+     ·
   11 │   function compact(arr) {
 ∙ 12 │     if (orr.length > 10) return arr.trim(0, 10)
      ·         ─┬─

@@ -23,7 +23,7 @@
      ┌─[./examples/css/code.css]
      │
   10 │    }
-  11 │ 
+     · 
   12 │    .my-row {
 ∙ 13 │      display: table-row;
      ·      ─────────┬─────────
@@ -42,7 +42,7 @@
      · ╰──────┴──── "float", "margin-right", and "margin-top" can't be used with "display: table-row;"
      ·
   18 │    }
-  19 │ 
+     · 
   20 │    .something {
      │
      └─
@@ -50,7 +50,7 @@
      ┌─[./examples/css/code.css]
      │
   18 │   }
-  19 │
+     ·
   20 │   .something {
 ∙ 21 │     padding: 0px;
   22 │   }          ─┬─

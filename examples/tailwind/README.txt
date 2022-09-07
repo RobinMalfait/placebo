@@ -26,7 +26,8 @@
   1 │   <div class="block text-gray-900 flex sm:block sm:flex">
 ∙ 2 │     <div class="text-gray-100 block text-gray-100 block">Hello</div>
   3 │   </div>        ──────┬──────       ──────┬──────
-  4 │                       ╰───────────────────┴──────── Duplicate class "text-gray-100"
+    ·                       ╰───────────────────┴──────── Duplicate class "text-gray-100"
+    ·
   5 │   <div class="underline block text-gray-100 antialiased flex line-through">
     │
     └─
@@ -36,7 +37,8 @@
   1 │   <div class="block text-gray-900 flex sm:block sm:flex">
 ∙ 2 │     <div class="text-gray-100 block text-gray-100 block">Hello</div>
   3 │   </div>                      ──┬──               ──┬──
-  4 │                                 ╰───────────────────┴──── Duplicate class "block"
+    ·                                 ╰───────────────────┴──── Duplicate class "block"
+    ·
   5 │   <div class="underline block text-gray-100 antialiased flex line-through">
     │
     └─
@@ -45,7 +47,7 @@
     │
   2 │     <div class="text-gray-100 block text-gray-100 block">Hello</div>
   3 │   </div>
-  4 │
+    ·
 ∙ 5 │   <div class="underline block text-gray-100 antialiased flex line-through">
     ·               ────┬────                                      ─────┬────── ╭─
     ·                   ╰───────────────────────────────────────────────┴───────┤ Colliding classes, they operate on
@@ -61,7 +63,7 @@
     │
   2 │     <div class="text-gray-100 block text-gray-100 block">Hello</div>
   3 │   </div>
-  4 │
+    ·
 ∙ 5 │   <div class="underline block text-gray-100 antialiased flex line-through">
     ·                         ──┬──                           ─┬──
     ·                           ╰──────────────────────────────┴──── Colliding classes, they operate on the same "display" property.

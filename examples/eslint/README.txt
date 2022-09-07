@@ -2,7 +2,7 @@
     ┌─[./examples/eslint/code.js]
     │
 ∙ 1 │   let abc = '123'
-  2 │       ─┬─        ┬
+    ·       ─┬─        ┬
     ·        │         ╰── Missing semicolon.⁽¹⁾
     ·        ├──────────── 'abc' is assigned a value but never used.⁽³⁾
     ·        ╰──────────── 'abc' is never reassigned. Use 'const' instead.⁽²⁾
@@ -19,10 +19,10 @@
     ┌─[./examples/eslint/code.js]
     │
   1 │   let abc = '123'
-  2 │
+    ·
 ∙ 3 │   function   hello() {
-  4 │           ─┬───┬──   ┬
-  5 │            │   │     ╰── Block must not be padded by blank lines.⁽¹⁾
+    ·           ─┬───┬──   ┬
+    ·            │   │     ╰── Block must not be padded by blank lines.⁽¹⁾
     ·            │   ╰──────── 'hello' is defined but never used.⁽²⁾
     ·            ╰──────────── Multiple spaces found before 'hello'.⁽³⁾
     ·
@@ -38,8 +38,8 @@
     ┌─[./examples/eslint/code.js]
     │
   3 │   function   hello() {
-  4 │
-
+    ·
+    ·
     ·   ┬
     ·   ╰── More than 1 blank line not allowed.
     ·
@@ -53,8 +53,8 @@
     ┌─[./examples/eslint/code.js]
     │
   3 │   function   hello() {
-  4 │
-  5 │
+    ·
+    ·
 ∙ 6 │         return "sup"
     ·   ──┬───       ──┬──┬
     ·     │            │  ╰── Missing semicolon.⁽¹⁾
