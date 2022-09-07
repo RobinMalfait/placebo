@@ -2,7 +2,10 @@
 
 A beautiful new language agnostic diagnostics printer!
 
+<!-- GENERATED -->
+
 ```
+
     ┌─[./README.md]
     │
 ∙ 1 │   What is Placebo?
@@ -102,7 +105,10 @@ A beautiful new language agnostic diagnostics printer!
      ·     1. This note belongs to the other diagnostic
      ·     2. This note belongs to the superscript indicator.
      ·     2. This note also belongs to the superscript indicator.
+     ·       - And also has some nested/child notes.
+     ·       - Just like these right here!
      └─
+
 ```
 
 <details>
@@ -128,7 +134,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 33,
       "len": 8
     },
-    "block": "70304f08-0d29-4634-a659-06ae8bfb7d8e"
+    "block": "57421960-64c8-43dc-947c-4313aa5b9c4c"
   },
   {
     "file": "README.md",
@@ -138,7 +144,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 24,
       "len": 8
     },
-    "block": "70304f08-0d29-4634-a659-06ae8bfb7d8e"
+    "block": "57421960-64c8-43dc-947c-4313aa5b9c4c"
   },
   {
     "file": "README.md",
@@ -148,7 +154,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 15,
       "len": 8
     },
-    "block": "70304f08-0d29-4634-a659-06ae8bfb7d8e"
+    "block": "57421960-64c8-43dc-947c-4313aa5b9c4c"
   },
   {
     "file": "README.md",
@@ -158,7 +164,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 28,
       "len": 3
     },
-    "block": "288a9911-a541-40fc-8d91-0769d61bfc7d"
+    "block": "580ce684-447b-4bf1-8885-ac03b1b522ac"
   },
   {
     "file": "README.md",
@@ -168,7 +174,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 32,
       "len": 3
     },
-    "block": "288a9911-a541-40fc-8d91-0769d61bfc7d"
+    "block": "580ce684-447b-4bf1-8885-ac03b1b522ac"
   },
   {
     "file": "README.md",
@@ -178,8 +184,8 @@ A beautiful new language agnostic diagnostics printer!
       "col": 65,
       "len": 9
     },
-    "block": "7e5172ec-5602-46f3-b1d8-43f88a58e008",
-    "context": "eb2a53ff-5cfe-4199-86ee-e5da4e997597"
+    "block": "b76eb84d-f469-48f9-a7d9-9ab01723e71f",
+    "context": "2a555e33-1a6c-4340-b851-05da9c459410"
   },
   {
     "file": "README.md",
@@ -189,8 +195,8 @@ A beautiful new language agnostic diagnostics printer!
       "col": 1,
       "len": 9
     },
-    "block": "7e5172ec-5602-46f3-b1d8-43f88a58e008",
-    "context": "eb2a53ff-5cfe-4199-86ee-e5da4e997597"
+    "block": "b76eb84d-f469-48f9-a7d9-9ab01723e71f",
+    "context": "2a555e33-1a6c-4340-b851-05da9c459410"
   },
   {
     "file": "README.md",
@@ -222,10 +228,11 @@ A beautiful new language agnostic diagnostics printer!
       "col": 8,
       "len": 22
     },
-    "block": "8c9faddb-49f4-4a72-8df5-9316b14ff542",
+    "block": "546530e4-f2db-4582-840e-ac51b23fb51e",
     "notes": [
       "This note belongs to the superscript indicator.",
-      "This note also belongs to the superscript indicator."
+      "This note also belongs to the superscript indicator.",
+      ["And also has some nested/child notes.", "Just like these right here!"]
     ]
   },
   {
@@ -236,13 +243,15 @@ A beautiful new language agnostic diagnostics printer!
       "col": 31,
       "len": 4
     },
-    "block": "8c9faddb-49f4-4a72-8df5-9316b14ff542",
+    "block": "546530e4-f2db-4582-840e-ac51b23fb51e",
     "notes": ["This note belongs to the other diagnostic"]
   }
 ]
 ```
 
 </details>
+
+<!-- /GENERATED -->
 
 <img src="./images/example-screenshot.png" />
 

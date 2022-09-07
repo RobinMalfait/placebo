@@ -12,7 +12,9 @@ let sources = new Map([['README.md', source]])
 let executed = module.parent === null
 
 async function run(flush = console.log) {
-  printer(sources, diagnostics(source, { file }), flush)
+  let x = diagnostics(source, { file })
+  printer(sources, x, flush)
+  return x
 }
 
 if (executed) {
