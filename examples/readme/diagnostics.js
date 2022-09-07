@@ -53,6 +53,7 @@ module.exports = function run(source) {
         notes: [
           'This note belongs to the superscript indicator.',
           'This note also belongs to the superscript indicator.',
+          ['And also has some nested/child notes.', 'Just like these right here!'],
         ],
       }),
       diagnose('This will also have a note', location(35, 31, 4), {

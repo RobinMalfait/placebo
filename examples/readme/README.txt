@@ -86,4 +86,6 @@
      ·     1. This note belongs to the other diagnostic
      ·     2. This note belongs to the superscript indicator.
      ·     2. This note also belongs to the superscript indicator.
+     ·       - And also has some nested/child notes.
+     ·       - Just like these right here!
      └─
