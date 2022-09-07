@@ -184,7 +184,7 @@ function reportBlock(
 
   // Keep track of things
   let output: Row[] = []
-  let rowInfo = new Map<Row, { lineNumber?: number }>()
+  let rowToLineNumber = new Map<Row, number>()
   let lineNumberToRow = new Map<number, Row>()
   let diagnosticToColor = new Map<InternalDiagnostic, (input: string) => string>()
 
@@ -278,7 +278,7 @@ function reportBlock(
 
     let rowIdx = output.push(line) - 1
 
-    rowInfo.set(output[rowIdx], { lineNumber })
+    rowToLineNumber.set(output[rowIdx], lineNumber)
     lineNumberToRow.set(lineNumber, output[rowIdx])
   }
 
@@ -587,8 +587,8 @@ function reportBlock(
       currentRow.every((c) => c.type & Type.Whitespace)
     ) {
       // Drop information about this line
-      lineNumberToRow.delete(rowInfo.get(currentRow)?.lineNumber!)
-      rowInfo.delete(output[rowIdx])
+      lineNumberToRow.delete(rowToLineNumber.get(currentRow)!)
+      rowToLineNumber.delete(output[rowIdx])
 
       // Remove line from output
       output.splice(rowIdx, 2) // TODO: Hmm, is this `2` correct? Why?
@@ -626,8 +626,8 @@ function reportBlock(
     if (!currentRow.some((cell) => cell.type & (Type.Code | Type.ContextLine))) continue
     if (!previousRow.some((cell) => cell.type & (Type.Code | Type.ContextLine))) continue
 
-    let currentLineNumber = rowInfo.get(currentRow)?.lineNumber
-    let previousLineNumber = rowInfo.get(previousRow)?.lineNumber
+    let currentLineNumber = rowToLineNumber.get(currentRow)
+    let previousLineNumber = rowToLineNumber.get(previousRow)
 
     if (Number(currentLineNumber) - Number(previousLineNumber) > 1) {
       // Inject empty line between a code line and a non-code line. This will
@@ -785,7 +785,7 @@ function reportBlock(
 
     // Gutter + existing output
     ...output.map((row, i, all) => {
-      let _lineNumber = rowInfo.get(row)?.lineNumber
+      let _lineNumber = rowToLineNumber.get(row)
       let lineNumber = (typeof _lineNumber === 'number' ? _lineNumber + 1 : '')
         .toString()
         .padStart(lineNumberGutterWidth, ' ')
@@ -840,8 +840,8 @@ function reportBlock(
       // Mark empty lines with `·`, unless there are multiple line numbers (more than 2) in between,
       // then we can mark it with a better visual clue that there are multiple lines: `┊`.
       {
-        let previousLineNumber = rowInfo.get(all[i - 1])?.lineNumber
-        let nextLineNumber = rowInfo.get(all[i + 1])?.lineNumber
+        let previousLineNumber = rowToLineNumber.get(all[i - 1])
+        let nextLineNumber = rowToLineNumber.get(all[i + 1])
 
         if (
           rowType === Type.Diagnostic &&
