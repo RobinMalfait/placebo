@@ -4,10 +4,6 @@ export function parseNotes(
   notes: Diagnostic['notes'] | undefined,
   diagnostic: InternalDiagnostic
 ): Notes {
-  if (!notes) {
-    return []
-  }
-
   if (typeof notes === 'string') {
     return [{ message: notes, children: [], diagnostic }]
   }
