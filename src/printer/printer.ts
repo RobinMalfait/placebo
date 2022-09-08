@@ -608,7 +608,7 @@ function reportBlock(
       rowToLineNumber.delete(output[rowIdx])
 
       // Remove line from output
-      output.splice(rowIdx, 2) // TODO: Hmm, is this `2` correct? Why?
+      output.splice(rowIdx, 1)
     }
   }
 
