@@ -39,6 +39,10 @@ function combinedType(row: { type: Type }[]) {
   return row.reduce((acc, cell) => acc | cell.type, Type.None)
 }
 
+function hasType(row: { type: Type }[], type: Type) {
+  return row.some((cell) => cell.type & type)
+}
+
 function createCell(value: string, type: Type) {
   return { type, value }
 }
@@ -614,16 +618,13 @@ function reportBlock(
     let currentRow = output[rowIdx] ?? []
 
     // Both are diagnostic lines, so no need to inject breathing room between them
-    if (
-      previousRow.some((cell) => cell.type & Type.Diagnostic) &&
-      currentRow.some((cell) => cell.type & Type.Diagnostic)
-    ) {
+    if (hasType(previousRow, Type.Diagnostic) && hasType(currentRow, Type.Diagnostic)) {
       continue
     }
 
     if (
-      previousRow.some((cell) => cell.type & Type.Diagnostic) &&
-      currentRow.some((cell) => cell.type & (Type.ContextLine | Type.Code))
+      hasType(previousRow, Type.Diagnostic) &&
+      hasType(currentRow, Type.ContextLine | Type.Code)
     ) {
       // Inject empty line between a code line and a non-code line. This will
       // later get turned into a non-code line.
@@ -636,8 +637,8 @@ function reportBlock(
     let previousRow = output[rowIdx - 1] ?? []
     let currentRow = output[rowIdx] ?? []
 
-    if (!currentRow.some((cell) => cell.type & (Type.Code | Type.ContextLine))) continue
-    if (!previousRow.some((cell) => cell.type & (Type.Code | Type.ContextLine))) continue
+    if (!hasType(currentRow, Type.Code | Type.ContextLine)) continue
+    if (!hasType(previousRow, Type.Code | Type.ContextLine)) continue
 
     let currentLineNumber = rowToLineNumber.get(currentRow)
     let previousLineNumber = rowToLineNumber.get(previousRow)
