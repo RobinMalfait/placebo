@@ -477,7 +477,7 @@ function reportBlock(
       }
 
       function injectIfEnoughRoom(idx: number, start: number) {
-        if (!output[idx] || output[idx].slice(start).length > 0) {
+        if (!output[idx] || output[idx].length >= start) {
           return inject(idx)
         }
 
