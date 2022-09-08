@@ -35,6 +35,10 @@ enum Type {
   StartOfNote = 1 << 6,
 }
 
+function combinedType(row: { type: Type }[]) {
+  return row.reduce((acc, cell) => acc | cell.type, Type.None)
+}
+
 function createCell(value: string, type: Type) {
   return { type, value }
 }
@@ -583,11 +587,9 @@ function reportBlock(
     let currentRow = output[rowIdx] ?? []
     let nextRow = output[rowIdx + 1] ?? []
 
-    let previousRowType =
-      previousRow.reduce((acc, cell) => acc | cell.type, Type.None) || Type.Diagnostic
-    let currentRowType =
-      currentRow.reduce((acc, cell) => acc | cell.type, Type.None) || Type.Diagnostic
-    let nextRowType = nextRow.reduce((acc, cell) => acc | cell.type, Type.None) || Type.Diagnostic
+    let previousRowType = combinedType(previousRow) || Type.Diagnostic
+    let currentRowType = combinedType(currentRow) || Type.Diagnostic
+    let nextRowType = combinedType(nextRow) || Type.Diagnostic
 
     if (
       // Check structure
@@ -796,7 +798,7 @@ function reportBlock(
         .toString()
         .padStart(lineNumberGutterWidth, ' ')
 
-      let rowType = row.reduce((acc, cell) => acc | cell.type, Type.None) || Type.Diagnostic
+      let rowType = combinedType(row) || Type.Diagnostic
 
       let result = [
         // Gutter
