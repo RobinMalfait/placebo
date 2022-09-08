@@ -16,7 +16,7 @@ let COLORS = [pc.yellow, pc.red, pc.blue, pc.green, pc.magenta, pc.cyan]
 let PADDING = 3
 
 // The margin before the line numbers
-let GUTTER_WIDTH = 2
+let MARGIN = 2
 
 enum Type {
   None = 0,
@@ -251,7 +251,7 @@ function reportBlock(
     }
   }
 
-  // Inject a row of a certain type at a certain position
+  // Inject a certain a row at a certain position, and return it
   function inject(idx: number, ...row: Row) {
     output.splice(idx, 0, row)
     return output[idx]
@@ -278,7 +278,7 @@ function reportBlock(
   let availableStartPosition =
     /* Reserved values for the frame: */
     lineNumberGutterWidth /* Amount of space to reserve for the linenumbers in the current block */ +
-    GUTTER_WIDTH /* The amount of margin in front of the line numbers */ +
+    MARGIN /* The amount of margin in front of the line numbers */ +
     1 /* A space after the line number */ +
     1 /* The "border" of the frame */
 
@@ -778,7 +778,7 @@ function reportBlock(
   let outputOfStrings = [
     // Opening block
     [
-      ...' '.repeat(lineNumberGutterWidth + 1 + GUTTER_WIDTH),
+      ...' '.repeat(lineNumberGutterWidth + 1 + MARGIN),
       pc.dim(CHARS.TLSquare),
       pc.dim(CHARS.H),
       pc.dim('['),
@@ -790,7 +790,7 @@ function reportBlock(
       ),
       pc.dim(']'),
     ],
-    [...' '.repeat(lineNumberGutterWidth + 1 + GUTTER_WIDTH), CHARS.V].map((v) => pc.dim(v)),
+    [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.V].map((v) => pc.dim(v)),
 
     // Gutter + existing output
     ...output.map((row, i, all) => {
@@ -803,7 +803,7 @@ function reportBlock(
 
       let result = [
         // Gutter
-        ...' '.repeat(GUTTER_WIDTH + lineNumberGutterWidth + 1 /* space behind the line number */),
+        ...' '.repeat(MARGIN + lineNumberGutterWidth + 1 /* space behind the line number */),
 
         // Line numbers
         ...(rowType & Type.Code ? [pc.dim(CHARS.V)] : []),
@@ -833,7 +833,7 @@ function reportBlock(
       // Insert the line numbers for code & context lines
       if (rowType & Type.Code) {
         result.splice(
-          GUTTER_WIDTH,
+          MARGIN,
           lineNumber.length,
           ...(rowType & Type.ContextLine
             ? lineNumber.split('').map((x) => pc.dim(x))
@@ -843,7 +843,7 @@ function reportBlock(
 
       // Add the red dot indiciator befor the line numbers that have diagnostics attached to them.
       if (rowType & Type.Code && !(rowType & Type.ContextLine)) {
-        result.splice(GUTTER_WIDTH - 2, 1, pc.bold(pc.red(CHARS.bigdot)))
+        result.splice(MARGIN - 2, 1, pc.bold(pc.red(CHARS.bigdot)))
       }
 
       // Mark empty lines with `·`, unless there are multiple line numbers (more than 2) in between,
@@ -858,7 +858,7 @@ function reportBlock(
           nextLineNumber !== undefined &&
           Number(nextLineNumber) - Number(previousLineNumber) > 2
         ) {
-          result.splice(GUTTER_WIDTH + lineNumberGutterWidth + 1, 1, pc.dim(CHARS.VSeparator))
+          result.splice(MARGIN + lineNumberGutterWidth + 1, 1, pc.dim(CHARS.VSeparator))
         }
       }
 
@@ -867,9 +867,9 @@ function reportBlock(
 
     // Closing block
     notes.length <= 0
-      ? [...' '.repeat(lineNumberGutterWidth + 1 + GUTTER_WIDTH), CHARS.V].map((v) => pc.dim(v))
+      ? [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.V].map((v) => pc.dim(v))
       : null,
-    [...' '.repeat(lineNumberGutterWidth + 1 + GUTTER_WIDTH), CHARS.BLSquare, CHARS.H].map((v) =>
+    [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.BLSquare, CHARS.H].map((v) =>
       pc.dim(v)
     ),
   ].filter(Boolean) as string[][]
