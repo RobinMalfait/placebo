@@ -266,6 +266,18 @@ function reportBlock(
     .reduce((max, lineNumber) => Math.max(max, lineNumber + 1), -Infinity)
     .toString().length
 
+  // Compute available working space (excluding the frame and all of that...)
+  let availableStartPosition =
+    /* Reserved values for the frame: */
+    lineNumberGutterWidth /* Amount of space to reserve for the linenumbers in the current block */ +
+    GUTTER_WIDTH /* The amount of margin in front of the line numbers */ +
+    1 /* A space after the line number */ +
+    1 /* The "border" of the frame */
+
+  let availableWorkingSpace =
+    /* Total available space */
+    env.PRINT_WIDTH - availableStartPosition
+
   // Add printable lines to output
   for (let [lineNumber, line] of printableLines.entries()) {
     let hasDiagnostics = groupedByRow.has(lineNumber)
@@ -466,9 +478,9 @@ function reportBlock(
 
       // Inject the message after the horizontal line
       if (!diagnostic.context || isLastDiagnosticInContext(diagnostic)) {
-        let startPosition = lastLine.length - lineNumberGutterWidth + 1 + GUTTER_WIDTH + PADDING + 1
         let lastLineOffset = lastLine.length
-        let availableSpace = env.PRINT_WIDTH - startPosition
+        let availableSpace = availableWorkingSpace - lastLine.length
+
         let mustBeMultiLine = diagnostic.message.includes('\n')
         if (!mustBeMultiLine && availableSpace >= diagnostic.message.length) {
           lastLine.push(
@@ -708,9 +720,7 @@ function reportBlock(
           ...createNoteTitle('NOTE: ')
         )
         let indent = lastLine.length
-
-        let availableSpace = env.PRINT_WIDTH - indent
-        let wrapped = wordWrap(note.message, availableSpace)
+        let wrapped = wordWrap(note.message, availableWorkingSpace - indent)
 
         for (let [idx, line] of wrapped.entries()) {
           lastLine.push(...createNoteCells(line))
@@ -744,10 +754,7 @@ function reportBlock(
           }
 
           let indent = lastLine.length
-
-          let availableSpace =
-            env.PRINT_WIDTH - indent - lineNumberGutterWidth - GUTTER_WIDTH - PADDING
-          let wrapped = wordWrap(text, availableSpace)
+          let wrapped = wordWrap(text, availableWorkingSpace - indent)
 
           for (let [idx, line] of wrapped.entries()) {
             lastLine.push(...createNoteCells(line, decorate))
