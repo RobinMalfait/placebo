@@ -8,24 +8,31 @@ let diagnostic: InternalDiagnostic = {
   message: 'Example diagnostic',
 }
 
-it('should parse no notes, to a notes object', () => {
+it('should parse no notes to a notes object', () => {
   expect(parseNotes(undefined, diagnostic)).toEqual([])
 })
 
-it('should parse a string note, to a notes object', () => {
+it('should parse a string note to a notes object', () => {
   expect(parseNotes('Example notes', diagnostic)).toEqual([
     { message: 'Example notes', children: [], diagnostic },
   ])
 })
 
-it('should parse a list of note strings, to a notes object', () => {
+it('should parse a string note with new lines to a notes object', () => {
+  expect(parseNotes('Example\nnotes', diagnostic)).toEqual([
+    { message: 'Example', children: [], diagnostic },
+    { message: 'notes', children: [], diagnostic },
+  ])
+})
+
+it('should parse a list of note strings to a notes object', () => {
   expect(parseNotes(['Note A', 'Note B'], diagnostic)).toEqual([
     { message: 'Note A', children: [], diagnostic },
     { message: 'Note B', children: [], diagnostic },
   ])
 })
 
-it('should parse nested notes, to a notes object', () => {
+it('should parse nested notes to a notes object', () => {
   expect(
     parseNotes(['Note A', 'Note B', ['Note B.1.', 'Note B.2.'], 'Note C'], diagnostic)
   ).toEqual([
@@ -42,7 +49,22 @@ it('should parse nested notes, to a notes object', () => {
   ])
 })
 
-it('should parse deeply nested notes, to a notes object', () => {
+it('should parse nested notes with string notes that include newlines to a notes object', () => {
+  expect(parseNotes(['Note A', 'Note B', ['Note B.1.\nNote B.2.'], 'Note C'], diagnostic)).toEqual([
+    { message: 'Note A', children: [], diagnostic },
+    {
+      message: 'Note B',
+      children: [
+        { message: 'Note B.1.', children: [], diagnostic },
+        { message: 'Note B.2.', children: [], diagnostic },
+      ],
+      diagnostic,
+    },
+    { message: 'Note C', children: [], diagnostic },
+  ])
+})
+
+it('should parse deeply nested notes to a notes object', () => {
   expect(
     parseNotes(
       [

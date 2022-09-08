@@ -114,6 +114,28 @@ it('should print a message and a note', () => {
     └─`)
 })
 
+it('should split a single note with \\n into multiple notes', () => {
+  let code = html`<div class="flex block" />`
+  let diagnostics = [
+    diagnose('Message 1', findLocation(code, 'flex'), { notes: ['This is\na note'] }),
+  ]
+
+  let result = magic(code, diagnostics, './example.html')
+
+  expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="flex block" />
+    ·               ─┬──
+    ·                ╰──── Message 1
+    ·
+    ├─
+    ·   NOTES:
+    ·     - This is
+    ·     - a note
+    └─`)
+})
+
 it('should print a message with multiple notes', () => {
   let code = html`<div class="flex block" />`
   let diagnostics = [

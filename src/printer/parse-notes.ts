@@ -5,17 +5,23 @@ export function parseNotes(
   diagnostic: InternalDiagnostic
 ): Notes {
   if (typeof notes === 'string') {
-    return [{ message: notes, children: [], diagnostic }]
+    let lines = notes.split('\n')
+    if (lines.length === 1) {
+      return [{ message: notes, children: [], diagnostic }]
+    }
+
+    notes = lines
   }
 
   if (Array.isArray(notes)) {
     let returnValue: Notes = []
     let last: Notes[number] | null = null
     for (let note of notes) {
+      let parsed = parseNotes(note, diagnostic)
       if (typeof note === 'string') {
-        last = returnValue[returnValue.push({ message: note, children: [], diagnostic }) - 1]
+        last = returnValue[returnValue.push(...parsed) - 1]
       } else if (last !== null) {
-        last.children.push(...parseNotes(note, diagnostic))
+        last.children.push(...parsed)
       }
     }
 
