@@ -73,8 +73,9 @@ function createNoteTitle(input: string) {
   return createNoteCells(input, (s) => pc.bold(pc.cyan(s)))
 }
 
+type Item = Array<{ type: Type; value: string }>
 
-function typeCode(input: string[][]): Datum[] {
+function typeCode(input: string[][]): Item[] {
   return input.map((row) =>
     row.map((value) => {
       let type = Type.Code
@@ -112,7 +113,7 @@ function reportBlock(
 
   // Find all printable lines. Lines with issues + context lines. We'll use an object for now which
   // will make it easier for overlapping context lines.
-  let printableLines = new Map<number, Row>()
+  let printableLines = new Map<number, Item>()
   for (let lineNumber of groupedByRow.keys()) {
     // Before context lines
     let beforeStart = Math.max(lineNumber - env.BEFORE_CONTEXT_LINES_COUNT, 0)
@@ -189,9 +190,9 @@ function reportBlock(
   }
 
   // Keep track of things
-  let output: Row[] = []
-  let rowToLineNumber = new Map<Row, number>()
-  let lineNumberToRow = new Map<number, Row>()
+  let output: Item[] = []
+  let rowToLineNumber = new Map<Item, number>()
+  let lineNumberToRow = new Map<number, Item>()
   let diagnosticToColor = new Map<InternalDiagnostic, (input: string) => string>()
 
   let diagnosticsByContextIdentifier = new Map<string | number | undefined, InternalDiagnostic[]>()
@@ -251,7 +252,7 @@ function reportBlock(
   }
 
   // Inject a certain a row at a certain position, and return it
-  function inject(idx: number, ...row: Row) {
+  function inject(idx: number, ...row: Item) {
     output.splice(idx, 0, row)
     return output[idx]
   }
