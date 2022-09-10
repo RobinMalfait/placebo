@@ -125,7 +125,6 @@ module.exports = async function run(files) {
       },
     ])
       .process(await fs.readFile(file, 'utf8'), { from: file })
-      // .process(source, { from: file })
       .catch((err) => {
         diagnostics.push({
           file,
