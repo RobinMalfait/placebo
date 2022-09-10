@@ -73,7 +73,17 @@ function createNoteTitle(input: string) {
   return createNoteCells(input, (s) => pc.bold(pc.cyan(s)))
 }
 
-type Row = Array<{ type: Type; value: string }>
+
+function typeCode(input: string[][]): Datum[] {
+  return input.map((row) =>
+    row.map((value) => {
+      let type = Type.Code
+      if (clearAnsiEscapes(value) === ' ') type |= Type.Whitespace
+
+      return { type, value }
+    })
+  )
+}
 
 function reportBlock(
   sources: Map<string, string>,
@@ -97,17 +107,6 @@ function reportBlock(
   let extension = path.extname(file).slice(1)
 
   let source = sources.get(file)!
-
-  function typeCode(input: string[][]): Row[] {
-    return input.map((row) =>
-      row.map((value) => {
-        let type = Type.Code
-        if (clearAnsiEscapes(value) === ' ') type |= Type.Whitespace
-
-        return { type, value }
-      })
-    )
-  }
 
   let code = typeCode(rasterizeCode(highlightCode(source, extension)))
 
