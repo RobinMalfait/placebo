@@ -35,7 +35,9 @@ async function generate() {
         result.push('<!-- GENERATED -->')
         result.push('')
         result.push('```')
-        result.push(output.replace(/\n\n/g, '\n```\n\n```\n'))
+        result.push(
+          output.replaceAll('examples/readme/code/', '').replace(/\n\n/g, '\n```\n\n```\n')
+        )
         result.push('```')
         result.push('')
         result.push('<details>')
@@ -45,7 +47,12 @@ async function generate() {
         )
         result.push('')
         result.push('```json')
-        result.push(JSON.stringify(diagnostics, null, 2))
+        result.push(
+          JSON.stringify(diagnostics, null, 2).replaceAll(
+            path.resolve(__dirname, '..', 'examples', 'readme', 'code', 'README.md'),
+            'README.md'
+          )
+        )
         result.push('```')
         result.push('')
         result.push('</details>')

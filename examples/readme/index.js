@@ -1,23 +1,14 @@
-let fs = require('fs')
-let path = require('path')
-let diagnostics = require('./diagnostics')
+let file = './code/README.md'
 
-let { printer } = require('../../dist')
+// ---
 
-let file = path.resolve(__dirname, './code.md')
+let { resolve } = require('path')
 
-let source = fs.readFileSync(file, 'utf8')
-let sources = new Map([['README.md', source]])
-
-let executed = module.parent === null
-
-async function run(flush = console.log) {
-  let x = diagnostics(source, { file })
-  printer(sources, x, flush)
-  return x
+function run(flush = console.log, files = resolve(__dirname, file)) {
+  return require('./run')(files, flush)
 }
 
-if (executed) {
+if (module.parent === null) {
   run()
 } else {
   module.exports = run

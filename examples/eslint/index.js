@@ -1,22 +1,15 @@
 /* eslint-disable */
-let fs = require('fs')
-let path = require('path')
-let diagnostics = require('./diagnostics')
+let file = './code.js'
 
-let { printer } = require('../../dist')
+// ---
 
-let file = path.resolve(__dirname, './code.js')
+let { resolve } = require('path')
 
-let source = fs.readFileSync(file, 'utf8')
-let sources = new Map([[file, source]])
-
-let executed = module.parent === null
-
-async function run(flush = console.log) {
-  printer(sources, await diagnostics(source, { file }), flush)
+function run(flush = console.log, files = resolve(__dirname, file)) {
+  return require('./run')(files, flush)
 }
 
-if (executed) {
+if (module.parent === null) {
   run()
 } else {
   module.exports = run

@@ -1,3 +1,4 @@
+let fs = require('fs/promises')
 let { randomUUID } = require('crypto')
 
 let { parser: parse } = require('posthtml-parser')
@@ -189,82 +190,89 @@ let classCollisions = [
   [['antialiased', 'subpixel-antialiased'], 'font-smoothing'],
 ]
 
-module.exports = function run(source, { file }) {
-  function diagnose(message, location, { block, context, notes } = {}) {
-    return { file, message, loc: location, block, context, notes }
-  }
+module.exports = async function run(files) {
+  files = [].concat(files)
 
   let diagnostics = []
-  let tree = parse(source, { sourceLocations: true })
-  let lines = source.split('\n')
 
-  walk(tree, (node) => {
-    let line = lines[node.location.start.line - 1]
+  for (let file of files) {
+    function diagnose(message, location, { block, context, notes } = {}) {
+      return { file, message, loc: location, block, context, notes }
+    }
 
-    // Check class collisions
-    for (let classList of extractClassNames(node.attrs?.class ?? '')) {
-      let seen = new Set()
+    let source = await fs.readFile(file, 'utf8')
 
-      for (let [idx, fullClass] of classList.entries()) {
-        if (seen.has(fullClass)) continue
-        let [variants, klass] = splitClass(fullClass)
+    let tree = parse(source, { sourceLocations: true })
+    let lines = source.split('\n')
 
-        for (let [collisions, property] of classCollisions) {
-          let block = randomUUID()
-          if (!collisions.includes(klass)) continue
+    walk(tree, (node) => {
+      let line = lines[node.location.start.line - 1]
+
+      // Check class collisions
+      for (let classList of extractClassNames(node.attrs?.class ?? '')) {
+        let seen = new Set()
+
+        for (let [idx, fullClass] of classList.entries()) {
+          if (seen.has(fullClass)) continue
+          let [variants, klass] = splitClass(fullClass)
+
+          for (let [collisions, property] of classCollisions) {
+            let block = randomUUID()
+            if (!collisions.includes(klass)) continue
+
+            let scopedDiagnostics = []
+
+            for (let other of collisions) {
+              let fullOther = [variants, other].filter(Boolean).join(':')
+              if (!classList.slice(idx).includes(fullOther)) continue
+
+              seen.add(fullOther)
+
+              scopedDiagnostics.push(
+                diagnose(
+                  property
+                    ? `Colliding classes, they operate on the same "${property}" property.`
+                    : 'Colliding classes.',
+                  location(node.location.start.line, line.indexOf(fullOther) + 1, fullOther.length),
+                  { block }
+                )
+              )
+            }
+
+            if (scopedDiagnostics.length > 1) diagnostics.push(...scopedDiagnostics)
+          }
+        }
+      }
+
+      // Check for duplicate classes
+      for (let list of extractClassNames(node.attrs?.class ?? '')) {
+        if (list.length === new Set(list).size) continue
+
+        for (let klass of new Set(list)) {
+          let klasses = list.filter((k) => k === klass)
+          if (klasses.length <= 1) continue
 
           let scopedDiagnostics = []
+          let block = randomUUID()
 
-          for (let other of collisions) {
-            let fullOther = [variants, other].filter(Boolean).join(':')
-            if (!classList.slice(idx).includes(fullOther)) continue
-
-            seen.add(fullOther)
-
+          let lastStartIdex = -1
+          for (let _ of klasses) {
+            let idx = line.indexOf(klass, lastStartIdex + 1)
+            lastStartIdex = idx
             scopedDiagnostics.push(
               diagnose(
-                property
-                  ? `Colliding classes, they operate on the same "${property}" property.`
-                  : 'Colliding classes.',
-                location(node.location.start.line, line.indexOf(fullOther) + 1, fullOther.length),
+                `Duplicate class "${klass}"`,
+                location(node.location.start.line, idx + 1, klass.length),
                 { block }
               )
             )
           }
 
-          if (scopedDiagnostics.length > 1) diagnostics.push(...scopedDiagnostics)
+          if (scopedDiagnostics.length > 0) diagnostics.push(...scopedDiagnostics.splice(0))
         }
       }
-    }
-
-    // Check for duplicate classes
-    for (let list of extractClassNames(node.attrs?.class ?? '')) {
-      if (list.length === new Set(list).size) continue
-
-      for (let klass of new Set(list)) {
-        let klasses = list.filter((k) => k === klass)
-        if (klasses.length <= 1) continue
-
-        let scopedDiagnostics = []
-        let block = randomUUID()
-
-        let lastStartIdex = -1
-        for (let _ of klasses) {
-          let idx = line.indexOf(klass, lastStartIdex + 1)
-          lastStartIdex = idx
-          scopedDiagnostics.push(
-            diagnose(
-              `Duplicate class "${klass}"`,
-              location(node.location.start.line, idx + 1, klass.length),
-              { block }
-            )
-          )
-        }
-
-        if (scopedDiagnostics.length > 0) diagnostics.push(...scopedDiagnostics.splice(0))
-      }
-    }
-  })
+    })
+  }
 
   return diagnostics
 }

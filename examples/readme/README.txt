@@ -1,5 +1,5 @@
 
-    ┌─[./README.md]
+    ┌─[./examples/readme/code/README.md]
     │
 ∙ 1 │   What is Placebo?
     ·           ───┬────
@@ -7,7 +7,7 @@
     │
     └─
 
-    ┌─[./README.md]
+    ┌─[./examples/readme/code/README.md]
     │
   5 │   It will also add these context lines, to get more insight about your code.
 ∙ 6 │   It can render multiple messages together.
@@ -21,7 +21,7 @@
     │
     └─
 
-     ┌─[./README.md]
+     ┌─[./examples/readme/code/README.md]
      │
 ∙ 12 │   Sometimes you want to show the the same message on the same line. If the same
      ·                              ─┬─ ─┬─
@@ -32,7 +32,7 @@
      │
      └─
 
-     ┌─[./README.md]
+     ┌─[./examples/readme/code/README.md]
      │
 ∙ 18 │    It is also possible to group related diagnostics together via a `context`
      ·                                                                    ────┬────
@@ -46,7 +46,7 @@
      │
      └─
 
-     ┌─[./README.md]
+     ┌─[./examples/readme/code/README.md]
      │
 ∙ 25 │   We can also write messages that are very long.
      ·                                       ────┬──── ╭─
@@ -57,7 +57,7 @@
      │
      └─
 
-     ┌─[./README.md]
+     ┌─[./examples/readme/code/README.md]
      │
 ∙ 29 │   Last but not least, we have the `notes` feature. You can add notes to your
      ·                                   ───┬───
@@ -71,7 +71,7 @@
      ·     - What do you think? More info at https://github.com/RobinMalfait/placebo!
      └─
 
-     ┌─[./README.md]
+     ┌─[./examples/readme/code/README.md]
      │
   34 │   Oh, and we can also add notes to different diagnostics within the same block. We can do this by
 ∙ 35 │   adding superscript indicators next to each message and before each note. This allows you to visually
