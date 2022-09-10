@@ -2,6 +2,7 @@
 let { ESLint } = require('eslint')
 
 module.exports = async function run(files) {
+  files = [].concat(files)
   let diagnostics = []
 
   // 1. Create an instance.
