@@ -1,4 +1,3 @@
-
     ┌─[./examples/javascript/code.js]
     │
   1 │   let a = 123

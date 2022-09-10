@@ -937,11 +937,9 @@ export function printer(
 
   // Report per block, that will be cleaner from a UI perspective
   for (let [idx, diagnostics] of diagnosticsPerBlock.entries()) {
-    if (idx === 0) flush('')
-
     visuallyLinkNotesToDiagnostics(diagnostics)
     reportBlock(sources, diagnostics, flush)
-    flush('')
+    if (idx !== diagnosticsPerBlock.length - 1) flush('') // In between
   }
   env.DEBUG && console.timeEnd('[PLACEBO]: Print')
 }

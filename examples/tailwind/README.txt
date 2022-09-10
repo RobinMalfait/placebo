@@ -1,4 +1,3 @@
-
     ┌─[./examples/tailwind/code.html]
     │
 ∙ 1 │   <div class="block text-gray-900 flex sm:block sm:flex">

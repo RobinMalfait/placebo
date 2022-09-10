@@ -59,7 +59,7 @@ function magic(source: string, diagnostics: Diagnostic[] = [], file = './example
     collector
   )
 
-  return lines.join('\n').trimEnd()
+  return '\n' + lines.join('\n').trimEnd()
 }
 
 it('should print a message', () => {

@@ -5,7 +5,6 @@ A beautiful new language agnostic diagnostics printer!
 <!-- GENERATED -->
 
 ```
-
     ┌─[./README.md]
     │
 ∙ 1 │   What is Placebo?
@@ -108,7 +107,6 @@ A beautiful new language agnostic diagnostics printer!
      ·       - And also has some nested/child notes.
      ·       - Just like these right here!
      └─
-
 ```
 
 <details>

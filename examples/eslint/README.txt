@@ -1,4 +1,3 @@
-
     ┌─[./examples/eslint/code.js]
     │
 ∙ 1 │   let abc = '123'
