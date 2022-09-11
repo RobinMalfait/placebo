@@ -86,8 +86,12 @@ function typeCode(input: string[][]): Item[] {
   )
 }
 
+function prepareSource(source: string, file: string) {
+  return typeCode(rasterizeCode(highlightCode(source, path.extname(file).slice(1))))
+}
+
 function reportBlock(
-  sources: Map<string, string>,
+  sources: Map<string, Item[]>,
   diagnostics: InternalDiagnostic[],
   flush: (input: string) => void
 ) {
@@ -105,11 +109,7 @@ function reportBlock(
   // different files in the same block. In addition, diagnostic lines _can_
   // cross those file boundaries so that is going to be interesting...
   let file = diagnostics[0].file!
-  let extension = path.extname(file).slice(1)
-
-  let source = sources.get(file)!
-
-  let code = typeCode(rasterizeCode(highlightCode(source, extension)))
+  let code = sources.get(file)!
 
   // Find all printable lines. Lines with issues + context lines. We'll use an object for now which
   // will make it easier for overlapping context lines.
@@ -118,16 +118,25 @@ function reportBlock(
     // Before context lines
     let beforeStart = Math.max(lineNumber - env.BEFORE_CONTEXT_LINES_COUNT, 0)
     for (let [idx, line] of code.slice(beforeStart, lineNumber).entries()) {
-      printableLines.set(beforeStart + idx, line)
+      printableLines.set(
+        beforeStart + idx,
+        line.map((x) => ({ ...x }))
+      )
     }
 
     // Line with diagnostics
-    printableLines.set(lineNumber, code[lineNumber])
+    printableLines.set(
+      lineNumber,
+      code[lineNumber].map((x) => ({ ...x }))
+    )
 
     // After context lines
     let afterEnd = Math.min(lineNumber + 1 + env.AFTER_CONTEXT_LINES_COUNT, code.length - 1)
     for (let [idx, line] of code.slice(lineNumber + 1, afterEnd).entries()) {
-      printableLines.set(lineNumber + 1 + idx, line)
+      printableLines.set(
+        lineNumber + 1 + idx,
+        line.map((x) => ({ ...x }))
+      )
     }
   }
 
@@ -936,10 +945,17 @@ export function printer(
   env.DEBUG && console.time('[PLACEBO]: Print')
   let diagnosticsPerBlock = prepareDiagnostics(diagnostics)
 
+  let files = new Set(diagnostics.map((d) => d.file))
+  let optimizedSources = new Map(
+    Array.from(files).map((file) => {
+      return [file, prepareSource(sources.get(file)!, file)]
+    })
+  )
+
   // Report per block, that will be cleaner from a UI perspective
   for (let [idx, diagnostics] of diagnosticsPerBlock.entries()) {
     visuallyLinkNotesToDiagnostics(diagnostics)
-    reportBlock(sources, diagnostics, flush)
+    reportBlock(optimizedSources, diagnostics, flush)
     if (idx !== diagnosticsPerBlock.length - 1) flush('') // In between
   }
   env.DEBUG && console.timeEnd('[PLACEBO]: Print')
