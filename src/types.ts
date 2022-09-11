@@ -54,5 +54,4 @@ export interface InternalDiagnostic {
   // Things to clean up
   type?: string
   locations?: Location[]
-  messages?: string[]
 }
