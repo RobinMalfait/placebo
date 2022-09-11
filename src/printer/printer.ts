@@ -189,23 +189,23 @@ function reportBlock(
   let lineNumberToRow = new Map<number, Item>()
   let diagnosticToColor = new Map<InternalDiagnostic, (input: string) => string>()
 
-  let diagnosticsByContextIdentifier = new Map<string | number | undefined, InternalDiagnostic[]>()
+  let diagnosticsByContext = new Map<string | number | undefined, InternalDiagnostic[]>()
 
   // Group by context
   for (let diagnostic of diagnostics) {
     if (!diagnostic.context) continue
 
-    if (diagnosticsByContextIdentifier.has(diagnostic.context)) {
-      diagnosticsByContextIdentifier.get(diagnostic.context)!.push(diagnostic)
+    if (diagnosticsByContext.has(diagnostic.context)) {
+      diagnosticsByContext.get(diagnostic.context)!.push(diagnostic)
     } else {
-      diagnosticsByContextIdentifier.set(diagnostic.context, [diagnostic])
+      diagnosticsByContext.set(diagnostic.context, [diagnostic])
     }
   }
 
   // Find the correct color per diagnostic
   for (let [idx, diagnostic] of diagnostics.entries()) {
-    if (diagnosticsByContextIdentifier.has(diagnostic.context)) {
-      let [firstDiagnostic] = diagnosticsByContextIdentifier.get(diagnostic.context)!
+    if (diagnosticsByContext.has(diagnostic.context)) {
+      let [firstDiagnostic] = diagnosticsByContext.get(diagnostic.context)!
 
       if (diagnosticToColor.has(firstDiagnostic)) {
         diagnosticToColor.set(diagnostic, diagnosticToColor.get(firstDiagnostic)!)
@@ -218,22 +218,22 @@ function reportBlock(
   }
 
   // Let's cleanup contexts if there is only a single one
-  for (let [context, diagnostics] of diagnosticsByContextIdentifier) {
+  for (let [context, diagnostics] of diagnosticsByContext) {
     if (diagnostics.length > 1) continue
 
     for (let diagnostic of diagnostics) {
       diagnostic.context = undefined
-      diagnosticsByContextIdentifier.delete(context)
+      diagnosticsByContext.delete(context)
     }
   }
 
   //
-  let contextIdentifiers = Array.from(diagnosticsByContextIdentifier.keys())
+  let contextIdentifiers = Array.from(diagnosticsByContext.keys())
 
   // Reserve whitespace for vertical context lines
   for (let [lineNumber, line] of printableLines.entries()) {
     printableLines.set(lineNumber, [
-      ...createCells(diagnosticsByContextIdentifier.size, createWhitespaceCell),
+      ...createCells(diagnosticsByContext.size, createWhitespaceCell),
       ...line,
     ])
   }
@@ -241,7 +241,7 @@ function reportBlock(
   // Adjust column offsets for vertical context lines
   for (let diagnostics of groupedByRow.values()) {
     for (let diagnostic of diagnostics) {
-      diagnostic.loc.col += diagnosticsByContextIdentifier.size
+      diagnostic.loc.col += diagnosticsByContext.size
     }
   }
 
@@ -252,12 +252,12 @@ function reportBlock(
   }
 
   function isLastDiagnosticInContext(diagnostic: InternalDiagnostic) {
-    let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)!
+    let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context)!
     return diagnosticsInContext[diagnosticsInContext.length - 1] === diagnostic
   }
 
   function isFirstDiagnosticInContext(diagnostic: InternalDiagnostic) {
-    let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)!
+    let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context)!
     return diagnosticsInContext[0] === diagnostic
   }
 
@@ -657,7 +657,7 @@ function reportBlock(
       contextIdentifiers.indexOf(diagnostic.context) *
         2 /* To have some breathing room between each line */
 
-    let diagnosticsInContext = diagnosticsByContextIdentifier.get(diagnostic.context)!.slice()
+    let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context)!.slice()
     let startRowIdx = diagnosticsInContext.reduce(
       (smallestRowIdx, diagnostic) => Math.min(smallestRowIdx, diagnostic.loc.row),
       Infinity
