@@ -893,6 +893,13 @@ function prepareDiagnostics(diagnostics: Diagnostic[]) {
       loc: { ...d.loc, row: d.loc.row - 1, col: d.loc.col - 1 },
     }))
 
+    // Ensure that both the `block` and `context` are filled in with something.
+    .map((d) => ({
+      ...d,
+      block: d.block ?? null,
+      context: d.context ?? null,
+    }))
+
     // Sort diagnostics by location, first by row then by column so that it is sorted top to
     // bottom, left to right.
     .sort((a, z) => a.loc.row - z.loc.row || a.loc.col - z.loc.col)
