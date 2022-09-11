@@ -70,7 +70,7 @@ function createNoteCells(input: string | number, decorate = (s: string) => s) {
 }
 
 function createNoteTitle(input: string) {
-  return createNoteCells(input, (s) => pc.bold(pc.cyan(s)))
+  return createNoteCells(input, (s) => pc.cyan(s))
 }
 
 type Item = Array<{ type: Type; value: string }>
@@ -846,7 +846,7 @@ function reportBlock(
 
       // Add the red dot indiciator befor the line numbers that have diagnostics attached to them.
       if (rowType & Type.Code && !(rowType & Type.ContextLine)) {
-        result.splice(MARGIN - 2, 1, pc.bold(pc.red(CHARS.bigdot)))
+        result.splice(MARGIN - 2, 1, pc.red(CHARS.bigdot))
       }
 
       // Mark empty lines with `·`, unless there are multiple line numbers (more than 2) in between,

@@ -56,7 +56,7 @@ function dedent(input: string) {
 let html = String.raw
 let template = dedent(html`
   <!DOCTYPE html>
-  <html lang="en">
+  <html lang="en" class="antialised bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -64,7 +64,7 @@ let template = dedent(html`
       <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body>
-      <div class="bg-gray-200 dark:bg-gray-800 py-8 min-h-screen text-gray-600 dark:text-gray-300">
+      <div class="py-8">
         <div class="mx-auto max-w-[calc(100ch+1.25rem*2)] space-y-8">
           <!-- SETUP -->
         </div>
