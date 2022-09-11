@@ -189,7 +189,7 @@ function reportBlock(
   let lineNumberToRow = new Map<number, Item>()
   let diagnosticToColor = new Map<InternalDiagnostic, (input: string) => string>()
 
-  let diagnosticsByContext = new Map<string | number | undefined, InternalDiagnostic[]>()
+  let diagnosticsByContext = new Map<string | null, InternalDiagnostic[]>()
 
   // Group by context
   for (let diagnostic of diagnostics) {
@@ -222,7 +222,7 @@ function reportBlock(
     if (diagnostics.length > 1) continue
 
     for (let diagnostic of diagnostics) {
-      diagnostic.context = undefined
+      diagnostic.context = null
       diagnosticsByContext.delete(context)
     }
   }

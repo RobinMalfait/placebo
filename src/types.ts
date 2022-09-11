@@ -48,8 +48,8 @@ export interface InternalDiagnostic {
   message: string
   loc: Location
   notes: Notes
-  block?: string
-  context?: string
+  block: string | null
+  context: string | null
 
   // Things to clean up
   type?: string
