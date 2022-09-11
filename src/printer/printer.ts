@@ -160,31 +160,25 @@ function reportBlock(
     )
   }
 
-  // Re-indent the lines
   for (let [lineNumber, line] of printableLines.entries()) {
-    printableLines.set(lineNumber, line.slice(smallestIndentWidth))
+    // Re-indent the line
+    line = line.slice(smallestIndentWidth)
+
+    // Add padding to the line
+    if (line.length <= 0) {
+      printableLines.set(lineNumber, line)
+    } else {
+      printableLines.set(lineNumber, [...createCells(PADDING, createWhitespaceCell), ...line])
+    }
   }
 
   // Adjust column offsets
   for (let diagnostics of groupedByRow.values()) {
     for (let diagnostic of diagnostics) {
+      // Adjust column offset for re-indenting
       diagnostic.loc.col -= smallestIndentWidth + 1
-    }
-  }
 
-  // Add padding to the lines
-  for (let [lineNumber, line] of printableLines.entries()) {
-    if (line.length <= 0) {
-      printableLines.set(lineNumber, line)
-      continue
-    }
-
-    printableLines.set(lineNumber, [...createCells(PADDING, createWhitespaceCell), ...line])
-  }
-
-  // Adjust column offsets for padding
-  for (let diagnostics of groupedByRow.values()) {
-    for (let diagnostic of diagnostics) {
+      // Adjust column offset for padding
       diagnostic.loc.col += PADDING
     }
   }
