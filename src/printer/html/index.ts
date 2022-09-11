@@ -38,9 +38,23 @@ let ansiBackgroundColorMap = new Map([
 ])
 
 let ansiMap = new Map([...ansiStyleMap, ...ansiTextColorMap, ...ansiBackgroundColorMap])
+function dedent(input: string) {
+  let lines = input.split('\n')
+  let amount = Math.min(
+    ...lines.map((line) => {
+      let idx = line.search(/[^\s]/g)
+      if (idx === -1) return Infinity
+      return idx
+    })
+  )
+  return lines
+    .map((line) => line.slice(amount))
+    .join('\n')
+    .trim()
+}
 
 let html = String.raw
-let template = html`
+let template = dedent(html`
   <!DOCTYPE html>
   <html lang="en">
     <head>
@@ -57,7 +71,7 @@ let template = html`
       </div>
     </body>
   </html>
-`
+`)
 
 export async function printer(
   sources: Map<string, string>,
