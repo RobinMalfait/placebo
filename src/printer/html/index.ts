@@ -16,24 +16,24 @@ let ansiStyleMap = new Map([
 
 let ansiTextColorMap = new Map([
   [30, '<span class="text-black">'], // black
-  [31, '<span class="text-red-400">'], // red
-  [32, '<span class="text-green-400">'], // green
-  [33, '<span class="text-yellow-400">'], // yellow
-  [34, '<span class="text-blue-400">'], // blue
-  [35, '<span class="text-pink-400">'], // magenta
-  [36, '<span class="text-cyan-400">'], // cyan
+  [31, '<span class="text-red-600 dark:text-red-400">'], // red
+  [32, '<span class="text-green-600 dark:text-green-400">'], // green
+  [33, '<span class="text-yellow-600 dark:text-yellow-400">'], // yellow
+  [34, '<span class="text-blue-600 dark:text-blue-400">'], // blue
+  [35, '<span class="text-pink-600 dark:text-pink-400">'], // magenta
+  [36, '<span class="text-cyan-600 dark:text-cyan-400">'], // cyan
   [37, '<span class="text-white">'], // white
-  [90, '<span class="text-gray-400">'], // gray
+  [90, '<span class="text-gray-800 dark:text-gray-400">'], // gray
 ])
 
 let ansiBackgroundColorMap = new Map([
   [40, '<span class="bg-black">'], // black
-  [41, '<span class="bg-red-400">'], // red
-  [42, '<span class="bg-green-400">'], // green
-  [43, '<span class="bg-yellow-400">'], // yellow
-  [44, '<span class="bg-blue-400">'], // blue
-  [45, '<span class="bg-pink-400">'], // magenta
-  [46, '<span class="bg-cyan-400">'], // cyan
+  [41, '<span class="bg-red-600 dark:bg-red-400">'], // red
+  [42, '<span class="bg-green-600 dark:bg-green-400">'], // green
+  [43, '<span class="bg-yellow-600 dark:bg-yellow-400">'], // yellow
+  [44, '<span class="bg-blue-600 dark:bg-blue-400">'], // blue
+  [45, '<span class="bg-pink-600 dark:bg-pink-400">'], // magenta
+  [46, '<span class="bg-cyan-600 dark:bg-cyan-400">'], // cyan
   [47, '<span class="bg-white">'], // white
 ])
 
@@ -50,7 +50,7 @@ let template = html`
       <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body>
-      <div class="bg-gray-800 py-8 min-h-screen text-gray-300">
+      <div class="bg-gray-200 dark:bg-gray-800 py-8 min-h-screen text-gray-600 dark:text-gray-300">
         <div class="mx-auto max-w-[calc(100ch+1.25rem*2)] space-y-8">
           <!-- SETUP -->
         </div>
@@ -64,7 +64,8 @@ export async function printer(
   diagnostics: Diagnostic[],
   flush = console.log
 ) {
-  let container = '<div class="bg-gray-900 px-4 py-8 leading-tight font-mono rounded-lg shadow-md">'
+  let container =
+    '<div class="bg-white dark:bg-gray-900 px-4 py-8 leading-tight font-mono rounded-lg shadow-md overflow-auto">'
   let output = container
   basePrinter(sources, diagnostics, (message) => {
     if (message === '') {
