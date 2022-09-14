@@ -89,7 +89,16 @@ export async function printer(
 
     output +=
       '<pre>' +
-      (message.split('\n') as string[])
+      (
+        message
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/'/g, '&#39;')
+          .replace(/"/g, '&#34;')
+          .replace(/\//, '&#x2F;')
+          .split('\n') as string[]
+      )
         .map((line) =>
           line.replace(ANSI, (_, code) => {
             if (offs.includes(+code)) {
