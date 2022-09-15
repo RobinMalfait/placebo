@@ -6,10 +6,22 @@ let root = process.cwd()
 
 async function generate() {
   let base = path.resolve(root, 'examples')
-  let ignoreFolders = ['node_modules']
+  let ignoreFolders = ['node_modules', /tmp/]
   let examples = (await fs.readdir(base, { withFileTypes: true }))
     .filter((example) => example.isDirectory())
-    .filter((example) => !ignoreFolders.includes(example.name))
+    .filter((example) => {
+      for (let folder of ignoreFolders) {
+        if (folder instanceof RegExp && folder.test(example.name)) {
+          return false
+        }
+
+        if (typeof folder === 'string' && folder === example.name) {
+          return false
+        }
+      }
+
+      return true
+    })
     .map((folder) => path.resolve(base, folder.name))
     .map(async (example) => {
       let output = []
