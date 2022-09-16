@@ -923,6 +923,17 @@ function reportBlock(
 
 function prepareDiagnostics(diagnostics: Diagnostic[]) {
   let all = diagnostics
+    // Map the public location API to the internal location API. For now this is the easiest thing to
+    // get things working without changing all the internals.
+    .map(({ location, ...d }) => ({
+      ...d,
+      loc: {
+        row: location[0][0],
+        col: location[0][1],
+        len: location[1][1] - location[0][1],
+      },
+    }))
+
     // `row` and `col` are 1-based when they come in. This is because most tools use `row` and
     // `col` to point to a location in your editor and editors usually start with `1` instead of
     // `0`. For now, let's make it a bit simpler and use them as 0-based values.

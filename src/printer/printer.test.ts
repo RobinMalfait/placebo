@@ -1,4 +1,5 @@
 import { printer } from '~/printer/printer'
+import type { Diagnostic, Location } from '~/types'
 import { dedent } from '~/utils/dedent'
 
 let html = String.raw
@@ -7,20 +8,6 @@ let javascript = String.raw
 
 interface DeepArray<T> extends Array<T | DeepArray<T>> {}
 type Notes = string | DeepArray<string>
-
-interface Location {
-  row: number
-  col: number
-  len: number
-}
-
-interface Diagnostic {
-  message: string
-  loc: Location
-  notes: Notes
-  block?: string
-  context?: string | number
-}
 
 function diagnose(
   message: string,
@@ -32,18 +19,21 @@ function diagnose(
   }: {
     notes?: Notes
     block?: string
-    context?: string | number
+    context?: string
   } = {}
 ): Diagnostic {
-  return { block, context, message, loc: location, notes }
+  return { file: '', block, context, message, location, notes }
 }
 
-function findLocation(code: string, word: string) {
+function findLocation(code: string, word: string): Location {
   let row = code.split('\n').findIndex((row) => row.includes(word))
   let col = code.split('\n')[row].indexOf(word)
   let len = word.length
 
-  return { row: row + 1, col: col + 1, len }
+  return [
+    [row + 1, col + 1],
+    [row + 1, col + 1 + len],
+  ]
 }
 
 function render(source: string, diagnostics: Diagnostic[] = [], file = './example.txt') {
@@ -388,7 +378,12 @@ it('should be possible to print a lot of messages', () => {
   let diagnostics = Array(26)
     .fill(0)
     .map((_, idx) => idx * 2)
-    .map((col, idx) => diagnose(`Symbol at position: ${idx}`, { row: 1, col: col + 1, len: 1 }))
+    .map((col, idx) =>
+      diagnose(`Symbol at position: ${idx}`, [
+        [1, col + 1],
+        [1, col + 1 + 1],
+      ])
+    )
 
   let result = render(code, diagnostics)
 
@@ -432,7 +427,12 @@ it('should be possible to print a lot of similar messages', () => {
   let diagnostics = Array(26)
     .fill(0)
     .map((_, idx) => idx * 2)
-    .map((col) => diagnose('This is part of the alphabet', { row: 1, col: col + 1, len: 1 }))
+    .map((col) =>
+      diagnose('This is part of the alphabet', [
+        [1, col + 1],
+        [1, col + 1 + 1],
+      ])
+    )
 
   let result = render(code, diagnostics)
 

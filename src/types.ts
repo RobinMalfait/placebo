@@ -6,7 +6,15 @@ export type Notes = Array<{
   diagnostic: InternalDiagnostic
 }>
 
-export interface Location {
+export type Location = [
+  /** The row location of the diagnostic. Value should be 1-based. */
+  [startLine: number, startColumn: number],
+
+  /** The column location of the diagnostic. Value should be 1-based. */
+  [endLine: number, endColumn: number]
+]
+
+export interface InternalLocation {
   /** The row location of the diagnostic. Value should be 1-based. */
   row: number
 
@@ -25,7 +33,7 @@ export interface Diagnostic {
   message: string
 
   /** The location of the diagnostic. */
-  loc: Location
+  location: Location
 
   /** Optional notes with additional information about the current diagnostic. */
   notes?: string | DeepArray<string>
@@ -46,12 +54,12 @@ export interface Diagnostic {
 export interface InternalDiagnostic {
   file: string
   message: string
-  loc: Location
+  loc: InternalLocation
   notes: Notes
   block: string | null
   context: string | null
 
   // Things to clean up
   type?: string
-  locations?: Location[]
+  locations?: InternalLocation[]
 }
