@@ -4,6 +4,21 @@ let html = String.raw
 let css = String.raw
 let javascript = String.raw
 
+function dedent(input: string) {
+  let lines = input.split('\n')
+  let amount = Math.min(
+    ...lines.map((line) => {
+      let idx = line.search(/[^\s]/g)
+      if (idx === -1) return Infinity
+      return idx
+    })
+  )
+  return lines
+    .map((line) => line.slice(amount))
+    .join('\n')
+    .trim()
+}
+
 interface DeepArray<T> extends Array<T | DeepArray<T>> {}
 type Notes = string | DeepArray<string>
 
@@ -59,7 +74,7 @@ function render(source: string, diagnostics: Diagnostic[] = [], file = './exampl
     collector
   )
 
-  return '\n' + lines.join('\n').trimEnd()
+  return lines.join('\n').trimEnd()
 }
 
 it('should print a message', () => {
@@ -182,8 +197,7 @@ it('should print nested notes in a hierarchy', () => {
     ·                ╰──── Message 1
     ·
     ├─
-    ·   NOTES:
-    ·     - Heading 1
+    ·   NOTE: Heading 1
     ·       - Heading 2
     ·         - Heading 3 A
     ·           - A
@@ -193,6 +207,41 @@ it('should print nested notes in a hierarchy', () => {
     ·           - D
     ·           - E
     ·           - F
+    └─`)
+})
+
+it('should render syntax highlighted code in notes', () => {
+  let code = html`<div class="flex block" />`
+  let notes =
+    '```css\n' +
+    dedent(css`
+      .flex {
+        display: flex;
+      }
+    `) +
+    '\n```'
+
+  let diagnostics = [
+    diagnose('The generated CSS looks like:', findLocation(code, 'flex'), {
+      notes,
+    }),
+  ]
+
+  let result = render(code, diagnostics, './example.html')
+  expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="flex block" />
+    ·               ─┬──
+    ·                ╰──── The generated CSS looks like:
+    ·
+    ├─
+    ·   NOTES:
+    ·       \`\`\`css
+    ·       .flex {
+    ·         display: flex;
+    ·       }
+    ·       \`\`\`
     └─`)
 })
 

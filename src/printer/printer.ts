@@ -718,63 +718,90 @@ function reportBlock(
 
     inject(output.length, createCell(pc.dim(CHARS.H), Type.StartOfNote))
 
-    if (notes.length === 1 && notes[0].children.length === 0) {
-      for (let note of notes) {
-        let lastLine = inject(
-          output.length,
-          ...createCells(PADDING, () => createCell(' ', Type.Note)),
-          ...createNoteTitle('NOTE: ')
-        )
-        let indent = lastLine.length
-        let wrapped = wordWrap(note.message, availableWorkingSpace - indent)
+    // if (notes.length === 1 && notes[0].children.length === 0) {
+    //   for (let note of notes) {
+    //     let lastLine = inject(
+    //       output.length,
+    //       ...createCells(PADDING, () => createCell(' ', Type.Note)),
+    //       ...createNoteTitle('NOTE: ')
+    //     )
+    //     let indent = lastLine.length
+    //     let wrapped = wordWrap(note.message, availableWorkingSpace - indent)
+    //
+    //     for (let [idx, line] of wrapped.entries()) {
+    //       lastLine.push(...createNoteCells(line))
+    //       if (idx !== wrapped.length - 1) {
+    //         lastLine = inject(output.length, ...createNoteCells(indent))
+    //       }
+    //     }
+    //   }
+    // } else {
+    let lastLine = inject(
+      output.length,
+      ...createNoteCells(PADDING),
+      ...(notes.length === 1 ? [...createNoteTitle('NOTE:')] : [...createNoteTitle('NOTES:')])
+    )
+
+    let inCodeBlock = false
+
+    function renderNotes(notes: Notes, depth = 0) {
+      let singleTopLevelNote = depth === 0 && notes.length === 1
+      for (let { message, children, diagnostic } of notes) {
+        let decorate = diagnosticToColor.get(diagnostic)!
+
+        lastLine = singleTopLevelNote
+          ? lastLine
+          : inject(output.length, ...createNoteCells(PADDING + 2 + depth * 2))
+
+        let text: string = ''
+
+        // Contains code blocks
+        let turnOfCodeBlock = false
+        if (message.includes('```')) {
+          if (inCodeBlock) {
+            turnOfCodeBlock = true
+          } else {
+            inCodeBlock = true
+          }
+        }
+
+        // Starting with a number like "1."
+        if (/^\d+\./.test(message)) {
+          let [, number, rest] = message.split(/(\d+\.)\s*(.*)/)
+          lastLine.push(createCell(pc.dim(number), Type.Note), createCell(' ', Type.Note))
+          text = rest
+        }
+
+        // Not starting with a number, just use `- {...note}`
+        else {
+          lastLine.push(
+            createCell(pc.dim(singleTopLevelNote ? '' : inCodeBlock ? ' ' : '-'), Type.Note),
+            createCell(' ', Type.Note)
+          )
+
+          text = message
+        }
+
+        let indent = lastLine.length - (singleTopLevelNote ? 1 : 0)
+        let wrapped = inCodeBlock ? [text] : wordWrap(text, availableWorkingSpace - indent)
 
         for (let [idx, line] of wrapped.entries()) {
-          lastLine.push(...createNoteCells(line))
+          lastLine.push(...createNoteCells(line, inCodeBlock ? (v) => v : decorate))
           if (idx !== wrapped.length - 1) {
             lastLine = inject(output.length, ...createNoteCells(indent))
           }
         }
-      }
-    } else {
-      inject(output.length, ...createNoteCells(PADDING), ...createNoteTitle('NOTES:'))
 
-      function renderNotes(notes: Notes, depth = 0) {
-        for (let { message, children, diagnostic } of notes) {
-          let decorate = diagnosticToColor.get(diagnostic)!
-
-          let lastLine = inject(output.length, ...createNoteCells(PADDING + 2 + depth * 2))
-
-          let text: string = ''
-
-          // Starting with a number like "1."
-          if (/^\d*\./.test(message)) {
-            let [, number, rest] = message.split(/(\d*\.)\s*(.*)/)
-            lastLine.push(createCell(pc.dim(number), Type.Note), createCell(' ', Type.Note))
-            text = rest
-          }
-
-          // Not starting with a number, just use `- {...note}`
-          else {
-            lastLine.push(createCell(pc.dim('-'), Type.Note), createCell(' ', Type.Note))
-            text = message
-          }
-
-          let indent = lastLine.length
-          let wrapped = wordWrap(text, availableWorkingSpace - indent)
-
-          for (let [idx, line] of wrapped.entries()) {
-            lastLine.push(...createNoteCells(line, decorate))
-            if (idx !== wrapped.length - 1) {
-              lastLine = inject(output.length, ...createNoteCells(indent))
-            }
-          }
-
-          renderNotes(children, depth + 1)
+        if (turnOfCodeBlock) {
+          inCodeBlock = false
         }
-      }
 
-      renderNotes(notes)
+        renderNotes(children, depth + 1)
+      }
     }
+
+    renderNotes(notes)
+    // }
   }
 
   // Add a frame around the output
@@ -953,6 +980,7 @@ export function printer(
   )
 
   // Report per block, that will be cleaner from a UI perspective
+  flush('') // Before
   for (let [idx, diagnostics] of diagnosticsPerBlock.entries()) {
     visuallyLinkNotesToDiagnostics(diagnostics)
     reportBlock(optimizedSources, diagnostics, flush)
@@ -962,17 +990,22 @@ export function printer(
 }
 
 function visuallyLinkNotesToDiagnostics(diagnostics: InternalDiagnostic[]) {
-  let hasMultipleNotes = 0
+  function key(notes: Notes): string {
+    return notes.map((note) => note.message + key(note.children)).join('\n')
+  }
+  let seenNotes = new Set<string>()
 
   for (let diagnostic of diagnostics) {
     if (diagnostic.notes?.length > 0) {
-      if (++hasMultipleNotes > 1) {
+      let id = key(diagnostic.notes)
+      seenNotes.add(id)
+      if (seenNotes.size > 1) {
         break
       }
     }
   }
 
-  if (hasMultipleNotes > 1) {
+  if (seenNotes.size > 1) {
     let count = 0
 
     for (let diagnostic of diagnostics
