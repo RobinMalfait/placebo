@@ -93,7 +93,7 @@ function prepareSource(source: string, file: string) {
 function reportBlock(
   sources: Map<string, Item[]>,
   diagnostics: InternalDiagnostic[],
-  flush: (input: string) => void
+  write: (input: string) => void
 ) {
   // Group by same line
   let groupedByRow = new Map<number, InternalDiagnostic[]>()
@@ -904,18 +904,20 @@ function reportBlock(
     ),
   ].filter(Boolean) as string[][]
 
-  // Flush everything
-  for (let line of outputOfStrings.splice(0)) {
-    let modified = ''
-
-    // Some of the output arrays are holey/sparse, using a normal `.map()`,
-    // those empty spots won't be mapped, with a normal for loop however,
-    // they will be `undefined`.
-    for (let cell of line) {
-      modified += cell ?? ' '
+  // Write the block
+  {
+    let output = []
+    for (let line of outputOfStrings.splice(0)) {
+      let msg = ''
+      // Some of the output arrays are holey/sparse, using a normal `.map()`,
+      // those empty spots won't be mapped, with a normal for loop however,
+      // they will be `undefined`.
+      for (let cell of line) {
+        msg += cell ?? ' '
+      }
+      output.push(msg)
     }
-
-    flush(modified)
+    write(output.join('\n'))
   }
 }
 
@@ -967,7 +969,7 @@ function prepareDiagnostics(diagnostics: Diagnostic[]) {
 export function printer(
   sources: Map<string, string>,
   diagnostics: Diagnostic[],
-  flush = console.log
+  write = console.log
 ) {
   env.DEBUG && console.time('[PLACEBO]: Print')
   let diagnosticsPerBlock = prepareDiagnostics(diagnostics)
@@ -980,11 +982,11 @@ export function printer(
   )
 
   // Report per block, that will be cleaner from a UI perspective
-  flush('') // Before
+  write('') // Before
   for (let [idx, diagnostics] of diagnosticsPerBlock.entries()) {
     visuallyLinkNotesToDiagnostics(diagnostics)
-    reportBlock(optimizedSources, diagnostics, flush)
-    if (idx !== diagnosticsPerBlock.length - 1) flush('') // In between
+    reportBlock(optimizedSources, diagnostics, write)
+    if (idx !== diagnosticsPerBlock.length - 1) write('') // In between
   }
   env.DEBUG && console.timeEnd('[PLACEBO]: Print')
 }

@@ -76,46 +76,40 @@ let template = dedent(html`
 export async function printer(
   sources: Map<string, string>,
   diagnostics: Diagnostic[],
-  flush = console.log
+  write = console.log
 ) {
-  let container =
-    '<div class="bg-white dark:bg-gray-900 px-4 py-8 leading-tight font-mono rounded-lg shadow-md overflow-auto">'
-  let output = container
-  basePrinter(sources, diagnostics, (message) => {
+  function wrap(input: string) {
+    return `<div class="bg-white dark:bg-gray-900 px-4 py-8 leading-tight font-mono rounded-lg shadow-md overflow-auto"><pre>${input}</pre></div>`
+  }
+
+  let output = ''
+  basePrinter(sources, diagnostics, (message: string) => {
     if (message === '') {
-      output += '</div>'
-      output += container
+      return
     }
 
-    output +=
-      '<pre>' +
-      (
-        message
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/'/g, '&#39;')
-          .replace(/"/g, '&#34;')
-          .replace(/\//, '&#x2F;')
-          .split('\n') as string[]
-      )
+    message = message
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/'/g, '&#39;')
+      .replace(/"/g, '&#34;')
+      .replace(/\//, '&#x2F;')
+
+    output += wrap(
+      message
+        .split('\n')
         .map((line) =>
           line.replace(ANSI, (_, code) => {
-            if (offs.includes(+code)) {
-              return '</span>'
-            }
-
-            if (ansiMap.has(+code)) {
-              return ansiMap.get(+code)!
-            }
+            if (offs.includes(+code)) return '</span>'
+            if (ansiMap.has(+code)) return ansiMap.get(+code)!
 
             return _
           })
         )
-        .join('') +
-      '</pre>'
+        .join('\n')
+    )
   })
-  output += '</div>'
 
-  flush(template.replace('<!-- SETUP -->', output))
+  write(template.replace('<!-- SETUP -->', output))
 }

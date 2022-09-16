@@ -17,7 +17,7 @@ let printers = {
 }
 
 module.exports = (diagnose) => {
-  return async function run(files = process.argv.slice(2), flush = console.log) {
+  return async function run(files = process.argv.slice(2), write = console.log) {
     let diagnostics = await diagnose(files)
     let sources = new Map(
       await Promise.all(
@@ -29,7 +29,7 @@ module.exports = (diagnose) => {
     )
     let printer = printers[cli.target ?? 'default'] ?? printers.default
 
-    printer(sources, diagnostics, flush)
+    printer(sources, diagnostics, write)
 
     return diagnostics
   }

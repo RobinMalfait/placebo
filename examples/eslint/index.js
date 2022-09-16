@@ -5,8 +5,8 @@ let file = './code.js'
 
 let { resolve } = require('path')
 
-function run(flush = console.log, files = resolve(__dirname, file)) {
-  return require('./run')(files, flush)
+function run(write = console.log, files = resolve(__dirname, file)) {
+  return require('./run')(files, write)
 }
 
 if (module.parent === null) {
