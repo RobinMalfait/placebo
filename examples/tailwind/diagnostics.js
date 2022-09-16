@@ -255,6 +255,8 @@ module.exports = async function run(files) {
           let scopedDiagnostics = []
           let block = randomUUID()
 
+          let isFirst = true
+
           let lastStartIdex = -1
           for (let _ of klasses) {
             let idx = line.indexOf(klass, lastStartIdex + 1)
@@ -263,9 +265,25 @@ module.exports = async function run(files) {
               diagnose(
                 `Duplicate class "${klass}"`,
                 location(node.location.start.line, idx + 1, klass.length),
-                { block }
+                {
+                  block,
+                  notes: isFirst
+                    ? [
+                        'You can solve this by removing one of the duplicate classes:',
+                        [
+                          [
+                            '```diff-html',
+                            '- ' + line.trim(),
+                            '+ ' + line.replace(` ${klass}`, '').trim(),
+                            '```',
+                          ].join('\n'),
+                        ],
+                      ]
+                    : [],
+                }
               )
             )
+            isFirst = false
           }
 
           if (scopedDiagnostics.length > 0) diagnostics.push(...scopedDiagnostics.splice(0))
