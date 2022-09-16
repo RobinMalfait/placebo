@@ -119,101 +119,91 @@ A beautiful new language agnostic diagnostics printer!
   {
     "file": "README.md",
     "message": "A beautiful new language agnostic diagnostics printer!",
-    "loc": {
-      "row": 1,
-      "col": 9,
-      "len": 8
-    }
+    "location": [
+      [1, 9],
+      [1, 17]
+    ]
   },
   {
     "file": "README.md",
     "message": "Messages will be rendered",
-    "loc": {
-      "row": 6,
-      "col": 33,
-      "len": 8
-    },
-    "block": "fefe75b7-c9bf-4054-90bd-15d99a9801af"
+    "location": [
+      [6, 33],
+      [6, 41]
+    ],
+    "block": "ee928812-4a07-4cfc-ba7c-feab79c786e1"
   },
   {
     "file": "README.md",
     "message": "underneath eachother just",
-    "loc": {
-      "row": 6,
-      "col": 24,
-      "len": 8
-    },
-    "block": "fefe75b7-c9bf-4054-90bd-15d99a9801af"
+    "location": [
+      [6, 24],
+      [6, 32]
+    ],
+    "block": "ee928812-4a07-4cfc-ba7c-feab79c786e1"
   },
   {
     "file": "README.md",
     "message": "like the messages you see here.",
-    "loc": {
-      "row": 6,
-      "col": 15,
-      "len": 8
-    },
-    "block": "fefe75b7-c9bf-4054-90bd-15d99a9801af"
+    "location": [
+      [6, 15],
+      [6, 23]
+    ],
+    "block": "ee928812-4a07-4cfc-ba7c-feab79c786e1"
   },
   {
     "file": "README.md",
     "message": "You wrote `the` twice!",
-    "loc": {
-      "row": 12,
-      "col": 28,
-      "len": 3
-    },
-    "block": "11b25a4d-225d-478e-93ac-f5464c283158"
+    "location": [
+      [12, 28],
+      [12, 31]
+    ],
+    "block": "3fceb11c-6b8c-4894-b369-009cd41eba7f"
   },
   {
     "file": "README.md",
     "message": "You wrote `the` twice!",
-    "loc": {
-      "row": 12,
-      "col": 32,
-      "len": 3
-    },
-    "block": "11b25a4d-225d-478e-93ac-f5464c283158"
+    "location": [
+      [12, 32],
+      [12, 35]
+    ],
+    "block": "3fceb11c-6b8c-4894-b369-009cd41eba7f"
   },
   {
     "file": "README.md",
     "message": "Yay, found my `context` friends!",
-    "loc": {
-      "row": 18,
-      "col": 65,
-      "len": 9
-    },
-    "block": "d5ba4251-8824-44b5-9b1c-ee6e450259d5",
-    "context": "385464cd-5d77-4498-851c-9a2e5b41b7dd"
+    "location": [
+      [18, 65],
+      [18, 74]
+    ],
+    "block": "06b0832d-c8dc-4b06-9ab0-e0e3212b9a67",
+    "context": "ed36e95f-50e4-43fc-b8de-12460f81a7d2"
   },
   {
     "file": "README.md",
     "message": "Yay, found my `context` friends!",
-    "loc": {
-      "row": 21,
-      "col": 1,
-      "len": 9
-    },
-    "block": "d5ba4251-8824-44b5-9b1c-ee6e450259d5",
-    "context": "385464cd-5d77-4498-851c-9a2e5b41b7dd"
+    "location": [
+      [21, 1],
+      [21, 10]
+    ],
+    "block": "06b0832d-c8dc-4b06-9ab0-e0e3212b9a67",
+    "context": "ed36e95f-50e4-43fc-b8de-12460f81a7d2"
   },
   {
     "file": "README.md",
     "message": "Like this message. We have a lot to say here so it might not be ideal if everything was just written on the same line. Instead we will use the width of your terminal to decide when to start wrapping.",
-    "loc": {
-      "row": 25,
-      "col": 37,
-      "len": 9
-    }
+    "location": [
+      [25, 37],
+      [25, 46]
+    ]
   },
   {
     "file": "README.md",
     "message": "This diagnostic contains some notes.",
-    "loc": {
-      "row": 29,
-      "col": 33,
-      "len": 7
-    },
+    "location": [
+      [29, 33],
+      [29, 40]
+    ],
     "notes": [
       "This note can contain more information about the specific diagnostic.",
       "What do you think? More info at https://github.com/RobinMalfait/placebo!"
@@ -222,12 +212,11 @@ A beautiful new language agnostic diagnostics printer!
   {
     "file": "README.md",
     "message": "This is an example of the superscript indicator",
-    "loc": {
-      "row": 35,
-      "col": 8,
-      "len": 22
-    },
-    "block": "f8460d56-bd32-4603-ae7e-bde2c36b2b99",
+    "location": [
+      [35, 8],
+      [35, 30]
+    ],
+    "block": "89e0bc55-1187-4ddd-9de9-16c67e15622b",
     "notes": [
       "This note belongs to the superscript indicator.",
       "This note also belongs to the superscript indicator.",
@@ -237,12 +226,11 @@ A beautiful new language agnostic diagnostics printer!
   {
     "file": "README.md",
     "message": "This will also have a note",
-    "loc": {
-      "row": 35,
-      "col": 31,
-      "len": 4
-    },
-    "block": "f8460d56-bd32-4603-ae7e-bde2c36b2b99",
+    "location": [
+      [35, 31],
+      [35, 35]
+    ],
+    "block": "89e0bc55-1187-4ddd-9de9-16c67e15622b",
     "notes": ["This note belongs to the other diagnostic"]
   }
 ]
