@@ -1,5 +1,6 @@
 import { printer as basePrinter } from '~/printer/printer'
 import { Diagnostic } from '~/types'
+import { dedent } from '~/utils/dedent'
 
 let ANSI = /(?:\x9B|\x1B\[)([0-?]*)([ -\/]*)[@-~]/g
 let offs = [22, 23, 24, 27, 28, 29, 39, 49]
@@ -38,20 +39,6 @@ let ansiBackgroundColorMap = new Map([
 ])
 
 let ansiMap = new Map([...ansiStyleMap, ...ansiTextColorMap, ...ansiBackgroundColorMap])
-function dedent(input: string) {
-  let lines = input.split('\n')
-  let amount = Math.min(
-    ...lines.map((line) => {
-      let idx = line.search(/[^\s]/g)
-      if (idx === -1) return Infinity
-      return idx
-    })
-  )
-  return lines
-    .map((line) => line.slice(amount))
-    .join('\n')
-    .trim()
-}
 
 let html = String.raw
 let template = dedent(html`

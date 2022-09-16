@@ -1,23 +1,9 @@
 import { printer } from '~/printer/printer'
+import { dedent } from '~/utils/dedent'
 
 let html = String.raw
 let css = String.raw
 let javascript = String.raw
-
-function dedent(input: string) {
-  let lines = input.split('\n')
-  let amount = Math.min(
-    ...lines.map((line) => {
-      let idx = line.search(/[^\s]/g)
-      if (idx === -1) return Infinity
-      return idx
-    })
-  )
-  return lines
-    .map((line) => line.slice(amount))
-    .join('\n')
-    .trim()
-}
 
 interface DeepArray<T> extends Array<T | DeepArray<T>> {}
 type Notes = string | DeepArray<string>
