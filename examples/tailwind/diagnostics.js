@@ -197,7 +197,7 @@ module.exports = async function run(files) {
 
   for (let file of files) {
     function diagnose(message, location, { block, context, notes } = {}) {
-      return { file, message, loc: location, block, context, notes }
+      return { file, message, location, block, context, notes }
     }
 
     let source = await fs.readFile(file, 'utf8')
@@ -296,7 +296,10 @@ module.exports = async function run(files) {
 }
 
 function location(row, col, len = 1) {
-  return { row: row, col: col, len }
+  return [
+    [row, col],
+    [row, col + len],
+  ]
 }
 
 function walk(node, cb) {

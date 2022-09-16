@@ -1,7 +1,10 @@
 let ts = require('typescript')
 
 function location(row, col, len = 1) {
-  return { row: row, col: col, len }
+  return [
+    [row, col],
+    [row, col + len],
+  ]
 }
 
 module.exports = async function run(files) {
@@ -11,7 +14,7 @@ module.exports = async function run(files) {
 
   for (let file of files) {
     function diagnose(message, location, { block, context, notes } = {}) {
-      return { file, message, loc: location, block, context, notes }
+      return { file, message, location, block, context, notes }
     }
 
     let program = ts.createProgram([file], {

@@ -14,13 +14,16 @@ module.exports = function run(files) {
   }
 
   function location(row, col, len = 1) {
-    return { row: row, col: col, len }
+    return [
+      [row, col],
+      [row, col + len],
+    ]
   }
 
   let diagnostics = []
   for (let file of files) {
     function diagnose(message, location, { block, context, notes } = {}) {
-      return { file, message, loc: location, block, context, notes }
+      return { file, message, location, block, context, notes }
     }
 
     diagnostics.push(

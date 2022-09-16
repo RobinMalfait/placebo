@@ -16,11 +16,10 @@ module.exports = async function run(files) {
         block: x.line,
         file: result.filePath,
         message: x.message,
-        loc: {
-          row: x.line,
-          col: x.column,
-          len: x.line !== x.endLine ? 1 : Math.max(0, x.endColumn - x.column),
-        },
+        location: [
+          [x.line, x.column],
+          [x.line, x.line === x.endLine ? x.endColumn : x.column + 1],
+        ],
         notes: x.ruleId,
       })
     }

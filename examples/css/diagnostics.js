@@ -57,7 +57,7 @@ module.exports = async function run(files) {
                 file,
                 block,
                 context,
-                loc: location(
+                location: location(
                   decl.source.start.line,
                   decl.source.start.column,
                   value === undefined
@@ -93,7 +93,7 @@ module.exports = async function run(files) {
                         )
                       )
                     },
-                    loc: location(
+                    location: location(
                       otherDecl.source.start.line,
                       otherDecl.source.start.column,
                       value === undefined
@@ -115,7 +115,7 @@ module.exports = async function run(files) {
           diagnostics.push({
             file,
             message: "Values of 0 shouldn't have units specified.",
-            loc: location(
+            location: location(
               decl.source.start.line,
               decl.source.end.column - decl.value.length,
               decl.value.length
@@ -129,7 +129,7 @@ module.exports = async function run(files) {
         diagnostics.push({
           file,
           message: err.reason,
-          loc: location(err.line, err.column),
+          location: location(err.line, err.column),
         })
       })
   }
@@ -138,5 +138,8 @@ module.exports = async function run(files) {
 }
 
 function location(row, col, len = 1) {
-  return { row: row, col: col, len }
+  return [
+    [row, col],
+    [row, col + len],
+  ]
 }

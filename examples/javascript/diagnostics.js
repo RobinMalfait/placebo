@@ -56,19 +56,19 @@ module.exports = async function run(files) {
             block,
             file,
             message: `This is of type '${lhsType}'`,
-            loc: location(rowIdx, offset + _.indexOf(lhs), lhs.length),
+            location: location(rowIdx, offset + _.indexOf(lhs), lhs.length),
           })
           diagnostics.push({
             block,
             file,
             message: messagesByOperator[operator](),
-            loc: location(rowIdx, offset + _.indexOf(operator), operator.length),
+            location: location(rowIdx, offset + _.indexOf(operator), operator.length),
           })
           diagnostics.push({
             block,
             file,
             message: `This is of type '${rhsType}'`,
-            loc: location(rowIdx, offset + _.indexOf(rhs), rhs.length),
+            location: location(rowIdx, offset + _.indexOf(rhs), rhs.length),
           })
 
           if (lhsType !== 'number') {
@@ -76,7 +76,7 @@ module.exports = async function run(files) {
               block,
               file,
               message: `Consider changing this to a 'number'`,
-              loc: lhsDefintionLocation,
+              location: lhsDefintionLocation,
             })
           }
           if (rhsType !== 'number') {
@@ -84,7 +84,7 @@ module.exports = async function run(files) {
               block,
               file,
               message: `Consider changing this to a 'number'`,
-              loc: rhsDefintionLocation,
+              location: rhsDefintionLocation,
             })
           }
         }
@@ -96,5 +96,8 @@ module.exports = async function run(files) {
 }
 
 function location(row, col, len = 1) {
-  return { row: row + 1, col: col + 1, len }
+  return [
+    [row + 1, col + 1],
+    [row + 1, col + 1 + len],
+  ]
 }
