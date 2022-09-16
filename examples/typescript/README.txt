@@ -1,3 +1,4 @@
+
     ┌─[./examples/typescript/code.ts]
     │
   4 │     role: 'Professor',

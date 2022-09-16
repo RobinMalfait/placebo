@@ -5,6 +5,7 @@ A beautiful new language agnostic diagnostics printer!
 <!-- GENERATED -->
 
 ```
+
     ┌─[./README.md]
     │
 ∙ 1 │   What is Placebo?
@@ -132,7 +133,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 33,
       "len": 8
     },
-    "block": "57421960-64c8-43dc-947c-4313aa5b9c4c"
+    "block": "fefe75b7-c9bf-4054-90bd-15d99a9801af"
   },
   {
     "file": "README.md",
@@ -142,7 +143,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 24,
       "len": 8
     },
-    "block": "57421960-64c8-43dc-947c-4313aa5b9c4c"
+    "block": "fefe75b7-c9bf-4054-90bd-15d99a9801af"
   },
   {
     "file": "README.md",
@@ -152,7 +153,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 15,
       "len": 8
     },
-    "block": "57421960-64c8-43dc-947c-4313aa5b9c4c"
+    "block": "fefe75b7-c9bf-4054-90bd-15d99a9801af"
   },
   {
     "file": "README.md",
@@ -162,7 +163,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 28,
       "len": 3
     },
-    "block": "580ce684-447b-4bf1-8885-ac03b1b522ac"
+    "block": "11b25a4d-225d-478e-93ac-f5464c283158"
   },
   {
     "file": "README.md",
@@ -172,7 +173,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 32,
       "len": 3
     },
-    "block": "580ce684-447b-4bf1-8885-ac03b1b522ac"
+    "block": "11b25a4d-225d-478e-93ac-f5464c283158"
   },
   {
     "file": "README.md",
@@ -182,8 +183,8 @@ A beautiful new language agnostic diagnostics printer!
       "col": 65,
       "len": 9
     },
-    "block": "b76eb84d-f469-48f9-a7d9-9ab01723e71f",
-    "context": "2a555e33-1a6c-4340-b851-05da9c459410"
+    "block": "d5ba4251-8824-44b5-9b1c-ee6e450259d5",
+    "context": "385464cd-5d77-4498-851c-9a2e5b41b7dd"
   },
   {
     "file": "README.md",
@@ -193,8 +194,8 @@ A beautiful new language agnostic diagnostics printer!
       "col": 1,
       "len": 9
     },
-    "block": "b76eb84d-f469-48f9-a7d9-9ab01723e71f",
-    "context": "2a555e33-1a6c-4340-b851-05da9c459410"
+    "block": "d5ba4251-8824-44b5-9b1c-ee6e450259d5",
+    "context": "385464cd-5d77-4498-851c-9a2e5b41b7dd"
   },
   {
     "file": "README.md",
@@ -226,7 +227,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 8,
       "len": 22
     },
-    "block": "546530e4-f2db-4582-840e-ac51b23fb51e",
+    "block": "f8460d56-bd32-4603-ae7e-bde2c36b2b99",
     "notes": [
       "This note belongs to the superscript indicator.",
       "This note also belongs to the superscript indicator.",
@@ -241,7 +242,7 @@ A beautiful new language agnostic diagnostics printer!
       "col": 31,
       "len": 4
     },
-    "block": "546530e4-f2db-4582-840e-ac51b23fb51e",
+    "block": "f8460d56-bd32-4603-ae7e-bde2c36b2b99",
     "notes": ["This note belongs to the other diagnostic"]
   }
 ]
