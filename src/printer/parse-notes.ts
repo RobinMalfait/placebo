@@ -103,6 +103,21 @@ function parseMarkdown(input: string, availableSpace: number) {
         return pc.yellow(title)
       })
 
+      // Links
+      .replace(
+        /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gim,
+        (link) => {
+          let OSC = '\u001B]'
+          let BEL = '\u0007'
+          let SEP = ';'
+
+          let href = link
+          let label = link
+
+          return [OSC, '8', SEP, SEP, href, BEL, label, OSC, '8', SEP, SEP, BEL].join('')
+        }
+      )
+
       // Horizontal ruler
       .replace(/^\s*?(---)\s/gim, (_, hr) => {
         return _.replace(hr, pc.dim(CHARS.dot.repeat(process.stdout.columns - 10 - 3)))
