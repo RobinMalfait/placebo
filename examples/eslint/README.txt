@@ -3,17 +3,36 @@
     │
 ∙ 1 │   let abc = '123'
     ·       ─┬─        ┬
-    ·        │         ╰── Missing semicolon.⁽¹⁾
-    ·        ├──────────── 'abc' is assigned a value but never used.⁽³⁾
-    ·        ╰──────────── 'abc' is never reassigned. Use 'const' instead.⁽²⁾
+    ·        │         ╰── Missing semicolon.
+    ·        ├──────────── 'abc' is assigned a value but never used.
+    ·        ╰──────────── 'abc' is never reassigned. Use 'const' instead.
     ·
   3 │   function   hello() {
     ·
     ├─
-    ·   NOTES:
-    ·     1. semi
-    ·     2. prefer-const
-    ·     3. no-unused-vars
+    ·
+    ·   ┌──────────┬──────┐
+    ·   │ Severity │ Rule │
+    ·   ├──────────┼──────┤
+    ·   │ Error    │ semi │
+    ·   └──────────┴──────┘
+    ·
+    ├─
+    ·
+    ·   ┌──────────┬──────────────┐
+    ·   │ Severity │ Rule         │
+    ·   ├──────────┼──────────────┤
+    ·   │ Error    │ prefer-const │
+    ·   └──────────┴──────────────┘
+    ·
+    ├─
+    ·
+    ·   ┌──────────┬────────────────┐
+    ·   │ Severity │ Rule           │
+    ·   ├──────────┼────────────────┤
+    ·   │ Error    │ no-unused-vars │
+    ·   └──────────┴────────────────┘
+    ·
     └─
 
     ┌─[./examples/eslint/code.js]
@@ -22,17 +41,36 @@
     ·
 ∙ 3 │   function   hello() {
     ·           ─┬───┬──   ┬
-    ·            │   │     ╰── Block must not be padded by blank lines.⁽¹⁾
-    ·            │   ╰──────── 'hello' is defined but never used.⁽²⁾
-    ·            ╰──────────── Multiple spaces found before 'hello'.⁽³⁾
+    ·            │   │     ╰── Block must not be padded by blank lines.
+    ·            │   ╰──────── 'hello' is defined but never used.
+    ·            ╰──────────── Multiple spaces found before 'hello'.
     ·
   6 │         return "sup"
     ·
     ├─
-    ·   NOTES:
-    ·     1. padded-blocks
-    ·     2. no-unused-vars
-    ·     3. no-multi-spaces
+    ·
+    ·   ┌──────────┬───────────────┐
+    ·   │ Severity │ Rule          │
+    ·   ├──────────┼───────────────┤
+    ·   │ Error    │ padded-blocks │
+    ·   └──────────┴───────────────┘
+    ·
+    ├─
+    ·
+    ·   ┌──────────┬────────────────┐
+    ·   │ Severity │ Rule           │
+    ·   ├──────────┼────────────────┤
+    ·   │ Error    │ no-unused-vars │
+    ·   └──────────┴────────────────┘
+    ·
+    ├─
+    ·
+    ·   ┌──────────┬─────────────────┐
+    ·   │ Severity │ Rule            │
+    ·   ├──────────┼─────────────────┤
+    ·   │ Error    │ no-multi-spaces │
+    ·   └──────────┴─────────────────┘
+    ·
     └─
 
     ┌─[./examples/eslint/code.js]
@@ -47,7 +85,11 @@
   7 │     }
     ·
     ├─
-    ·   NOTE: no-multiple-empty-lines
+    ·   ┌──────────┬─────────────────────────┐
+    ·   │ Severity │ Rule                    │
+    ·   ├──────────┼─────────────────────────┤
+    ·   │ Error    │ no-multiple-empty-lines │
+    ·   └──────────┴─────────────────────────┘
     └─
 
     ┌─[./examples/eslint/code.js]
@@ -57,17 +99,36 @@
     ·
 ∙ 6 │         return "sup"
     ·   ──┬───       ──┬──┬
-    ·     │            │  ╰── Missing semicolon.⁽¹⁾
-    ·     │            ╰───── Strings must use singlequote.⁽²⁾
-    ·     ╰────────────────── Expected indentation of 2 spaces but found 6.⁽³⁾
+    ·     │            │  ╰── Missing semicolon.
+    ·     │            ╰───── Strings must use singlequote.
+    ·     ╰────────────────── Expected indentation of 2 spaces but found 6.
     ·
   7 │     }
     ·
     ├─
-    ·   NOTES:
-    ·     1. semi
-    ·     2. quotes
-    ·     3. indent
+    ·
+    ·   ┌──────────┬──────┐
+    ·   │ Severity │ Rule │
+    ·   ├──────────┼──────┤
+    ·   │ Error    │ semi │
+    ·   └──────────┴──────┘
+    ·
+    ├─
+    ·
+    ·   ┌──────────┬────────┐
+    ·   │ Severity │ Rule   │
+    ·   ├──────────┼────────┤
+    ·   │ Error    │ quotes │
+    ·   └──────────┴────────┘
+    ·
+    ├─
+    ·
+    ·   ┌──────────┬────────┐
+    ·   │ Severity │ Rule   │
+    ·   ├──────────┼────────┤
+    ·   │ Error    │ indent │
+    ·   └──────────┴────────┘
+    ·
     └─
 
     ┌─[./examples/eslint/code.js]
@@ -78,5 +139,9 @@
     · ╰─── Expected indentation of 0 spaces but found 2.
     ·
     ├─
-    ·   NOTE: indent
+    ·   ┌──────────┬────────┐
+    ·   │ Severity │ Rule   │
+    ·   ├──────────┼────────┤
+    ·   │ Error    │ indent │
+    ·   └──────────┴────────┘
     └─

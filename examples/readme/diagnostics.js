@@ -48,21 +48,22 @@ module.exports = function run(files) {
         location(25, 37, 9)
       ),
       diagnose('This diagnostic contains some notes.', location(29, 33, 7), {
-        notes: [
-          'This note can contain more information about the specific diagnostic.',
-          'What do you think? More info at https://github.com/RobinMalfait/placebo!',
-        ],
+        notes: `
+          - This note can contain more information about the specific diagnostic.
+          - What do you think? More info at https://github.com/RobinMalfait/placebo!
+        `,
       }),
       ...group(
         diagnose('This is an example of the superscript indicator', location(35, 8, 22), {
-          notes: [
-            'This note belongs to the superscript indicator.',
-            'This note also belongs to the superscript indicator.',
-            ['And also has some nested/child notes.', 'Just like these right here!'],
-          ],
+          notes: `
+            - This note belongs to the superscript indicator.
+            - This note also belongs to the superscript indicator.
+              - And also has some nested/child notes.
+              - Just like these right here!
+          `,
         }),
         diagnose('This will also have a note', location(35, 31, 4), {
-          notes: ['This note belongs to the other diagnostic'],
+          notes: 'This note belongs to the other diagnostic',
         })
       )
     )

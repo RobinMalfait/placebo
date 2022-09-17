@@ -31,11 +31,12 @@
   5 │   <div class="underline block text-gray-100 antialiased flex line-through">
     ·
     ├─
-    ·   NOTE: You can solve this by removing one of the duplicate classes:
-    ·         ```html (diff)
-    ·         - <div class="text-gray-100 block text-gray-100 block">Hello</div>
-    ·         + <div class="text-gray-100 block block">Hello</div>
-    ·         ```
+    ·   You can solve this by removing one of the duplicate classes:
+    ·   
+    ·   ```html (diff)
+    ·   - <div class="text-gray-100 block text-gray-100 block">Hello</div>
+    ·   + <div class="text-gray-100 block block">Hello</div>
+    ·   ```
     └─
 
     ┌─[./examples/tailwind/code.html]
@@ -48,11 +49,12 @@
   5 │   <div class="underline block text-gray-100 antialiased flex line-through">
     ·
     ├─
-    ·   NOTE: You can solve this by removing one of the duplicate classes:
-    ·         ```html (diff)
-    ·         - <div class="text-gray-100 block text-gray-100 block">Hello</div>
-    ·         + <div class="text-gray-100 text-gray-100 block">Hello</div>
-    ·         ```
+    ·   You can solve this by removing one of the duplicate classes:
+    ·   
+    ·   ```html (diff)
+    ·   - <div class="text-gray-100 block text-gray-100 block">Hello</div>
+    ·   + <div class="text-gray-100 text-gray-100 block">Hello</div>
+    ·   ```
     └─
 
     ┌─[./examples/tailwind/code.html]
@@ -148,9 +150,10 @@
      ·                       ╰───────────────────────────────────────┴──────── Duplicate class "text-gray-100"
      ·
      ├─
-     ·   NOTE: You can solve this by removing one of the duplicate classes:
-     ·         ```html (diff)
-     ·         - <div class="text-gray-100 grid place-content-center text-gray-100">Hello</div>
-     ·         + <div class="text-gray-100 grid place-content-center">Hello</div>
-     ·         ```
+     ·   You can solve this by removing one of the duplicate classes:
+     ·   
+     ·   ```html (diff)
+     ·   - <div class="text-gray-100 grid place-content-center text-gray-100">Hello</div>
+     ·   + <div class="text-gray-100 grid place-content-center">Hello</div>
+     ·   ```
      └─

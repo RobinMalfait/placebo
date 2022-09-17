@@ -268,18 +268,14 @@ module.exports = async function run(files) {
                 {
                   block,
                   notes: isFirst
-                    ? [
-                        'You can solve this by removing one of the duplicate classes:',
-                        [
-                          [
-                            '```diff-html',
-                            '- ' + line.trim(),
-                            '+ ' + line.replace(` ${klass}`, '').trim(),
-                            '```',
-                          ].join('\n'),
-                        ],
-                      ]
-                    : [],
+                    ? `
+                     You can solve this by removing one of the duplicate classes:
+                     \`\`\`diff-html
+                     - ${line.trim()} 
+                     + ${line.replace(` ${klass}`, '').trim()}
+                     \`\`\`
+                  `
+                    : undefined,
                 }
               )
             )

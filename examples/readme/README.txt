@@ -66,9 +66,8 @@
   30 │   diagnostics if you want to provide even more information.
      ·
      ├─
-     ·   NOTES:
-     ·     - This note can contain more information about the specific diagnostic.
-     ·     - What do you think? More info at https://github.com/RobinMalfait/placebo!
+     ·   - This note can contain more information about the specific diagnostic.
+     ·   - What do you think? More info at https://github.com/RobinMalfait/placebo!
      └─
 
      ┌─[./examples/readme/code/README.md]
@@ -76,16 +75,18 @@
   34 │   Oh, and we can also add notes to different diagnostics within the same block. We can do this by
 ∙ 35 │   adding superscript indicators next to each message and before each note. This allows you to visually
      ·          ──────────┬─────────── ─┬──
-     ·                    │             ╰──── This will also have a note⁽¹⁾
-     ·                    ╰────────────────── This is an example of the superscript indicator⁽²⁾
+     ·                    │             ╰──── This will also have a note
+     ·                    ╰────────────────── This is an example of the superscript indicator
      ·
   36 │   see which note belongs to which diagnostic.
      ·
      ├─
-     ·   NOTES:
-     ·     1. This note belongs to the other diagnostic
-     ·     2. This note belongs to the superscript indicator.
-     ·     2. This note also belongs to the superscript indicator.
-     ·       - And also has some nested/child notes.
-     ·       - Just like these right here!
+     ·   This note belongs to the other diagnostic
+     ├─
+     ·
+     ·   - This note belongs to the superscript indicator.
+     ·   - This note also belongs to the superscript indicator.
+     ·     - And also has some nested/child notes.
+     ·     - Just like these right here!
+     ·
      └─

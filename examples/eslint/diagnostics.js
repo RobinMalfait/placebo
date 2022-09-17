@@ -1,6 +1,14 @@
 /* eslint-disable */
 let { ESLint } = require('eslint')
 
+function severity(input) {
+  return {
+    0: 'Off',
+    1: 'Warning',
+    2: 'Error',
+  }[input]
+}
+
 module.exports = async function run(files) {
   files = [].concat(files)
   let diagnostics = []
@@ -20,7 +28,11 @@ module.exports = async function run(files) {
           [x.line, x.column],
           [x.line, x.line === x.endLine ? x.endColumn : x.column + 1],
         ],
-        notes: x.ruleId,
+        notes: `
+          | Severity                | Rule        |
+          | :---------------------- | :---------- |
+          | ${severity(x.severity)} | ${x.ruleId} | 
+        `,
       })
     }
   }

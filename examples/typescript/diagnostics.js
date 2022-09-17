@@ -36,8 +36,10 @@ module.exports = async function run(files) {
             block: diagnostic.code,
             notes: [
               diagnostic.relatedInformation,
-              `TS${diagnostic.code} (https://typescript.tv/errors/#TS${diagnostic.code})`,
-            ].filter(Boolean),
+              `\`TS${diagnostic.code}\` (https://typescript.tv/errors/#TS${diagnostic.code})`,
+            ]
+              .filter(Boolean)
+              .join('\n'),
           }
         )
       )

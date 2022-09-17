@@ -83,9 +83,8 @@ A beautiful new language agnostic diagnostics printer!
   30 │   diagnostics if you want to provide even more information.
      ·
      ├─
-     ·   NOTES:
-     ·     - This note can contain more information about the specific diagnostic.
-     ·     - What do you think? More info at https://github.com/RobinMalfait/placebo!
+     ·   - This note can contain more information about the specific diagnostic.
+     ·   - What do you think? More info at https://github.com/RobinMalfait/placebo!
      └─
 ```
 
@@ -95,18 +94,20 @@ A beautiful new language agnostic diagnostics printer!
   34 │   Oh, and we can also add notes to different diagnostics within the same block. We can do this by
 ∙ 35 │   adding superscript indicators next to each message and before each note. This allows you to visually
      ·          ──────────┬─────────── ─┬──
-     ·                    │             ╰──── This will also have a note⁽¹⁾
-     ·                    ╰────────────────── This is an example of the superscript indicator⁽²⁾
+     ·                    │             ╰──── This will also have a note
+     ·                    ╰────────────────── This is an example of the superscript indicator
      ·
   36 │   see which note belongs to which diagnostic.
      ·
      ├─
-     ·   NOTES:
-     ·     1. This note belongs to the other diagnostic
-     ·     2. This note belongs to the superscript indicator.
-     ·     2. This note also belongs to the superscript indicator.
-     ·       - And also has some nested/child notes.
-     ·       - Just like these right here!
+     ·   This note belongs to the other diagnostic
+     ├─
+     ·
+     ·   - This note belongs to the superscript indicator.
+     ·   - This note also belongs to the superscript indicator.
+     ·     - And also has some nested/child notes.
+     ·     - Just like these right here!
+     ·
      └─
 ```
 
@@ -131,7 +132,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 33],
       [6, 41]
     ],
-    "block": "ee928812-4a07-4cfc-ba7c-feab79c786e1"
+    "block": "48ffe6ce-8bfc-4326-8bf5-d21336fd7524"
   },
   {
     "file": "README.md",
@@ -140,7 +141,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 24],
       [6, 32]
     ],
-    "block": "ee928812-4a07-4cfc-ba7c-feab79c786e1"
+    "block": "48ffe6ce-8bfc-4326-8bf5-d21336fd7524"
   },
   {
     "file": "README.md",
@@ -149,7 +150,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 15],
       [6, 23]
     ],
-    "block": "ee928812-4a07-4cfc-ba7c-feab79c786e1"
+    "block": "48ffe6ce-8bfc-4326-8bf5-d21336fd7524"
   },
   {
     "file": "README.md",
@@ -158,7 +159,7 @@ A beautiful new language agnostic diagnostics printer!
       [12, 28],
       [12, 31]
     ],
-    "block": "3fceb11c-6b8c-4894-b369-009cd41eba7f"
+    "block": "69ea618b-6600-434e-be75-2bea1b6c46b9"
   },
   {
     "file": "README.md",
@@ -167,7 +168,7 @@ A beautiful new language agnostic diagnostics printer!
       [12, 32],
       [12, 35]
     ],
-    "block": "3fceb11c-6b8c-4894-b369-009cd41eba7f"
+    "block": "69ea618b-6600-434e-be75-2bea1b6c46b9"
   },
   {
     "file": "README.md",
@@ -176,8 +177,8 @@ A beautiful new language agnostic diagnostics printer!
       [18, 65],
       [18, 74]
     ],
-    "block": "06b0832d-c8dc-4b06-9ab0-e0e3212b9a67",
-    "context": "ed36e95f-50e4-43fc-b8de-12460f81a7d2"
+    "block": "31ab1aa7-180a-4b2b-9ca0-2c8debc5f516",
+    "context": "6851200d-4b65-44c9-a116-d0605e433feb"
   },
   {
     "file": "README.md",
@@ -186,8 +187,8 @@ A beautiful new language agnostic diagnostics printer!
       [21, 1],
       [21, 10]
     ],
-    "block": "06b0832d-c8dc-4b06-9ab0-e0e3212b9a67",
-    "context": "ed36e95f-50e4-43fc-b8de-12460f81a7d2"
+    "block": "31ab1aa7-180a-4b2b-9ca0-2c8debc5f516",
+    "context": "6851200d-4b65-44c9-a116-d0605e433feb"
   },
   {
     "file": "README.md",
@@ -204,10 +205,7 @@ A beautiful new language agnostic diagnostics printer!
       [29, 33],
       [29, 40]
     ],
-    "notes": [
-      "This note can contain more information about the specific diagnostic.",
-      "What do you think? More info at https://github.com/RobinMalfait/placebo!"
-    ]
+    "notes": "\n          - This note can contain more information about the specific diagnostic.\n          - What do you think? More info at https://github.com/RobinMalfait/placebo!\n        "
   },
   {
     "file": "README.md",
@@ -216,12 +214,8 @@ A beautiful new language agnostic diagnostics printer!
       [35, 8],
       [35, 30]
     ],
-    "block": "89e0bc55-1187-4ddd-9de9-16c67e15622b",
-    "notes": [
-      "This note belongs to the superscript indicator.",
-      "This note also belongs to the superscript indicator.",
-      ["And also has some nested/child notes.", "Just like these right here!"]
-    ]
+    "block": "ea63aef9-35c6-4685-ba45-1481b108f071",
+    "notes": "\n            - This note belongs to the superscript indicator.\n            - This note also belongs to the superscript indicator.\n              - And also has some nested/child notes.\n              - Just like these right here!\n          "
   },
   {
     "file": "README.md",
@@ -230,8 +224,8 @@ A beautiful new language agnostic diagnostics printer!
       [35, 31],
       [35, 35]
     ],
-    "block": "89e0bc55-1187-4ddd-9de9-16c67e15622b",
-    "notes": ["This note belongs to the other diagnostic"]
+    "block": "ea63aef9-35c6-4685-ba45-1481b108f071",
+    "notes": "This note belongs to the other diagnostic"
   }
 ]
 ```
