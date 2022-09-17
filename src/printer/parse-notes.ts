@@ -41,6 +41,8 @@ function parseMarkdown(input: string, availableSpace: number) {
     prettier
       .format(input, {
         printWidth: availableSpace,
+        semi: false,
+        singleQuote: true,
         proseWrap: 'always',
         parser: 'markdown',
       })

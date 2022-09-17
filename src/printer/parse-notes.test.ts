@@ -67,7 +67,7 @@ it('should parse markdown-esque notes', () => {
     'You can solve it by doing something like:',
     '',
     '```js',
-    'console.log("Hello world:", 1 + 2);',
+    "console.log('Hello world:', 1 + 2)",
     '```',
     '',
     'To make things easier, you can apply the following changes:',
