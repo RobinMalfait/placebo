@@ -1,11 +1,10 @@
 import path from 'path'
 import pc from 'picocolors'
-import type { Diagnostic, InternalDiagnostic, Notes } from '~/types'
+import type { Diagnostic, InternalDiagnostic } from '~/types'
 
 import { env } from '~/env'
 import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
 import { range } from '~/utils/range'
-import { superScript } from '~/utils/super-script'
 import { wordWrap } from '~/utils/word-wrap'
 import { parseNotes } from '~/printer/parse-notes'
 import CHARS from '~/printer/char-maps/fancy'
@@ -67,10 +66,6 @@ function createNoteCells(input: string | number, decorate = (s: string) => s) {
   }
 
   return input.split('').map((v) => createCell(decorate(v), Type.Note))
-}
-
-function createNoteTitle(input: string) {
-  return createNoteCells(input, (s) => pc.cyan(s))
 }
 
 type Item = Array<{ type: Type; value: string }>
@@ -700,108 +695,36 @@ function reportBlock(
   }
 
   // NOTES
-  let notes: Notes = Array.from(
-    new Set(
-      (Array.from(groupedByRow.values()).flat(Infinity) as InternalDiagnostic[])
-        // We print them from top row to bottom row, however we also print the diagnostic from left to
-        // right which means that the left most (first) will be rendered at the bottom, that's why we
-        // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
-        .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)
-        .flatMap((diagnostic) => diagnostic.notes ?? [])
-    )
-  )
+  let noteGroups = (Array.from(groupedByRow.values()).flat(Infinity) as InternalDiagnostic[])
+    // We print them from top row to bottom row, however we also print the diagnostic from left to
+    // right which means that the left most (first) will be rendered at the bottom, that's why we
+    // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
+    .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)
+    .map((diagnostic) => [diagnostic, diagnostic.notes(availableWorkingSpace - PADDING)] as const)
+    .filter(([, notes]) => notes.length > 0)
 
-  if (notes.length > 0) {
+  if (noteGroups.length > 0) {
     for (let _ of range(1)) {
       inject(output.length)
     }
 
-    inject(output.length, createCell(pc.dim(CHARS.H), Type.StartOfNote))
+    for (let [diagnostic, notes] of noteGroups) {
+      let decorate = diagnosticToColor.get(diagnostic)!
+      inject(output.length, createCell('', Type.StartOfNote))
 
-    // if (notes.length === 1 && notes[0].children.length === 0) {
-    //   for (let note of notes) {
-    //     let lastLine = inject(
-    //       output.length,
-    //       ...createCells(PADDING, () => createCell(' ', Type.Note)),
-    //       ...createNoteTitle('NOTE: ')
-    //     )
-    //     let indent = lastLine.length
-    //     let wrapped = wordWrap(note.message, availableWorkingSpace - indent)
-    //
-    //     for (let [idx, line] of wrapped.entries()) {
-    //       lastLine.push(...createNoteCells(line))
-    //       if (idx !== wrapped.length - 1) {
-    //         lastLine = inject(output.length, ...createNoteCells(indent))
-    //       }
-    //     }
-    //   }
-    // } else {
-    let lastLine = inject(
-      output.length,
-      ...createNoteCells(PADDING),
-      ...(notes.length === 1 ? [...createNoteTitle('NOTE:')] : [...createNoteTitle('NOTES:')])
-    )
+      if (noteGroups.length > 1 && notes.length > 1) {
+        inject(output.length)
+      }
 
-    let inCodeBlock = false
+      for (let note of notes) {
+        let lastLine = inject(output.length, ...createNoteCells(PADDING))
+        lastLine.push(createCell(note, Type.Note))
+      }
 
-    function renderNotes(notes: Notes, depth = 0) {
-      let singleTopLevelNote = depth === 0 && notes.length === 1
-      for (let { message, children, diagnostic } of notes) {
-        let decorate = diagnosticToColor.get(diagnostic)!
-
-        lastLine = singleTopLevelNote
-          ? lastLine
-          : inject(output.length, ...createNoteCells(PADDING + 2 + depth * 2))
-
-        let text: string = ''
-
-        // Contains code blocks
-        let turnOfCodeBlock = false
-        if (message.includes('```')) {
-          if (inCodeBlock) {
-            turnOfCodeBlock = true
-          } else {
-            inCodeBlock = true
-          }
-        }
-
-        // Starting with a number like "1."
-        if (/^\d+\./.test(message)) {
-          let [, number, rest] = message.split(/(\d+\.)\s*(.*)/)
-          lastLine.push(createCell(pc.dim(number), Type.Note), createCell(' ', Type.Note))
-          text = rest
-        }
-
-        // Not starting with a number, just use `- {...note}`
-        else {
-          lastLine.push(
-            createCell(pc.dim(singleTopLevelNote ? '' : inCodeBlock ? ' ' : '-'), Type.Note),
-            createCell(' ', Type.Note)
-          )
-
-          text = message
-        }
-
-        let indent = lastLine.length - (singleTopLevelNote ? 1 : 0)
-        let wrapped = inCodeBlock ? [text] : wordWrap(text, availableWorkingSpace - indent)
-
-        for (let [idx, line] of wrapped.entries()) {
-          lastLine.push(...createNoteCells(line, inCodeBlock ? (v) => v : decorate))
-          if (idx !== wrapped.length - 1) {
-            lastLine = inject(output.length, ...createNoteCells(indent))
-          }
-        }
-
-        if (turnOfCodeBlock) {
-          inCodeBlock = false
-        }
-
-        renderNotes(children, depth + 1)
+      if (noteGroups.length > 1 && notes.length > 1) {
+        inject(output.length)
       }
     }
-
-    renderNotes(notes)
-    // }
   }
 
   // Add a frame around the output
@@ -844,7 +767,7 @@ function reportBlock(
           : []),
 
         // Start of note
-        ...(rowType & Type.StartOfNote ? [pc.dim(CHARS.LConnector)] : []),
+        ...(rowType & Type.StartOfNote ? [pc.dim(CHARS.LConnector), pc.dim(CHARS.H)] : []),
 
         // Rest
         ...row.map(
@@ -896,7 +819,7 @@ function reportBlock(
     }),
 
     // Closing block
-    notes.length <= 0
+    noteGroups.length <= 0
       ? [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.V].map((v) => pc.dim(v))
       : null,
     [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.BLSquare, CHARS.H].map((v) =>
@@ -957,7 +880,7 @@ function prepareDiagnostics(diagnostics: Diagnostic[]) {
     .map((d) => {
       let copy = { ...d }
       // @ts-expect-error Uh yeah so w/e
-      copy.notes = parseNotes(d.notes, copy)
+      copy.notes = parseNotes(d.notes)
       return copy as unknown as InternalDiagnostic
     })
 
@@ -995,47 +918,8 @@ export function printer(
   // Report per block, that will be cleaner from a UI perspective
   write('') // Before
   for (let [idx, diagnostics] of diagnosticsPerBlock.entries()) {
-    visuallyLinkNotesToDiagnostics(diagnostics)
     reportBlock(optimizedSources, diagnostics, write)
     if (idx !== diagnosticsPerBlock.length - 1) write('') // In between
   }
   env.DEBUG && console.timeEnd('[PLACEBO]: Print')
-}
-
-function visuallyLinkNotesToDiagnostics(diagnostics: InternalDiagnostic[]) {
-  function key(notes: Notes): string {
-    return notes.map((note) => note.message + key(note.children)).join('\n')
-  }
-  let seenNotes = new Set<string>()
-
-  for (let diagnostic of diagnostics) {
-    if (diagnostic.notes?.length > 0) {
-      let id = key(diagnostic.notes)
-      seenNotes.add(id)
-      if (seenNotes.size > 1) {
-        break
-      }
-    }
-  }
-
-  if (seenNotes.size > 1) {
-    let count = 0
-
-    for (let diagnostic of diagnostics
-      .slice()
-      // We print them from top row to bottom row, however we also print the diagnostic from left to
-      // right which means that the left most (first) will be rendered at the bottom, that's why we
-      // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
-      .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)) {
-      if (diagnostic.notes?.length > 0) {
-        let myCount = ++count
-        diagnostic.message = `${diagnostic.message}${superScript(`(${myCount})`)}`
-        for (let i = 0; i < diagnostic.notes.length; i++) {
-          diagnostic.notes[i].message = `${myCount}. ${diagnostic.notes[i].message}`
-        }
-      }
-    }
-  }
-
-  return diagnostics
 }

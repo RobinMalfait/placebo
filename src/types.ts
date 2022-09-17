@@ -1,11 +1,5 @@
 export interface DeepArray<T> extends Array<T | DeepArray<T>> {}
 
-export type Notes = Array<{
-  message: string
-  children: Notes
-  diagnostic: InternalDiagnostic
-}>
-
 export type Location = [
   /** The row location of the diagnostic. Value should be 1-based. */
   [startLine: number, startColumn: number],
@@ -36,7 +30,7 @@ export interface Diagnostic {
   location: Location
 
   /** Optional notes with additional information about the current diagnostic. */
-  notes?: string | DeepArray<string>
+  notes?: string
 
   /**
    * An optional string identifier, each diagnostic with the same block value will be grouped and
@@ -55,7 +49,7 @@ export interface InternalDiagnostic {
   file: string
   message: string
   loc: InternalLocation
-  notes: Notes
+  notes: (availableSpace: number) => string[]
   block: string | null
   context: string | null
 

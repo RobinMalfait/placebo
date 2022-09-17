@@ -6,18 +6,15 @@ let html = String.raw
 let css = String.raw
 let javascript = String.raw
 
-interface DeepArray<T> extends Array<T | DeepArray<T>> {}
-type Notes = string | DeepArray<string>
-
 function diagnose(
   message: string,
   location: Location,
   {
-    notes = [],
+    notes,
     block,
     context,
   }: {
-    notes?: Notes
+    notes?: string
     block?: string
     context?: string
   } = {}
@@ -87,9 +84,7 @@ it('should print a message and reindent it to save space', () => {
 
 it('should print a message and a note', () => {
   let code = html`<div class="flex block" />`
-  let diagnostics = [
-    diagnose('Message 1', findLocation(code, 'flex'), { notes: ['This is a note'] }),
-  ]
+  let diagnostics = [diagnose('Message 1', findLocation(code, 'flex'), { notes: 'This is a note' })]
 
   let result = render(code, diagnostics, './example.html')
 
@@ -101,29 +96,7 @@ it('should print a message and a note', () => {
     ·                ╰──── Message 1
     ·
     ├─
-    ·   NOTE: This is a note
-    └─`)
-})
-
-it('should split a single note with \\n into multiple notes', () => {
-  let code = html`<div class="flex block" />`
-  let diagnostics = [
-    diagnose('Message 1', findLocation(code, 'flex'), { notes: ['This is\na note'] }),
-  ]
-
-  let result = render(code, diagnostics, './example.html')
-
-  expect(result).toEqual(`
-    ┌─[./example.html]
-    │
-∙ 1 │   <div class="flex block" />
-    ·               ─┬──
-    ·                ╰──── Message 1
-    ·
-    ├─
-    ·   NOTES:
-    ·     - This is
-    ·     - a note
+    ·   This is a note
     └─`)
 })
 
@@ -131,12 +104,15 @@ it('should print a message with multiple notes', () => {
   let code = html`<div class="flex block" />`
   let diagnostics = [
     diagnose('Message 1', findLocation(code, 'flex'), {
-      notes: ['This is a note', 'This is another note', 'This is the last note'],
+      notes: `
+        - This is a note
+        - This is another note
+        - This is the last note
+      `,
     }),
   ]
 
   let result = render(code, diagnostics, './example.html')
-
   expect(result).toEqual(`
     ┌─[./example.html]
     │
@@ -145,10 +121,9 @@ it('should print a message with multiple notes', () => {
     ·                ╰──── Message 1
     ·
     ├─
-    ·   NOTES:
-    ·     - This is a note
-    ·     - This is another note
-    ·     - This is the last note
+    ·   - This is a note
+    ·   - This is another note
+    ·   - This is the last note
     └─`)
 })
 
@@ -156,15 +131,22 @@ it('should print nested notes in a hierarchy', () => {
   let code = html`<div class="flex block" />`
   let diagnostics = [
     diagnose('Message 1', findLocation(code, 'flex'), {
-      notes: [
-        'Heading 1',
-        ['Heading 2', ['Heading 3 A', ['A', 'B', 'C']], ['Heading 3 B', ['D', 'E', 'F']]],
-      ],
+      notes: `
+        - Heading 1
+        - Heading 2
+          - Heading 3 A
+            - A
+            - B
+            - C
+          - Heading 3 B
+            - D
+            - E
+            - F
+      `,
     }),
   ]
 
   let result = render(code, diagnostics, './example.html')
-
   expect(result).toEqual(`
     ┌─[./example.html]
     │
@@ -173,16 +155,16 @@ it('should print nested notes in a hierarchy', () => {
     ·                ╰──── Message 1
     ·
     ├─
-    ·   NOTE: Heading 1
-    ·       - Heading 2
-    ·         - Heading 3 A
-    ·           - A
-    ·           - B
-    ·           - C
-    ·         - Heading 3 B
-    ·           - D
-    ·           - E
-    ·           - F
+    ·   - Heading 1
+    ·   - Heading 2
+    ·     - Heading 3 A
+    ·       - A
+    ·       - B
+    ·       - C
+    ·     - Heading 3 B
+    ·       - D
+    ·       - E
+    ·       - F
     └─`)
 })
 
@@ -212,12 +194,11 @@ it('should render syntax highlighted code in notes', () => {
     ·                ╰──── The generated CSS looks like:
     ·
     ├─
-    ·   NOTES:
-    ·       \`\`\`css
-    ·       .flex {
-    ·         display: flex;
-    ·       }
-    ·       \`\`\`
+    ·   \`\`\`css
+    ·   .flex {
+    ·     display: flex;
+    ·   }
+    ·   \`\`\`
     └─`)
 })
 
@@ -327,7 +308,7 @@ it('should not squash multiple equal messages if there is a message in between',
 it('should print multiple messages with a note', () => {
   let code = html`<div class="flex block" />`
   let diagnostics = [
-    diagnose('Message 1', findLocation(code, 'flex'), { notes: ['I am a note'] }),
+    diagnose('Message 1', findLocation(code, 'flex'), { notes: 'I am a note' }),
     diagnose('Message 2', findLocation(code, 'block')),
   ]
 
@@ -342,34 +323,38 @@ it('should print multiple messages with a note', () => {
     ·                ╰────────── Message 1
     ·
     ├─
-    ·   NOTE: I am a note
+    ·   I am a note
     └─`)
 })
 
 it('should print multiple messages with multiple notes', () => {
   let code = html`<div class="flex block" />`
   let diagnostics = [
-    diagnose('Message 1', findLocation(code, 'flex'), { notes: ['I am a note'] }),
+    diagnose('Message 1', findLocation(code, 'flex'), { notes: 'I am a note' }),
     diagnose('Message 2', findLocation(code, 'block'), {
-      notes: ['I am also a note', 'With another note'],
+      notes: `
+        - I am also a note
+        - With another note
+      `,
     }),
   ]
 
   let result = render(code, diagnostics, './example.html')
-
   expect(result).toEqual(`
     ┌─[./example.html]
     │
 ∙ 1 │   <div class="flex block" />
     ·               ─┬── ──┬──
-    ·                │     ╰──── Message 2⁽¹⁾
-    ·                ╰────────── Message 1⁽²⁾
+    ·                │     ╰──── Message 2
+    ·                ╰────────── Message 1
     ·
     ├─
-    ·   NOTES:
-    ·     1. I am also a note
-    ·     1. With another note
-    ·     2. I am a note
+    ·
+    ·   - I am also a note
+    ·   - With another note
+    ·
+    ├─
+    ·   I am a note
     └─`)
 })
 
@@ -512,12 +497,11 @@ it('should be possible to print messages across different lines including notes'
     <span class="bg-give-500"></span>
   `
   let diagnostics = [
-    diagnose('gonna', findLocation(code, 'never'), { notes: ['I am a note from message 1'] }),
-    diagnose('you up', findLocation(code, 'give'), { notes: ['I am a note from message 2'] }),
+    diagnose('gonna', findLocation(code, 'never'), { notes: 'I am a note from message 1' }),
+    diagnose('you up', findLocation(code, 'give'), { notes: 'I am a note from message 2' }),
   ]
 
   let result = render(code, diagnostics, './example.html')
-
   expect(result).toEqual(`
     ┌─[./example.html]
     │
@@ -528,7 +512,7 @@ it('should be possible to print messages across different lines including notes'
   3 │   <span class="bg-give-500"></span>
     ·
     ├─
-    ·   NOTE: I am a note from message 1
+    ·   I am a note from message 1
     └─
 
     ┌─[./example.html]
@@ -539,7 +523,7 @@ it('should be possible to print messages across different lines including notes'
     ·                    ╰──── you up
     ·
     ├─
-    ·   NOTE: I am a note from message 2
+    ·   I am a note from message 2
     └─`)
 })
 
@@ -551,31 +535,30 @@ it('should be possible to print messages across different lines and group them i
   let diagnostics = [
     diagnose('gonna', findLocation(code, 'never'), {
       block: 'abc',
-      notes: ['I am a note from message 1'],
+      notes: 'I am a note from message 1',
     }),
     diagnose('you up', findLocation(code, 'give'), {
       block: 'abc',
-      notes: ['I am a note from message 2'],
+      notes: 'I am a note from message 2',
     }),
   ]
 
   let result = render(code, diagnostics, './example.html')
-
   expect(result).toEqual(`
     ┌─[./example.html]
     │
 ∙ 2 │   <span class="bg-never-500"></span>
     ·                   ──┬──
-    ·                     ╰──── gonna⁽¹⁾
+    ·                     ╰──── gonna
     ·
 ∙ 3 │   <span class="bg-give-500"></span>
     ·                   ─┬──
-    ·                    ╰──── you up⁽²⁾
+    ·                    ╰──── you up
     ·
     ├─
-    ·   NOTES:
-    ·     1. I am a note from message 1
-    ·     2. I am a note from message 2
+    ·   I am a note from message 1
+    ├─
+    ·   I am a note from message 2
     └─`)
 })
 
@@ -932,7 +915,7 @@ describe('message wrapping', () => {
         { notes: 'Note A' }
       ),
       diagnose(
-        '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
+        '(2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
         findLocation(code, 'class'),
         { notes: 'Note B' }
       ),
@@ -943,22 +926,22 @@ describe('message wrapping', () => {
     │
 ∙ 1 │   <div class="text-grey-200"></div>
     ·        ──┬── ╭─
-    ·          ├───┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-    ·          │   │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus
-    ·          │   │ hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis
-    ·          │   │ massa sit amet lectus sagittis, vel faucibus quam condimentum.⁽²⁾
+    ·          ├───┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+    ·          │   │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.
+    ·          │   │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec
+    ·          │   │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.
     ·          │   ╰─
     ·          │   ╭─
     ·          ╰───┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-    ·              │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus
-    ·              │ hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis
-    ·              │ massa sit amet lectus sagittis, vel faucibus quam condimentum.⁽¹⁾
+    ·              │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.
+    ·              │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec
+    ·              │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.
     ·              ╰─
     ·
     ├─
-    ·   NOTES:
-    ·     1. Note A
-    ·     2. Note B
+    ·   Note A
+    ├─
+    ·   Note B
     └─`)
   })
 })
@@ -982,9 +965,9 @@ describe('notes wrapping', () => {
     ·          ╰──── This contains some notes
     ·
     ├─
-    ·   NOTE: The \`class\` you see here is an attribute in html, in React
-    ·         this is typically used as \`className\` instead. In Vue, you can
-    ·         use \`class\` but also use \`:class\` for more dynamic clases.
+    ·   The \`class\` you see here is an attribute in html, in React this is typically used as
+    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more dynamic
+    ·   clases.
     └─`)
   })
 
@@ -992,10 +975,10 @@ describe('notes wrapping', () => {
     let code = html`<div class="text-grey-200"></div>`
     let diagnostics = [
       diagnose('This contains some notes', findLocation(code, 'class'), {
-        notes: [
-          'The `class` you see here is an attribute in html, in React this is typically used as `className` instead.',
-          'In Vue, you can use `class` but also use `:class` for more dynamic clases.',
-        ],
+        notes: `
+          The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.
+          In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
+        `,
       }),
     ]
 
@@ -1008,10 +991,9 @@ describe('notes wrapping', () => {
     ·          ╰──── This contains some notes
     ·
     ├─
-    ·   NOTES:
-    ·     - The \`class\` you see here is an attribute in html, in
-    ·       React this is typically used as \`className\` instead.
-    ·     - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
+    ·   The \`class\` you see here is an attribute in html, in React this is typically used as
+    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more dynamic
+    ·   clases.
     └─`)
   })
 
@@ -1019,17 +1001,13 @@ describe('notes wrapping', () => {
     let code = html`<div class="text-grey-200"></div>`
     let diagnostics = [
       diagnose('This contains some notes', findLocation(code, 'class'), {
-        notes: [
-          'The `class` you see here is an attribute in html, in React this is typically used as `className` instead.',
-          'In Vue, you can use `class` but also use `:class` for more dynamic clases.',
-          [
-            'The same rules apply to the `style` prop, the `style` prop in React is still called `style`.',
-            [
-              'Also one small caveat is that in React the `style` prop requires an object instead of a string with all the styles.',
-            ],
-            'However, in Vue, you can use `style` but also use `:style` for more dynamic styles.',
-          ],
-        ],
+        notes: `
+          - The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.
+          - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
+            - The same rules apply to the \`style\` prop, the \`style\` prop in React is still called \`style\`.
+              - Also one small caveat is that in React the \`style\` prop requires an object instead of a string with all the styles.
+            - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.
+        `,
       }),
     ]
 
@@ -1042,15 +1020,14 @@ describe('notes wrapping', () => {
     ·          ╰──── This contains some notes
     ·
     ├─
-    ·   NOTES:
-    ·     - The \`class\` you see here is an attribute in html, in
-    ·       React this is typically used as \`className\` instead.
-    ·     - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
-    ·       - The same rules apply to the \`style\` prop, the
-    ·         \`style\` prop in React is still called \`style\`.
-    ·         - Also one small caveat is that in React the \`style\` prop
-    ·           requires an object instead of a string with all the styles.
-    ·       - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.
+    ·   - The \`class\` you see here is an attribute in html, in React this is typically used as
+    ·     \`className\` instead.
+    ·   - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
+    ·     - The same rules apply to the \`style\` prop, the \`style\` prop in React is still called
+    ·       \`style\`.
+    ·       - Also one small caveat is that in React the \`style\` prop requires an object instead of
+    ·         a string with all the styles.
+    ·     - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.
     └─`)
   })
 })
@@ -1257,14 +1234,14 @@ describe('multi-line diagnostics', () => {
     `
     let block = 'one'
     let diagnostics = [
-      diagnose('Pair 1', findLocation(code, 'a'), { block, context: 0 }),
-      diagnose('Pair 1', findLocation(code, '1'), { block, context: 0 }),
+      diagnose('Pair 1', findLocation(code, 'a'), { block, context: `0` }),
+      diagnose('Pair 1', findLocation(code, '1'), { block, context: `0` }),
 
-      diagnose('Pair 2', findLocation(code, 'b'), { block, context: 1 }),
-      diagnose('Pair 2', findLocation(code, '2'), { block, context: 1 }),
+      diagnose('Pair 2', findLocation(code, 'b'), { block, context: `1` }),
+      diagnose('Pair 2', findLocation(code, '2'), { block, context: `1` }),
 
-      diagnose('Pair 3', findLocation(code, 'c'), { block, context: 2 }),
-      diagnose('Pair 3', findLocation(code, '3'), { block, context: 2 }),
+      diagnose('Pair 3', findLocation(code, 'c'), { block, context: `2` }),
+      diagnose('Pair 3', findLocation(code, '3'), { block, context: `2` }),
     ]
 
     let result = render(code, diagnostics)

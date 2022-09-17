@@ -7,6 +7,7 @@ export default {
   /* ┤ */ RConnector: '+',
   /* ┴ */ BConnector: '+',
   /* ├ */ LConnector: '+',
+  /* ┼ */ SConnector: '+',
 
   // Square corners
   /* ┌ */ TLSquare: '+',
