@@ -2,7 +2,7 @@
   "name": "@robinmalfait/placebo",
   "version": "0.0.0",
   "description": "Placebo, the beautiful diagnostics printer",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build:base": "esbuild ./src/index.js --bundle --outdir=dist --platform=node --external:cli-highlight --external:picocolors",
     "build": "npm run build:base -- --minify",
@@ -13,6 +13,9 @@
     "preexamples:generate-readme": "npm run build",
     "postinstall": "npm install --prefix examples"
   },
+  "files": [
+    "dist"
+  ],
   "prettier": {
     "printWidth": 100,
     "semi": false,
