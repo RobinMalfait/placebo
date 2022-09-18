@@ -4,7 +4,8 @@
   "description": "Placebo, the beautiful diagnostics printer",
   "main": "dist/index.js",
   "scripts": {
-    "build:base": "esbuild ./src/index.js --bundle --outdir=dist --platform=node --external:cli-highlight --external:picocolors",
+    "prepublishOnly": "npm run build",
+    "build:base": "esbuild ./src/index.js --bundle --outdir=dist --platform=node --external:cli-highlight --external:picocolors --external:prettier",
     "build": "npm run build:base -- --minify",
     "dev": "npm run build:base -- --watch --sourcemap",
     "format": "prettier --write .",
