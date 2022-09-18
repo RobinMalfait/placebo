@@ -12,7 +12,7 @@
     "test": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=100 jest",
     "examples:generate-readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=150 node ./scripts/generate-example-readmes.js",
     "preexamples:generate-readme": "npm run build",
-    "postinstall": "npm install --prefix examples"
+    "postinstall": "if [ -e .placebo-post-install ]; then npm install --prefix examples; fi"
   },
   "files": [
     "dist"
