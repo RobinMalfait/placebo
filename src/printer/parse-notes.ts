@@ -1,6 +1,6 @@
 import pc from 'picocolors'
 import prettier from 'prettier'
-import { clearAnsiEscapes, highlightCode } from '~/utils/highlight-code'
+import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
 import { dedent } from '~/utils/dedent'
 import CHARS from '~/printer/char-maps/fancy'
 
@@ -120,7 +120,7 @@ function parseMarkdown(input: string, availableSpace: number) {
 
       // Horizontal ruler
       .replace(/^\s*?(---)\s/gim, (_, hr) => {
-        return _.replace(hr, pc.dim(CHARS.dot.repeat(process.stdout.columns - 10 - 3)))
+        return _.replace(hr, pc.dim(CHARS.dot.repeat(availableSpace)))
       })
 
       // Ordered lists
@@ -206,8 +206,10 @@ function parseMarkdown(input: string, availableSpace: number) {
 export function parseNotes(notes: string = ''): (availableSpace: number) => string[] {
   return (availableSpace: number) => {
     let output = parseMarkdown(dedent(notes), availableSpace)
-
     if (output === '') return []
-    return output.split('\n')
+
+    // The rasterization will normalize all the ansi escapes and apply them on each character so
+    // that it never leaks styles.
+    return rasterizeCode(output).map((x) => x.join(''))
   }
 }

@@ -1025,8 +1025,8 @@ describe('notes wrapping', () => {
     ·   - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
     ·     - The same rules apply to the \`style\` prop, the \`style\` prop in React is still called
     ·       \`style\`.
-    ·       - Also one small caveat is that in React the \`style\` prop requires an object instead of
-    ·         a string with all the styles.
+    ·       - Also one small caveat is that in React the \`style\` prop requires an object instead
+    ·         of a string with all the styles.
     ·     - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.
     └─`)
   })

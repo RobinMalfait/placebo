@@ -700,7 +700,7 @@ function reportBlock(
     // right which means that the left most (first) will be rendered at the bottom, that's why we
     // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
     .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)
-    .map((diagnostic) => [diagnostic, diagnostic.notes(availableWorkingSpace)] as const)
+    .map((diagnostic) => [diagnostic, diagnostic.notes(availableWorkingSpace - PADDING)] as const)
     .filter(([, notes]) => notes.length > 0)
 
   if (noteGroups.length > 0) {
