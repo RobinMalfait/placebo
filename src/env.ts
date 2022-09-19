@@ -8,7 +8,9 @@ export let env = {
   COLOR_CONTEXT_LINES: parseBooleanEnv('PLACEBO_COLOR_CONTEXT_LINES', false),
 
   // Print width to make everything fit as good as possible
-  PRINT_WIDTH: parseNumberEnv('PLACEBO_PRINT_WIDTH', process.stdout.columns ?? 80),
+  get PRINT_WIDTH() {
+    return parseNumberEnv('PLACEBO_PRINT_WIDTH', process.stdout.columns ?? 80)
+  },
 
   // Debug
   DEBUG: parseDebugEnv(),
