@@ -9,7 +9,7 @@
   9 │   // ---            ╰──── Property 'name' does not exist on type '{ firstName: string; lastName: string; role: string; }'.
     ·
     ├─
-    ·   `TS2339` (https://typescript.tv/errors/#TS2339)
+    ·   `TS2339` (]8;;https://typescript.tv/errors/#TS2339)https://typescript.tv/errors/#TS2339)]8;;
     └─
 
      ┌─[./examples/typescript/code.ts]
@@ -25,7 +25,7 @@
   14 │   }
      ·
      ├─
-     ·   `TS7006` (https://typescript.tv/errors/#TS7006)
+     ·   `TS7006` (]8;;https://typescript.tv/errors/#TS7006)https://typescript.tv/errors/#TS7006)]8;;
      └─
 
      ┌─[./examples/typescript/code.ts]
@@ -41,7 +41,7 @@
   14 │   }
      ·
      ├─
-     ·   `TS2304` (https://typescript.tv/errors/#TS2304)
+     ·   `TS2304` (]8;;https://typescript.tv/errors/#TS2304)https://typescript.tv/errors/#TS2304)]8;;
      └─
 
      ┌─[./examples/typescript/code.ts]
@@ -57,5 +57,5 @@
      ·     ╰─
      ·
      ├─
-     ·   `TS2322` (https://typescript.tv/errors/#TS2322)
+     ·   `TS2322` (]8;;https://typescript.tv/errors/#TS2322)https://typescript.tv/errors/#TS2322)]8;;
      └─

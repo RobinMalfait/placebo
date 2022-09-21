@@ -67,7 +67,7 @@
      ·
      ├─
      ·   - This note can contain more information about the specific diagnostic.
-     ·   - What do you think? More info at https://github.com/RobinMalfait/placebo!
+     ·   - What do you think? More info at ]8;;https://github.com/RobinMalfait/placebohttps://github.com/RobinMalfait/placebo]8;;!
      └─
 
      ┌─[./examples/readme/code/README.md]
