@@ -186,8 +186,9 @@ function parseMarkdown(input: string, availableSpace: number) {
       })
 
       // Italic
-      .replace(/_(.*)_/gim, (_, code) => {
-        return pc.italic(code)
+      .replace(/(.)?_(.*)_/gim, (_, before = '', code) => {
+        if (before == '\\') return _.replace(/\\_/g, '_')
+        return `${before}${pc.italic(code)}`
       })
 
       // Strikethrough
