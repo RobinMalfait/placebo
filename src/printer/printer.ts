@@ -917,9 +917,9 @@ export function printer(
 
   // Report per block, that will be cleaner from a UI perspective
   write('') // Before
-  for (let [idx, diagnostics] of diagnosticsPerBlock.entries()) {
+  for (let diagnostics of diagnosticsPerBlock) {
     reportBlock(optimizedSources, diagnostics, write)
-    if (idx !== diagnosticsPerBlock.length - 1) write('') // In between
+    write('')
   }
   env.DEBUG && console.timeEnd('[PLACEBO]: Print')
 }
