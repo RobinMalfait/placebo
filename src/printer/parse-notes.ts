@@ -53,7 +53,7 @@ function parseMarkdown(input: string, availableSpace: number) {
         (_, indentBefore: string, lang: string, code: string, indentAfter: string) => {
           try {
             if (lang.startsWith('diff')) {
-              lang = lang.replace('diff-', '')
+              lang = lang.replace('diff-', '').trim()
               let diffs: string[] = []
               let highlighted = highlightCode(
                 code
@@ -76,7 +76,7 @@ function parseMarkdown(input: string, availableSpace: number) {
                 })
                 .join('\n')
               return [
-                indentBefore + pc.dim('```' + lang + ' (diff)'),
+                indentBefore + pc.dim('```' + lang + (lang === 'diff' ? '' : ' (diff)')),
                 highlighted,
                 indentAfter + pc.dim('```'),
               ].join('\n')
