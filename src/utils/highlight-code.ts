@@ -1,4 +1,4 @@
-import { highlight, plain } from 'cli-highlight'
+import { highlight, plain, supportsLanguage } from 'cli-highlight'
 import pc from 'picocolors'
 
 let ESCAPE = /((?:\x9B|\x1B\[)[0-?]*[ -\/]*[@-~])/g
@@ -45,7 +45,7 @@ let offs = new Set(ansiMap.values())
 
 export function highlightCode(code: string, language: string) {
   return highlight(code, {
-    language,
+    language: supportsLanguage(language) ? language : undefined,
     ignoreIllegals: true,
     theme: {
       keyword: pc.blue,
