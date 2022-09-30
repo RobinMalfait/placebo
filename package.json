@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Placebo, the beautiful diagnostics printer",
   "main": "dist/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prepublishOnly": "npm run build",
     "build:base": "esbuild ./src/index.js --bundle --outdir=dist --platform=node --external:cli-highlight --external:picocolors --external:prettier",
