@@ -164,6 +164,25 @@ function reportBlock(
     )
   }
 
+  // Calculate the biggest line number, so that we can pretty print it
+  // correctly. E.g.: When we have 420 lines of code, then this number will be
+  // `3`, because that's the amount of characters it requires.
+  let lineNumberGutterWidth = Array.from(printableLines.keys())
+    .reduce((max, lineNumber) => Math.max(max, lineNumber + 1), -Infinity)
+    .toString().length
+
+  // Compute available working space (excluding the frame and all of that...)
+  let availableStartPosition =
+    /* Reserved values for the frame: */
+    lineNumberGutterWidth /* Amount of space to reserve for the linenumbers in the current block */ +
+    MARGIN /* The amount of margin in front of the line numbers */ +
+    1 /* A space after the line number */ +
+    1 /* The "border" of the frame */
+
+  let availableWorkingSpace =
+    /* Total available space */
+    env.PRINT_WIDTH - availableStartPosition - PADDING * 2 /* For left and right */
+
   for (let [lineNumber, line] of printableLines.entries()) {
     // Re-indent the line
     line = line.slice(smallestIndentWidth)
@@ -264,25 +283,6 @@ function reportBlock(
     let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context)!
     return diagnosticsInContext[0] === diagnostic
   }
-
-  // Calculate the biggest line number, so that we can pretty print it
-  // correctly. E.g.: When we have 420 lines of code, then this number will be
-  // `3`, because that's the amount of characters it requires.
-  let lineNumberGutterWidth = Array.from(printableLines.keys())
-    .reduce((max, lineNumber) => Math.max(max, lineNumber + 1), -Infinity)
-    .toString().length
-
-  // Compute available working space (excluding the frame and all of that...)
-  let availableStartPosition =
-    /* Reserved values for the frame: */
-    lineNumberGutterWidth /* Amount of space to reserve for the linenumbers in the current block */ +
-    MARGIN /* The amount of margin in front of the line numbers */ +
-    1 /* A space after the line number */ +
-    1 /* The "border" of the frame */
-
-  let availableWorkingSpace =
-    /* Total available space */
-    env.PRINT_WIDTH - availableStartPosition - PADDING
 
   // Add printable lines to output
   for (let [lineNumber, line] of printableLines.entries()) {

@@ -1,3 +1,4 @@
+import { env } from '~/env'
 import { printer } from '~/printer/printer'
 import type { Diagnostic, Location } from '~/types'
 import { dedent } from '~/utils/dedent'
@@ -8,7 +9,7 @@ let javascript = String.raw
 
 function diagnose(
   message: string,
-  location: Location,
+  locations: Location[],
   {
     notes,
     block,
@@ -18,22 +19,53 @@ function diagnose(
     block?: string
     context?: string
   } = {}
-): Diagnostic {
+): Diagnostic[] {
+  return locations.map((location) => {
   return { file: '', block, context, message, location, notes }
+  })
 }
 
-function findLocation(code: string, word: string): Location {
-  let row = code.split('\n').findIndex((row) => row.includes(word))
-  let col = code.split('\n')[row].indexOf(word)
-  let len = word.length
+function findLocation(code: string, word: string, occurences: number | number[] = 1): Location[] {
+  if (!Array.isArray(occurences)) {
+    occurences = [occurences]
+  }
 
-  return [
+  let result: Location[] = []
+  for (let occurence of occurences) {
+    let row = 0
+    let col = 0
+
+    let lines = code.split('\n')
+
+    outer: for (let [rowIdx, line] of lines.entries()) {
+      let offset = 0
+
+      while (occurence > 0) {
+        let idx = line.indexOf(word, offset + 1)
+        if (idx === -1) continue outer
+
+        if (occurence !== 1) {
+          offset = idx
+          occurence--
+          continue
+        }
+
+        row = rowIdx
+        col = idx
+        break outer
+      }
+    }
+
+    result.push([
     [row + 1, col + 1],
-    [row + 1, col + 1 + len],
-  ]
+      [row + 1, col + 1 + word.length],
+    ])
 }
 
-function render(source: string, diagnostics: Diagnostic[] = [], file = './example.txt') {
+  return result
+}
+
+function render(source: string, diagnostics: Diagnostic[][] = [], file = './example.txt') {
   let sources = new Map([[file, source]])
 
   let lines: string[] = []
@@ -43,9 +75,15 @@ function render(source: string, diagnostics: Diagnostic[] = [], file = './exampl
 
   printer(
     sources,
-    diagnostics.map((d) => ({ ...d, file })),
+    diagnostics.flat().map((d) => ({ ...d, file })),
     collector
   )
+
+  let debug = false // For debugging width issues
+  if (debug) {
+    lines.unshift('\u25A1'.repeat(env.PRINT_WIDTH))
+    lines.push('\u25A1'.repeat(env.PRINT_WIDTH))
+  }
 
   return lines.join('\n').trimEnd()
 }
@@ -363,12 +401,7 @@ it('should be possible to print a lot of messages', () => {
   let diagnostics = Array(26)
     .fill(0)
     .map((_, idx) => idx * 2)
-    .map((col, idx) =>
-      diagnose(`Symbol at position: ${idx}`, [
-        [1, col + 1],
-        [1, col + 1 + 1],
-      ])
-    )
+    .map((col, idx) => diagnose(`Symbol at position: ${idx}`, findLocation(code, code[col])))
 
   let result = render(code, diagnostics)
 
@@ -412,12 +445,7 @@ it('should be possible to print a lot of similar messages', () => {
   let diagnostics = Array(26)
     .fill(0)
     .map((_, idx) => idx * 2)
-    .map((col) =>
-      diagnose('This is part of the alphabet', [
-        [1, col + 1],
-        [1, col + 1 + 1],
-      ])
-    )
+    .map((col) => diagnose('This is part of the alphabet', findLocation(code, code[col])))
 
   let result = render(code, diagnostics)
 
@@ -829,10 +857,11 @@ describe('message wrapping', () => {
   1 │   <div>
 ∙ 2 │         <div class="text-grey-200">
   3 │           <div></div>    ─┬── ╭─
-  4 │         </div>            ╰───┤ This color should be "gray" and not "grey". This is because
-  5 │         <div>                 │ the letter "a" has an ascii value of 97 but an "e" has
-    ·                               │ an ascii value of 101. This means that "a" is cheaper
-    ·                               │ to store. Lol, jk, I just need a long message here...
+  4 │         </div>            ╰───┤ This color should be "gray" and not "grey".
+  5 │         <div>                 │ This is because the letter "a" has an ascii
+    ·                               │ value of 97 but an "e" has an ascii value of
+    ·                               │ 101. This means that "a" is cheaper to store.
+    ·                               │ Lol, jk, I just need a long message here...
     ·                               ╰─
     │
     └─`)
@@ -966,8 +995,8 @@ describe('notes wrapping', () => {
     ·
     ├─
     ·   The \`class\` you see here is an attribute in html, in React this is typically used as
-    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more dynamic
-    ·   clases.
+    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more
+    ·   dynamic clases.
     └─`)
   })
 
@@ -992,8 +1021,8 @@ describe('notes wrapping', () => {
     ·
     ├─
     ·   The \`class\` you see here is an attribute in html, in React this is typically used as
-    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more dynamic
-    ·   clases.
+    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more
+    ·   dynamic clases.
     └─`)
   })
 
@@ -1023,11 +1052,12 @@ describe('notes wrapping', () => {
     ·   - The \`class\` you see here is an attribute in html, in React this is typically used as
     ·     \`className\` instead.
     ·   - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
-    ·     - The same rules apply to the \`style\` prop, the \`style\` prop in React is still called
-    ·       \`style\`.
-    ·       - Also one small caveat is that in React the \`style\` prop requires an object instead
-    ·         of a string with all the styles.
-    ·     - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.
+    ·     - The same rules apply to the \`style\` prop, the \`style\` prop in React is still
+    ·       called \`style\`.
+    ·       - Also one small caveat is that in React the \`style\` prop requires an object
+    ·         instead of a string with all the styles.
+    ·     - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic
+    ·       styles.
     └─`)
   })
 })
