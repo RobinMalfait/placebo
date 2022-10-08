@@ -8,6 +8,9 @@ let cli = parseArgs({
       type: 'string',
       short: 't',
     },
+    live: {
+      type: 'boolean',
+    },
   },
 }).values
 
@@ -29,7 +32,19 @@ module.exports = (diagnose) => {
     )
     let printer = printers[cli.target ?? 'default'] ?? printers.default
 
-    printer(sources, diagnostics, write)
+    function render() {
+      printer(sources, diagnostics, write)
+    }
+
+    if (cli.live) {
+      process.stdout.on('resize', () => {
+        console.clear()
+        render()
+      })
+      process.stdout.resume()
+    }
+
+    render()
 
     return diagnostics
   }
