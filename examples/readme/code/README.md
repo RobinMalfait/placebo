@@ -35,3 +35,7 @@ Oh, and we can also add notes to different diagnostics within the same block. We
 adding superscript indicators next to each message and before each note. This allows you to visually
 see which note belongs to which diagnostic.
 
+
+
+There is also a very neat feature for when the actual code itself is super long and doesn't fit on one line. In that case we also want to "wrap" the code onto multiple lines and split the diagnostics. This is done because a diagnostic could be for a single location, but if we split that location in multiple pieces it won't make sense to only highlight one piece of the puzzle.
+If the line is too long but doesn't contain diagnostics then we can see those as contextual lines for more info. These line will not be wrapped, but will just be truncated at the end.

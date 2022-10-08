@@ -65,6 +65,12 @@ module.exports = function run(files) {
         diagnose('This will also have a note', location(35, 31, 4), {
           notes: 'This note belongs to the other diagnostic',
         })
+      ),
+
+      diagnose('We split into multiple lines', location(40, 110, 12)),
+      diagnose(
+        'This one is moved down because it exists way past the available space.',
+        location(40, 301, 15)
       )
     )
   }

@@ -109,6 +109,30 @@ A beautiful new language agnostic diagnostics printer!
      ·     - Just like these right here!
      ·
      └─
+```
+
+```
+     ┌─[./README.md]
+     │
+∙ 40 │   There is also a very neat feature for when the actual code itself is super long and doesn't fit on one line. In that
+     ·                                                                                                                ───┬─── ╭─
+     ·                                                                                                                   ╰────┤ We split into
+     ·                                                                                                                        │ multiple lines
+     ·                                                                                                                        ╰─
+     ·
+     │     ↳ case we also want to "wrap" the code onto multiple lines and split the diagnostics. This is done because a diagnostic
+     ·       ─┬──
+     ·        ╰──── We split into multiple lines
+     ·
+     │     ↳ could be for a single location, but if we split that location in multiple pieces it won't make sense to only highlight one
+     │     ↳ piece of the puzzle.                                             ───────┬─────── ╭─
+     ·                                                                               ╰────────┤ This one is moved down because it
+     ·                                                                                        │ exists way past the available space.
+     ·                                                                                        ╰─
+     ·
+  41 │   If the line is too long but doesn't contain diagnostics then we can see those as contextual lines for more info. These line will not b…
+     │
+     └─
 
 ```
 
@@ -133,7 +157,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 33],
       [6, 41]
     ],
-    "block": "a83dc879-909c-4993-b7e7-5f4831e976d1"
+    "block": "4d47b872-2317-4537-bfe1-2c73ad4c66ba"
   },
   {
     "file": "README.md",
@@ -142,7 +166,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 24],
       [6, 32]
     ],
-    "block": "a83dc879-909c-4993-b7e7-5f4831e976d1"
+    "block": "4d47b872-2317-4537-bfe1-2c73ad4c66ba"
   },
   {
     "file": "README.md",
@@ -151,7 +175,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 15],
       [6, 23]
     ],
-    "block": "a83dc879-909c-4993-b7e7-5f4831e976d1"
+    "block": "4d47b872-2317-4537-bfe1-2c73ad4c66ba"
   },
   {
     "file": "README.md",
@@ -160,7 +184,7 @@ A beautiful new language agnostic diagnostics printer!
       [12, 28],
       [12, 31]
     ],
-    "block": "fbc2b531-7db7-40c8-ad63-da2bf5b044e2"
+    "block": "e2593c21-5851-4b35-8222-8b37f6a5ede4"
   },
   {
     "file": "README.md",
@@ -169,7 +193,7 @@ A beautiful new language agnostic diagnostics printer!
       [12, 32],
       [12, 35]
     ],
-    "block": "fbc2b531-7db7-40c8-ad63-da2bf5b044e2"
+    "block": "e2593c21-5851-4b35-8222-8b37f6a5ede4"
   },
   {
     "file": "README.md",
@@ -178,8 +202,8 @@ A beautiful new language agnostic diagnostics printer!
       [18, 65],
       [18, 74]
     ],
-    "block": "b048e09a-7f89-43a6-8fa9-f87b96bf9f7b",
-    "context": "f3c7da1c-b142-4400-be88-bb27c9c16986"
+    "block": "b7017ebc-79cd-4a41-94e8-c529f716c9f5",
+    "context": "48b32078-a5a0-4d1e-8be1-c3af60a0c282"
   },
   {
     "file": "README.md",
@@ -188,8 +212,8 @@ A beautiful new language agnostic diagnostics printer!
       [21, 1],
       [21, 10]
     ],
-    "block": "b048e09a-7f89-43a6-8fa9-f87b96bf9f7b",
-    "context": "f3c7da1c-b142-4400-be88-bb27c9c16986"
+    "block": "b7017ebc-79cd-4a41-94e8-c529f716c9f5",
+    "context": "48b32078-a5a0-4d1e-8be1-c3af60a0c282"
   },
   {
     "file": "README.md",
@@ -215,7 +239,7 @@ A beautiful new language agnostic diagnostics printer!
       [35, 8],
       [35, 30]
     ],
-    "block": "bc68d091-21ac-41b3-b12c-91bae7a674ff",
+    "block": "f09cbf25-31ce-462b-8742-b87da0c38d01",
     "notes": "\n            - This note belongs to the superscript indicator.\n            - This note also belongs to the superscript indicator.\n              - And also has some nested/child notes.\n              - Just like these right here!\n          "
   },
   {
@@ -225,8 +249,24 @@ A beautiful new language agnostic diagnostics printer!
       [35, 31],
       [35, 35]
     ],
-    "block": "bc68d091-21ac-41b3-b12c-91bae7a674ff",
+    "block": "f09cbf25-31ce-462b-8742-b87da0c38d01",
     "notes": "This note belongs to the other diagnostic"
+  },
+  {
+    "file": "README.md",
+    "message": "We split into multiple lines",
+    "location": [
+      [40, 110],
+      [40, 122]
+    ]
+  },
+  {
+    "file": "README.md",
+    "message": "This one is moved down because it exists way past the available space.",
+    "location": [
+      [40, 301],
+      [40, 316]
+    ]
   }
 ]
 ```
