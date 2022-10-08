@@ -67,7 +67,7 @@ module.exports = function run(files) {
         })
       ),
 
-      diagnose('We split into multiple lines', location(40, 110, 12)),
+      diagnose('We split into multiple lines', location(40, 110, 35)),
       diagnose(
         'This one is moved down because it exists way past the available space.',
         location(40, 301, 15)

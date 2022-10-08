@@ -93,21 +93,23 @@
 
      ┌─[./examples/readme/code/README.md]
      │
-∙ 40 │   There is also a very neat feature for when the actual code itself is super long and doesn't fit on one line. In that 
-     ·                                                                                                                ───┬─── ╭─
-     ·                                                                                                                   ╰────┤ We split into
-     ·                                                                                                                        │ multiple lines
-     ·                                                                                                                        ╰─
+∙ 40 │   There is also a very neat feature for when the actual code itself is super long and doesn't fit on one line. In that case 
+     ·                                                                                                                ─────┬────── ╭─
+     ·                                                                                                                     ╰───────┤ We split
+     ·                                                                                                                             │ into
+     ·                                                                                                                             │ multiple
+     ·                                                                                                                             │ lines
+     ·                                                                                                                             ╰─
      ·
-     │     ↳ case we also want to "wrap" the code onto multiple lines and split the diagnostics. This is done because a diagnostic 
-     ·       ─┬──
-     ·        ╰──── We split into multiple lines
+     │   ↳ we also want to "wrap" the code onto multiple lines and split the diagnostics. This is done because a diagnostic could be 
+     ·     ──────────┬───────────
+     ·               ╰───────────── We split into multiple lines
      ·
-     │     ↳ could be for a single location, but if we split that location in multiple pieces it won't make sense to only highlight one 
-     │     ↳ piece of the puzzle.                                             ───────┬─────── ╭─
-     ·                                                                               ╰────────┤ This one is moved down because it
-     ·                                                                                        │ exists way past the available space.
-     ·                                                                                        ╰─
+     │   ↳ for a single location, but if we split that location in multiple pieces it won't make sense to only highlight one piece of 
+     │   ↳ the puzzle.                                             ───────┬─────── ╭─
+     ·                                                                    ╰────────┤ This one is moved down because it
+     ·                                                                             │ exists way past the available space.
+     ·                                                                             ╰─
      ·
   41 │   If the line is too long but doesn't contain diagnostics then we can see those as contextual lines for more info. These line will not b…
      │
