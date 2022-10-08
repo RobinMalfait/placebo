@@ -319,7 +319,7 @@ function reportBlock(
           8, // 8+ indents is just crazy...
           Math.abs(before - current) ||
             Math.abs(current - after) ||
-            2 /* A default indent of 2 characters if we can't figure it out based on previous and next lines */
+            0 /* A default indent of 0 characters if we can't figure it out based on previous and next lines */
         )
         let forcedIndent = whitespaceIndent + indent
         forcedIndentByLineNumber.set(lineNumber, forcedIndent)
