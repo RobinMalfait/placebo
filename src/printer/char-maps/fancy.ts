@@ -27,4 +27,5 @@ export default {
   /* ∙ */ bigdot: '\u2219',
   /* ■ */ box: '\u25A0',
   /* ┊ */ VSeparator: '\u250A',
+  /* … */ ellipsis: '\u2026',
 }

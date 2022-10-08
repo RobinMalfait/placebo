@@ -24,14 +24,15 @@ enum Type {
   Code = 1 << 0,
   Whitespace = 1 << 1,
   ContextLine = 1 << 2,
+  Wrapped = 1 << 3,
 
   // Diagnostics
-  Diagnostic = 1 << 3,
-  DiagnosticVerticalConnector = 1 << 4,
+  Diagnostic = 1 << 4,
+  DiagnosticVerticalConnector = 1 << 5,
 
   // Notes
-  Note = 1 << 5,
-  StartOfNote = 1 << 6,
+  Note = 1 << 6,
+  StartOfNote = 1 << 7,
 }
 
 function combinedType(row: { type: Type }[]) {
@@ -284,8 +285,10 @@ function reportBlock(
     return diagnosticsInContext[0] === diagnostic
   }
 
+  let forcedIndentByLineNumber = new Map<number, number>()
+
   // Add printable lines to output
-  for (let [lineNumber, line] of printableLines.entries()) {
+  for (let [lineNumber, line] of printableLines) {
     let hasDiagnostics = groupedByRow.has(lineNumber)
     if (!hasDiagnostics) {
       for (let cell of line) {
@@ -293,14 +296,213 @@ function reportBlock(
       }
     }
 
-    let rowIdx = output.push(line) - 1
+    if (line.length >= availableWorkingSpace) {
+      // A contextual code line that is too long
+      if (!hasDiagnostics) {
+        // Cut-off contextual lines that are too long at the end
+        line = line.slice(0, availableWorkingSpace - 1)
+        line.push({ type: Type.Code, value: pc.dim(CHARS.ellipsis) })
 
-    rowToLineNumber.set(output[rowIdx], lineNumber)
-    lineNumberToRow.set(lineNumber, output[rowIdx])
+        let rowIdx = output.push(line) - 1
+
+        rowToLineNumber.set(output[rowIdx], lineNumber)
+        lineNumberToRow.set(lineNumber, output[rowIdx])
+      }
+
+      // A code line that is too long
+      else {
+        let whitespaceIndent = line.findIndex((v) => !(v.type & Type.Whitespace))
+        let [before, current, after] = [-1, 0, 1].map((offset) =>
+          Math.max(code[lineNumber + offset]?.findIndex((v) => !(v.type & Type.Whitespace)) ?? 0, 0)
+        )
+        let indent = Math.min(
+          8, // 8+ indents is just crazy...
+          Math.abs(before - current) ||
+            Math.abs(current - after) ||
+            2 /* A default indent of 2 characters if we can't figure it out based on previous and next lines */
+        )
+        let forcedIndent = whitespaceIndent + indent
+        forcedIndentByLineNumber.set(lineNumber, forcedIndent)
+        let widthPerLine =
+          availableWorkingSpace -
+          whitespaceIndent -
+          indent -
+          2 /* (1) For the \u21B3 and ' ' characters */ -
+          8 /* An arbitrary value to leave some room for the actual diagnostic */
+
+        let lines = []
+        let offset = 0
+        while (line.length - offset > 0) {
+          let nextLine = line.slice(offset, offset + widthPerLine)
+          if (nextLine.length === widthPerLine) {
+            let lastWhiteSpaceIdx = nextLine
+              .slice()
+              .reverse()
+              .findIndex((x) => x.type & Type.Whitespace)
+            if (lastWhiteSpaceIdx > 0) {
+              nextLine = nextLine.slice(0, -lastWhiteSpaceIdx)
+            }
+          }
+
+          if (lines.length === 0) {
+            lines.push(nextLine)
+          } else {
+            lines.push([
+              ...createCells(forcedIndent, () => ({
+                type: Type.Code | Type.Whitespace,
+                value: ' ',
+              })),
+              // START (1)
+              { type: Type.Code | Type.Wrapped, value: pc.black('\u21B3') },
+              createWhitespaceCell(),
+              // END (1)
+              ...nextLine,
+            ])
+          }
+
+          offset += nextLine.length
+          if (nextLine.length === 0) break
+        }
+
+        let diagnostics = groupedByRow.get(lineNumber) ?? []
+        let moved = new Map<InternalDiagnostic, number>()
+
+        // Adjust diagnostics location info to link to the correct line after word-wrapping.
+        for (let diagnostic of diagnostics) {
+          for (let [lineIdx, line] of lines.entries()) {
+            if (diagnostic.loc.col > line.length) {
+              diagnostic.loc.col -= line.length
+              diagnostic.loc.col += forcedIndent
+              diagnostic.loc.col += 2 /* (1) For the \u21B3 and ' ' characters */
+            }
+
+            // Found the target location
+            else if (!moved.has(diagnostic)) {
+              let subLineNumber = (lineNumber * 10 + lineIdx) / 10
+              moved.set(diagnostic, subLineNumber)
+              break // It fits now!
+            }
+          }
+        }
+
+        // Actually move diagnostics to the new line location
+        for (let [diagnostic, newLineNumber] of moved) {
+          // Remove diagnostic from existing diagnostics
+          let idx = diagnostics.indexOf(diagnostic)
+          if (idx !== -1) {
+            diagnostics.splice(idx, 1)
+            if (diagnostics.length === 0) {
+              groupedByRow.delete(lineNumber)
+            }
+          }
+
+          // Move diagnostic to new location
+          let newGroup = groupedByRow.get(newLineNumber) ?? []
+          newGroup.push(diagnostic)
+          groupedByRow.set(newLineNumber, newGroup)
+        }
+
+        for (let [lineIdx, line] of lines.entries()) {
+          output.push(line)
+
+          if (lineIdx === 0) {
+            rowToLineNumber.set(line, lineNumber)
+            lineNumberToRow.set(lineNumber, line)
+          } else {
+            let localLineNumber = (lineNumber * 10 + lineIdx) / 10
+
+            rowToLineNumber.set(line, localLineNumber)
+            lineNumberToRow.set(localLineNumber, line)
+          }
+        }
+      }
+    } else {
+      output.push(line)
+
+      rowToLineNumber.set(line, lineNumber)
+      lineNumberToRow.set(lineNumber, line)
+    }
+  }
+
+  for (let [lineNumber, row] of lineNumberToRow) {
+    let diagnostics = groupedByRow.get(lineNumber)
+    if (!diagnostics) continue
+
+    for (let diagnostic of diagnostics) {
+      if (diagnostic.loc.col + diagnostic.loc.len >= row.length) {
+        let next = { ...diagnostic, loc: { ...diagnostic.loc } }
+        let decorate = diagnosticToColor.get(diagnostic)!
+        diagnosticToColor.set(next, decorate)
+
+        let skipWhitespaceAmount =
+          row
+            .slice()
+            .reverse()
+            .findIndex((x) => !(x.type & Type.Whitespace)) + 1
+
+        let newLen = row.length - diagnostic.loc.col - skipWhitespaceAmount
+        if (newLen <= 0) {
+          diagnostic.loc.col =
+            (forcedIndentByLineNumber.get(lineNumber | 0) ?? 0) +
+            2 /* (1) For the \u21B3 and ' ' characters */
+          diagnostic.loc.row += 1
+          diagnostic.loc.col -= 1
+
+          let nextLineNumber = (lineNumber * 10 + 1) / 10
+
+          let idx = diagnostics.indexOf(diagnostic)
+          if (idx !== -1) {
+            diagnostics.splice(idx, 1)
+            if (diagnostics.length === 0) {
+              groupedByRow.delete(lineNumber)
+            }
+          }
+
+          // Move diagnostic to new location
+          let newGroup = groupedByRow.get(nextLineNumber) ?? []
+          newGroup.push(diagnostic)
+          groupedByRow.set(nextLineNumber, newGroup)
+        } else {
+          diagnostic.loc.len = newLen
+          next.loc.len -= newLen + skipWhitespaceAmount
+          next.loc.col =
+            (forcedIndentByLineNumber.get(lineNumber | 0) ?? 0) +
+            2 /* (1) For the \u21B3 and ' ' characters */
+          next.loc.row += 1
+
+          // Force the same context on the split diagnostics
+          // TODO: Do we want to connect the lines visually?
+          if (false) {
+            if (diagnostic.context == null) {
+              let context = Buffer.from(JSON.stringify(diagnostic.loc)).toString('base64')
+              diagnostic.context = context
+              next.context = context
+
+              let byContext = diagnosticsByContext.get(context) ?? []
+              byContext.push(diagnostic, next)
+              diagnosticsByContext.set(context, byContext)
+
+              // TODO: Should not be needed
+              contextIdentifiers = Array.from(diagnosticsByContext.keys())
+            }
+          }
+
+          // TODO: Why is this needed?
+          next.loc.len += 1
+          next.loc.col -= 1
+
+          let nextLineNumber = (lineNumber * 10 + 1) / 10
+
+          let nextDiagnostics = groupedByRow.get(nextLineNumber) ?? []
+          nextDiagnostics.push(next)
+          groupedByRow.set(nextLineNumber, nextDiagnostics)
+        }
+      }
+    }
   }
 
   // Add connector lines
-  for (let [lineNumber, diagnosticz] of groupedByRow.entries()) {
+  for (let [lineNumber, diagnosticz] of Array.from(groupedByRow.entries()).reverse()) {
     // Group diagnostics that belong together, together
     let diagnostics: InternalDiagnostic[] = []
     for (let diagnostic of diagnosticz) {
@@ -369,10 +571,7 @@ function reportBlock(
 
       // Underline
       for (let position of range(diagnostic.loc.col, diagnostic.loc.col + diagnostic.loc.len)) {
-        nextLine[position + 1] = createDiagnosticCell(
-          decorate(CHARS.H),
-          Type.DiagnosticVerticalConnector
-        )
+        nextLine[position + 1] = createDiagnosticCell(decorate(CHARS.H), Type.Diagnostic)
       }
 
       // Connector
@@ -638,10 +837,10 @@ function reportBlock(
     if (!hasType(currentRow, Type.Code | Type.ContextLine)) continue
     if (!hasType(previousRow, Type.Code | Type.ContextLine)) continue
 
-    let currentLineNumber = rowToLineNumber.get(currentRow)
-    let previousLineNumber = rowToLineNumber.get(previousRow)
+    let currentLineNumber = rowToLineNumber.get(currentRow)!
+    let previousLineNumber = rowToLineNumber.get(previousRow)!
 
-    if (Number(currentLineNumber) - Number(previousLineNumber) > 1) {
+    if (((currentLineNumber - previousLineNumber) | 0) > 1) {
       // Inject empty line between a code line and a non-code line. This will
       // later get turned into a non-code line.
       inject(rowIdx)
@@ -747,12 +946,14 @@ function reportBlock(
 
     // Gutter + existing output
     ...output.map((row, i, all) => {
+      let rowType = combinedType(row) || Type.Diagnostic
+
       let _lineNumber = rowToLineNumber.get(row)
-      let lineNumber = (typeof _lineNumber === 'number' ? _lineNumber + 1 : '')
+      let lineNumber = (
+        rowType & Type.Wrapped ? '' : typeof _lineNumber === 'number' ? _lineNumber + 1 : ''
+      )
         .toString()
         .padStart(lineNumberGutterWidth, ' ')
-
-      let rowType = combinedType(row) || Type.Diagnostic
 
       let result = [
         // Gutter
@@ -794,8 +995,8 @@ function reportBlock(
         )
       }
 
-      // Add the red dot indiciator befor the line numbers that have diagnostics attached to them.
-      if (rowType & Type.Code && !(rowType & Type.ContextLine)) {
+      // Add the red dot indicator before the line numbers that have diagnostics attached to them.
+      if (rowType & Type.Code && !(rowType & (Type.ContextLine | Type.Wrapped))) {
         result.splice(MARGIN - 2, 1, pc.red(CHARS.bigdot))
       }
 

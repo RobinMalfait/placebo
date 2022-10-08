@@ -21,7 +21,7 @@ function diagnose(
   } = {}
 ): Diagnostic[] {
   return locations.map((location) => {
-  return { file: '', block, context, message, location, notes }
+    return { file: '', block, context, message, location, notes }
   })
 }
 
@@ -57,10 +57,10 @@ function findLocation(code: string, word: string, occurences: number | number[] 
     }
 
     result.push([
-    [row + 1, col + 1],
+      [row + 1, col + 1],
       [row + 1, col + 1 + word.length],
     ])
-}
+  }
 
   return result
 }
@@ -809,259 +809,6 @@ describe('squashing', () => {
   })
 })
 
-describe('message wrapping', () => {
-  it('should render multi-line messages', () => {
-    let code = html`<div class="text-grey-200"></div>`
-    let diagnostics = [
-      diagnose(
-        'This color should be "gray" and not "grey". This is because the letter "a" has an ascii value of 97 but an "e" has an ascii value of 101. This means that "a" is cheaper to store. Lol, jk, I just need a long message here...',
-        findLocation(code, 'grey')
-      ),
-    ]
-
-    let result = render(code, diagnostics, './example.css')
-    expect(result).toEqual(`
-    ┌─[./example.css]
-    │
-∙ 1 │   <div class="text-grey-200"></div>
-    ·                    ─┬── ╭─
-    ·                     ╰───┤ This color should be "gray" and not "grey". This is because
-    ·                         │ the letter "a" has an ascii value of 97 but an "e" has
-    ·                         │ an ascii value of 101. This means that "a" is cheaper
-    ·                         │ to store. Lol, jk, I just need a long message here...
-    ·                         ╰─
-    │
-    └─`)
-  })
-
-  it('should squash context lines in multi-line messages', () => {
-    let code = html`<div>
-      <div class="text-grey-200">
-        <div></div>
-      </div>
-      <div>
-        <div></div>
-      </div>
-    </div>`
-    let diagnostics = [
-      diagnose(
-        'This color should be "gray" and not "grey". This is because the letter "a" has an ascii value of 97 but an "e" has an ascii value of 101. This means that "a" is cheaper to store. Lol, jk, I just need a long message here...',
-        findLocation(code, 'grey')
-      ),
-    ]
-
-    let result = render(code, diagnostics, './example.css')
-    expect(result).toEqual(`
-    ┌─[./example.css]
-    │
-  1 │   <div>
-∙ 2 │         <div class="text-grey-200">
-  3 │           <div></div>    ─┬── ╭─
-  4 │         </div>            ╰───┤ This color should be "gray" and not "grey".
-  5 │         <div>                 │ This is because the letter "a" has an ascii
-    ·                               │ value of 97 but an "e" has an ascii value of
-    ·                               │ 101. This means that "a" is cheaper to store.
-    ·                               │ Lol, jk, I just need a long message here...
-    ·                               ╰─
-    │
-    └─`)
-  })
-
-  it('should render 2 multi-line messages', () => {
-    let code = html`<div class="text-grey-200"></div>`
-    let diagnostics = [
-      diagnose(
-        '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
-        findLocation(code, 'grey')
-      ),
-      diagnose(
-        '(2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
-        findLocation(code, '200')
-      ),
-    ]
-    let result = render(code, diagnostics, './example.html')
-    expect(result).toEqual(`
-    ┌─[./example.html]
-    │
-∙ 1 │   <div class="text-grey-200"></div>
-    ·                    ─┬── ─┬─ ╭─
-    ·                     │    ╰──┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing
-    ·                     │       │ elit. Donec pulvinar sapien sit amet tellus dapibus,
-    ·                     │       │ ut mollis massa porta. Vivamus hendrerit semper risus,
-    ·                     │       │ vel accumsan nisi iaculis non. Donec mollis massa sit
-    ·                     │       │ amet lectus sagittis, vel faucibus quam condimentum.
-    ·                     │       ╰─
-    ·                     │       ╭─
-    ·                     ╰───────┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing
-    ·                             │ elit. Donec pulvinar sapien sit amet tellus dapibus,
-    ·                             │ ut mollis massa porta. Vivamus hendrerit semper risus,
-    ·                             │ vel accumsan nisi iaculis non. Donec mollis massa sit
-    ·                             │ amet lectus sagittis, vel faucibus quam condimentum.
-    ·                             ╰─
-    │
-    └─`)
-  })
-
-  it('should render 2 multi-line messages with a single one-liner in between', () => {
-    let code = html`<div class="text-grey-200"></div>`
-    let diagnostics = [
-      diagnose(
-        '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.',
-        findLocation(code, 'text')
-      ),
-      diagnose('(2) Lorem ipsum.', findLocation(code, 'grey')),
-      diagnose(
-        '(3) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.',
-        findLocation(code, '200')
-      ),
-    ]
-    let result = render(code, diagnostics, './example.css')
-    expect(result).toEqual(`
-    ┌─[./example.css]
-    │
-∙ 1 │   <div class="text-grey-200"></div>
-    ·               ─┬── ─┬── ─┬─ ╭─
-    ·                │    │    ╰──┤ (3) Lorem ipsum dolor sit amet, consectetur
-    ·                │    │       │ adipiscing elit. Donec pulvinar sapien sit
-    ·                │    │       │ amet tellus dapibus, ut mollis massa porta.
-    ·                │    │       ╰─
-    ·                │    ╰──────── (2) Lorem ipsum.
-    ·                │            ╭─
-    ·                ╰────────────┤ (1) Lorem ipsum dolor sit amet, consectetur
-    ·                             │ adipiscing elit. Donec pulvinar sapien sit
-    ·                             │ amet tellus dapibus, ut mollis massa porta.
-    ·                             ╰─
-    │
-    └─`)
-  })
-
-  it('should render 2 multi-line diagnostics for the same location', () => {
-    let code = html`<div class="text-grey-200"></div>`
-    let diagnostics = [
-      diagnose(
-        '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
-        findLocation(code, 'class'),
-        { notes: 'Note A' }
-      ),
-      diagnose(
-        '(2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
-        findLocation(code, 'class'),
-        { notes: 'Note B' }
-      ),
-    ]
-    let result = render(code, diagnostics, './example.html')
-    expect(result).toEqual(`
-    ┌─[./example.html]
-    │
-∙ 1 │   <div class="text-grey-200"></div>
-    ·        ──┬── ╭─
-    ·          ├───┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-    ·          │   │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.
-    ·          │   │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec
-    ·          │   │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.
-    ·          │   ╰─
-    ·          │   ╭─
-    ·          ╰───┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-    ·              │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.
-    ·              │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec
-    ·              │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.
-    ·              ╰─
-    ·
-    ├─
-    ·   Note A
-    ├─
-    ·   Note B
-    └─`)
-  })
-})
-
-describe('notes wrapping', () => {
-  it('should wrap a single note that is too long', () => {
-    let code = html`<div class="text-grey-200"></div>`
-    let diagnostics = [
-      diagnose('This contains some notes', findLocation(code, 'class'), {
-        notes:
-          'The `class` you see here is an attribute in html, in React this is typically used as `className` instead. In Vue, you can use `class` but also use `:class` for more dynamic clases.',
-      }),
-    ]
-
-    let result = render(code, diagnostics, './example.html')
-    expect(result).toEqual(`
-    ┌─[./example.html]
-    │
-∙ 1 │   <div class=\"text-grey-200\"></div>
-    ·        ──┬──
-    ·          ╰──── This contains some notes
-    ·
-    ├─
-    ·   The \`class\` you see here is an attribute in html, in React this is typically used as
-    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more
-    ·   dynamic clases.
-    └─`)
-  })
-
-  it('should wrap multiple notes that are too long', () => {
-    let code = html`<div class="text-grey-200"></div>`
-    let diagnostics = [
-      diagnose('This contains some notes', findLocation(code, 'class'), {
-        notes: `
-          The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.
-          In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
-        `,
-      }),
-    ]
-
-    let result = render(code, diagnostics, './example.html')
-    expect(result).toEqual(`
-    ┌─[./example.html]
-    │
-∙ 1 │   <div class="text-grey-200"></div>
-    ·        ──┬──
-    ·          ╰──── This contains some notes
-    ·
-    ├─
-    ·   The \`class\` you see here is an attribute in html, in React this is typically used as
-    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more
-    ·   dynamic clases.
-    └─`)
-  })
-
-  it('should wrap multiple nested notes that are too long', () => {
-    let code = html`<div class="text-grey-200"></div>`
-    let diagnostics = [
-      diagnose('This contains some notes', findLocation(code, 'class'), {
-        notes: `
-          - The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.
-          - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
-            - The same rules apply to the \`style\` prop, the \`style\` prop in React is still called \`style\`.
-              - Also one small caveat is that in React the \`style\` prop requires an object instead of a string with all the styles.
-            - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.
-        `,
-      }),
-    ]
-
-    let result = render(code, diagnostics, './example.html')
-    expect(result).toEqual(`
-    ┌─[./example.html]
-    │
-∙ 1 │   <div class="text-grey-200"></div>
-    ·        ──┬──
-    ·          ╰──── This contains some notes
-    ·
-    ├─
-    ·   - The \`class\` you see here is an attribute in html, in React this is typically used as
-    ·     \`className\` instead.
-    ·   - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
-    ·     - The same rules apply to the \`style\` prop, the \`style\` prop in React is still
-    ·       called \`style\`.
-    ·       - Also one small caveat is that in React the \`style\` prop requires an object
-    ·         instead of a string with all the styles.
-    ·     - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic
-    ·       styles.
-    └─`)
-  })
-})
-
 describe('multi-line diagnostics', () => {
   it('should be possible to print related diagnostics together spread across multiple lines (2x)', () => {
     let code = javascript`
@@ -1293,5 +1040,362 @@ describe('multi-line diagnostics', () => {
     · ╰───┴────── Pair 1
     │
     └─`)
+  })
+})
+
+describe('responsiveness', () => {
+  describe('code', () => {
+    it('should wrap the code, and add an ellipsis for context lines', () => {
+      let code = String.raw`
+        <div class="min-h-full bg-white px-4 py-16 sm:px-6 sm:py-24 md:grid md:place-items-center lg:px-8">
+          <div class="mx-auto max-w-max">
+            <main class="sm:flex">
+              <p class="text-4xl font-bold tracking-tight text-indigo-600 sm:text-5xl">404</p>
+              <div class="sm:ml-6">
+                <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">
+                  <a href="#" class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Go back home</a>
+                  <a href="#" class="inline-flex items-center rounded-md border border-transparent bg-indigo-100 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Contact support</a>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      `
+      let diagnostics = [
+        diagnose('Diagnostic message 1', findLocation(code, 'inline-flex')),
+        diagnose('Diagnostic message 2', findLocation(code, 'bg-indigo-600')),
+        diagnose('Diagnostic message 3', findLocation(code, 'focus:ring-offset-2')),
+      ]
+
+      let result = render(code, diagnostics, './example.js')
+      expect(result).toEqual(`
+     ┌─[./example.js]
+     │
+   5 │   <p class="text-4xl font-bold tracking-tight text-indigo-600 sm:text-5xl">404</p>
+   6 │   <div class="sm:ml-6">
+   7 │     <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">
+∙  8 │       <a href="#" class="inline-flex items-center rounded-md border 
+     ·                          ─────┬─────
+     ·                               ╰─────── Diagnostic message 1
+     ·
+     │         ↳ border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium 
+     ·                              ──────┬──────
+     ·                                    ╰──────── Diagnostic message 2
+     ·
+     │         ↳ text-white shadow-sm hover:bg-indigo-700 focus:outline-none 
+     │         ↳ focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Go back 
+     │         ↳ home</a>                           ─────────┬─────────
+     ·                                                       ╰─────────── Diagnostic message 3
+     ·
+   9 │       <a href="#" class="inline-flex items-center rounded-md border border-transparent…
+  10 │     </div>
+  11 │   </div>
+     │
+     └─`)
+    })
+
+    it('should split diagnostics that span 2 lines after wrapping into multiple diagnostics', () => {
+      let code = String.raw`
+        <div class="min-h-full bg-white px-4 py-16 sm:px-6 sm:py-24 md:grid md:place-items-center lg:px-8">
+          <div class="mx-auto max-w-max">
+            <main class="sm:flex">
+              <p class="text-4xl font-bold tracking-tight text-indigo-600 sm:text-5xl">404</p>
+              <div class="sm:ml-6">
+                <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">
+                  <a href="#" class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Go back home</a>
+                  <a href="#" class="inline-flex items-center rounded-md border border-transparent bg-indigo-100 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Contact support</a>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      `
+      let diagnostics = [
+        diagnose(
+          'Diagnostic message 4',
+          findLocation(
+            code,
+            'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+            2
+          )
+        ),
+      ]
+
+      let result = render(code, diagnostics, './example.js')
+      expect(result).toEqual(`
+     ┌─[./example.js]
+     │
+   6 │     <div class="sm:ml-6">
+   7 │       <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">
+   8 │         <a href="#" class="inline-flex items-center rounded-md border border-transpare…
+∙  9 │         <a href="#" class="inline-flex items-center rounded-md 
+     │           ↳ border border-transparent bg-indigo-100 px-4 py-2 text-sm 
+     │           ↳ font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none 
+     ·                                                             ────────┬───────── ╭─
+     ·                                                                     ╰──────────┤ Diagnostic
+     │           ↳ focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Contact    │ message 4
+     ·             ──────────────────────────┬─────────────────────────── ╭─          ╰─
+     ·                                       ╰────────────────────────────┤ Diagnostic
+     │           ↳ support</a>                                            │ message 4
+  10 │       </div>                                                       ╰─
+     ·
+  11 │     </div>
+  12 │   </main>
+     │
+     └─`)
+    })
+  })
+
+  describe('message wrapping', () => {
+    it('should render multi-line messages', () => {
+      let code = html`<div class="text-grey-200"></div>`
+      let diagnostics = [
+        diagnose(
+          'This color should be "gray" and not "grey". This is because the letter "a" has an ascii value of 97 but an "e" has an ascii value of 101. This means that "a" is cheaper to store. Lol, jk, I just need a long message here...',
+          findLocation(code, 'grey')
+        ),
+      ]
+
+      let result = render(code, diagnostics, './example.css')
+      expect(result).toEqual(`
+    ┌─[./example.css]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·                    ─┬── ╭─
+    ·                     ╰───┤ This color should be "gray" and not "grey". This is because
+    ·                         │ the letter "a" has an ascii value of 97 but an "e" has
+    ·                         │ an ascii value of 101. This means that "a" is cheaper
+    ·                         │ to store. Lol, jk, I just need a long message here...
+    ·                         ╰─
+    │
+    └─`)
+    })
+
+    it('should squash context lines in multi-line messages', () => {
+      let code = html`
+        <div>
+          <div class="text-grey-200">
+            <div></div>
+          </div>
+          <div>
+            <div></div>
+          </div>
+        </div>
+      `
+      let diagnostics = [
+        diagnose(
+          'This color should be "gray" and not "grey". This is because the letter "a" has an ascii value of 97 but an "e" has an ascii value of 101. This means that "a" is cheaper to store. Lol, jk, I just need a long message here...',
+          findLocation(code, 'grey')
+        ),
+      ]
+
+      let result = render(code, diagnostics, './example.css')
+      expect(result).toEqual(`
+    ┌─[./example.css]
+    │
+  2 │   <div>
+∙ 3 │     <div class="text-grey-200">
+  4 │       <div></div>    ─┬── ╭─
+  5 │     </div>            ╰───┤ This color should be "gray" and not "grey". This is because
+  6 │     <div>                 │ the letter "a" has an ascii value of 97 but an "e" has
+    ·                           │ an ascii value of 101. This means that "a" is cheaper
+    ·                           │ to store. Lol, jk, I just need a long message here...
+    ·                           ╰─
+    │
+    └─`)
+    })
+
+    it('should render 2 multi-line messages', () => {
+      let code = html`<div class="text-grey-200"></div>`
+      let diagnostics = [
+        diagnose(
+          '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
+          findLocation(code, 'grey')
+        ),
+        diagnose(
+          '(2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
+          findLocation(code, '200')
+        ),
+      ]
+      let result = render(code, diagnostics, './example.html')
+      expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·                    ─┬── ─┬─ ╭─
+    ·                     │    ╰──┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing
+    ·                     │       │ elit. Donec pulvinar sapien sit amet tellus dapibus,
+    ·                     │       │ ut mollis massa porta. Vivamus hendrerit semper risus,
+    ·                     │       │ vel accumsan nisi iaculis non. Donec mollis massa sit
+    ·                     │       │ amet lectus sagittis, vel faucibus quam condimentum.
+    ·                     │       ╰─
+    ·                     │       ╭─
+    ·                     ╰───────┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing
+    ·                             │ elit. Donec pulvinar sapien sit amet tellus dapibus,
+    ·                             │ ut mollis massa porta. Vivamus hendrerit semper risus,
+    ·                             │ vel accumsan nisi iaculis non. Donec mollis massa sit
+    ·                             │ amet lectus sagittis, vel faucibus quam condimentum.
+    ·                             ╰─
+    │
+    └─`)
+    })
+
+    it('should render 2 multi-line messages with a single one-liner in between', () => {
+      let code = html`<div class="text-grey-200"></div>`
+      let diagnostics = [
+        diagnose(
+          '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.',
+          findLocation(code, 'text')
+        ),
+        diagnose('(2) Lorem ipsum.', findLocation(code, 'grey')),
+        diagnose(
+          '(3) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.',
+          findLocation(code, '200')
+        ),
+      ]
+      let result = render(code, diagnostics, './example.css')
+      expect(result).toEqual(`
+    ┌─[./example.css]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·               ─┬── ─┬── ─┬─ ╭─
+    ·                │    │    ╰──┤ (3) Lorem ipsum dolor sit amet, consectetur
+    ·                │    │       │ adipiscing elit. Donec pulvinar sapien sit
+    ·                │    │       │ amet tellus dapibus, ut mollis massa porta.
+    ·                │    │       ╰─
+    ·                │    ╰──────── (2) Lorem ipsum.
+    ·                │            ╭─
+    ·                ╰────────────┤ (1) Lorem ipsum dolor sit amet, consectetur
+    ·                             │ adipiscing elit. Donec pulvinar sapien sit
+    ·                             │ amet tellus dapibus, ut mollis massa porta.
+    ·                             ╰─
+    │
+    └─`)
+    })
+
+    it('should render 2 multi-line diagnostics for the same location', () => {
+      let code = html`<div class="text-grey-200"></div>`
+      let diagnostics = [
+        diagnose(
+          '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
+          findLocation(code, 'class'),
+          { notes: 'Note A' }
+        ),
+        diagnose(
+          '(2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
+          findLocation(code, 'class'),
+          { notes: 'Note B' }
+        ),
+      ]
+      let result = render(code, diagnostics, './example.html')
+      expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·        ──┬── ╭─
+    ·          ├───┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+    ·          │   │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.
+    ·          │   │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec
+    ·          │   │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.
+    ·          │   ╰─
+    ·          │   ╭─
+    ·          ╰───┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+    ·              │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.
+    ·              │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec
+    ·              │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.
+    ·              ╰─
+    ·
+    ├─
+    ·   Note A
+    ├─
+    ·   Note B
+    └─`)
+    })
+  })
+  describe('notes wrapping', () => {
+    it('should wrap a single note that is too long', () => {
+      let code = html`<div class="text-grey-200"></div>`
+      let diagnostics = [
+        diagnose('This contains some notes', findLocation(code, 'class'), {
+          notes:
+            'The `class` you see here is an attribute in html, in React this is typically used as `className` instead. In Vue, you can use `class` but also use `:class` for more dynamic clases.',
+        }),
+      ]
+
+      let result = render(code, diagnostics, './example.html')
+      expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class=\"text-grey-200\"></div>
+    ·        ──┬──
+    ·          ╰──── This contains some notes
+    ·
+    ├─
+    ·   The \`class\` you see here is an attribute in html, in React this is typically used as
+    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more
+    ·   dynamic clases.
+    └─`)
+    })
+
+    it('should wrap multiple notes that are too long', () => {
+      let code = html`<div class="text-grey-200"></div>`
+      let diagnostics = [
+        diagnose('This contains some notes', findLocation(code, 'class'), {
+          notes: `
+          The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.
+          In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
+        `,
+        }),
+      ]
+
+      let result = render(code, diagnostics, './example.html')
+      expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·        ──┬──
+    ·          ╰──── This contains some notes
+    ·
+    ├─
+    ·   The \`class\` you see here is an attribute in html, in React this is typically used as
+    ·   \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more
+    ·   dynamic clases.
+    └─`)
+    })
+
+    it('should wrap multiple nested notes that are too long', () => {
+      let code = html`<div class="text-grey-200"></div>`
+      let diagnostics = [
+        diagnose('This contains some notes', findLocation(code, 'class'), {
+          notes: `
+          - The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.
+          - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
+            - The same rules apply to the \`style\` prop, the \`style\` prop in React is still called \`style\`.
+              - Also one small caveat is that in React the \`style\` prop requires an object instead of a string with all the styles.
+            - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.
+        `,
+        }),
+      ]
+
+      let result = render(code, diagnostics, './example.html')
+      expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="text-grey-200"></div>
+    ·        ──┬──
+    ·          ╰──── This contains some notes
+    ·
+    ├─
+    ·   - The \`class\` you see here is an attribute in html, in React this is typically used as
+    ·     \`className\` instead.
+    ·   - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
+    ·     - The same rules apply to the \`style\` prop, the \`style\` prop in React is still
+    ·       called \`style\`.
+    ·       - Also one small caveat is that in React the \`style\` prop requires an object
+    ·         instead of a string with all the styles.
+    ·     - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic
+    ·       styles.
+    └─`)
+    })
   })
 })
