@@ -430,6 +430,10 @@ function reportBlock(
 
     for (let diagnostic of diagnostics) {
       if (diagnostic.loc.col + diagnostic.loc.len >= row.length) {
+        // TODO: Figure out if the diagnostic is pointing to a location that doesn't exist (e.g.: a
+        // missing semicolon after the line). By definition it would point to a `col` that exceeds
+        // the `row.length` therefore it is "splitup" incorrectly.
+        if (diagnostic.loc.len === 1) continue // Hacky solution, or good?
         let next = { ...diagnostic, loc: { ...diagnostic.loc } }
         let decorate = diagnosticToColor.get(diagnostic)!
         diagnosticToColor.set(next, decorate)

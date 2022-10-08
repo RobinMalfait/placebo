@@ -104,6 +104,33 @@ it('should print a message', () => {
     └─`)
 })
 
+it("should allow for diagnostics for places that don't exist", () => {
+  let code = javascript`
+    console.log('Hello World')
+  `
+  let diagnostics = [
+    diagnose(
+      'Missing semicolon',
+      findLocation(code, ')').map((x) => {
+        x[0][1]++
+        x[1][1]++
+        return x
+      })
+    ),
+  ]
+
+  let result = render(code, diagnostics, './example.html')
+
+  expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 2 │   console.log('Hello World')
+    ·                             ┬
+    ·                             ╰── Missing semicolon
+    │
+    └─`)
+})
+
 it('should print a message and reindent it to save space', () => {
   let code = `                                                 <div class="flex block" />`
   let diagnostics = [diagnose('Message 1', findLocation(code, 'flex'))]
