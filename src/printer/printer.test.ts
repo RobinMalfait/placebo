@@ -1071,6 +1071,27 @@ describe('multi-line diagnostics', () => {
 })
 
 describe('responsiveness', () => {
+  describe('filename', () => {
+    it('should ensure the file name is printed correctly when there is not enough room', () => {
+      let code = html`<div class="flex"></div>`
+      let diagnostics = [diagnose('This applies a `display: flex;`', findLocation(code, 'flex'))]
+
+      let result = render(
+        code,
+        diagnostics,
+        './users/some-username/projects/work-projects/github/robinmalfait/placebo/src/printer/char-maps/fancy.js'
+      )
+      expect(result).toEqual(`
+    ┌─[./u/s/projects/work-projects/github/robinmalfait/placebo/src/printer/char-maps/fancy.js]
+    │
+∙ 1 │   <div class=\"flex\"></div>
+    ·               ─┬──
+    ·                ╰──── This applies a \`display: flex;\`
+    │
+    └─`)
+    })
+  })
+
   describe('code', () => {
     it('should wrap the code, and add an ellipsis for context lines', () => {
       let code = String.raw`

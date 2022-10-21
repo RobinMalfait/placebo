@@ -930,6 +930,20 @@ function reportBlock(
     }
   }
 
+  function responsiveFileName(path: string) {
+    let reserved = 1 /* TLSquare */ + 1 /* H */ + 1 /* [ */ + 1 /* ] */
+    let width = availableWorkingSpace + PADDING * 2 - reserved
+    if (path.length <= width) return path
+
+    while (path.length > width) {
+      let before = path
+      path = path.replace(/([^/])[^/]+[\/]/, '$1/')
+      if (before === path) break // No more changes happened
+    }
+
+    return path
+  }
+
   // Add a frame around the output
   let outputOfStrings = [
     // Opening block
@@ -939,9 +953,11 @@ function reportBlock(
       pc.dim(CHARS.H),
       pc.dim('['),
       pc.bold(
-        ((relative) =>
-          relative.startsWith('.') || relative.startsWith('/') ? relative : `./${relative}`)(
-          path.relative(process.cwd(), path.resolve(file))
+        responsiveFileName(
+          ((relative) =>
+            relative.startsWith('.') || relative.startsWith('/') ? relative : `./${relative}`)(
+            path.relative(process.cwd(), path.resolve(file))
+          )
         )
       ),
       pc.dim(']'),
