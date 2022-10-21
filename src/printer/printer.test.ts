@@ -1079,10 +1079,10 @@ describe('responsiveness', () => {
       let result = render(
         code,
         diagnostics,
-        './users/some-username/projects/work-projects/github/robinmalfait/placebo/src/printer/char-maps/fancy.js'
+        './products/tailwind-ui-marketing/components/contact-pages.03-split-with-image-and-centered-cta-section.html'
       )
       expect(result).toEqual(`
-    ┌─[./u/s/projects/work-projects/github/robinmalfait/placebo/src/printer/char-maps/fancy.js]
+    ┌─[./p/t/components/contact-pages.03-split-with-image-and-centered-cta-section.html]
     │
 ∙ 1 │   <div class=\"flex\"></div>
     ·               ─┬──

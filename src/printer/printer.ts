@@ -933,13 +933,30 @@ function reportBlock(
   function responsiveFileName(path: string) {
     let reserved = 1 /* TLSquare */ + 1 /* H */ + 1 /* [ */ + 1 /* ] */
     let width = availableWorkingSpace + PADDING * 2 - reserved
+
+    // If it already fits, then we are good to go
     if (path.length <= width) return path
 
+    // Try to simplify folders starting from the beginning
     while (path.length > width) {
       let before = path
       path = path.replace(/([^/])[^/]+[\/]/, '$1/')
       if (before === path) break // No more changes happened
     }
+
+    // Still not good enough, let's try to remove the start of the filename itself
+    let offset = 0
+    if (path.length > width) {
+      offset++
+      let lastSlashIdx = path.lastIndexOf('/') + 1
+      let remaining = path.length - width
+
+      path = path.replace(path.slice(lastSlashIdx, lastSlashIdx + remaining), CHARS.ellipsis)
+    }
+
+    let lastSlashIdx = path.lastIndexOf('/') + 1
+
+    path = pc.dim(path.slice(0, lastSlashIdx + offset)) + path.slice(lastSlashIdx + offset)
 
     return path
   }
