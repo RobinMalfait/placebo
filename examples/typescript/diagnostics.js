@@ -18,10 +18,12 @@ module.exports = async function run(files) {
 
   let diagnostics = []
 
-  let configPath = ts.findConfigFile('./', ts.sys.fileExists, 'tsconfig.json')
+  let root = process.cwd()
+
+  let configPath = ts.findConfigFile(root, ts.sys.fileExists, 'tsconfig.json')
   if (!configPath) throw new Error("Could not find a valid 'tsconfig.json'.")
   let configFile = ts.readConfigFile(configPath, ts.sys.readFile)
-  let compilerOptions = ts.parseJsonConfigFileContent(configFile.config, ts.sys, './')
+  let compilerOptions = ts.parseJsonConfigFileContent(configFile.config, ts.sys, root)
   let program = ts.createProgram(compilerOptions.fileNames, compilerOptions.options)
 
   let allDiagnostics = ts.getPreEmitDiagnostics(program)
