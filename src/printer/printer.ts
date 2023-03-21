@@ -903,16 +903,26 @@ function reportBlock(
     // right which means that the left most (first) will be rendered at the bottom, that's why we
     // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
     .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)
-    .map((diagnostic) => [diagnostic, diagnostic.notes(availableWorkingSpace - PADDING)] as const)
-    .filter(([, notes]) => notes.length > 0)
+    .map((diagnostic) => diagnostic.notes(availableWorkingSpace - PADDING))
+    .filter((notes) => notes.length > 0)
+
+  // TODO: Clean this up, make it more efficient
+  {
+    let seen = new Set<string>()
+    noteGroups = noteGroups.filter((notes) => {
+      let key = notes.join('')
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }
 
   if (noteGroups.length > 0) {
     for (let _ of range(1)) {
       inject(output.length)
     }
 
-    for (let [diagnostic, notes] of noteGroups) {
-      let decorate = diagnosticToColor.get(diagnostic)!
+    for (let notes of noteGroups) {
       inject(output.length, createCell('', Type.StartOfNote))
 
       if (noteGroups.length > 1 && notes.length > 1) {

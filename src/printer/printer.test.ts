@@ -165,6 +165,38 @@ it('should print a message and a note', () => {
     └─`)
 })
 
+it('should flatten duplicate notes when they occur multiple times in the same block', () => {
+  let code = html`<div class="flex block" />`
+  let diagnostics = [
+    diagnose('Message 1', findLocation(code, 'flex'), { notes: 'This is a note' }),
+    diagnose('Message 2', findLocation(code, 'block'), { notes: 'This is a note' }),
+    diagnose('Message 3', findLocation(code, '/>'), {
+      notes:
+        'This is a separate note, but it is also very long so therefore we have to still make sure that this note gets cut in pieces.',
+    }),
+  ]
+
+  let result = render(code, diagnostics, './example.html')
+
+  expect(result).toEqual(`
+    ┌─[./example.html]
+    │
+∙ 1 │   <div class="flex block" />
+    ·               ─┬── ──┬──  ┬─
+    ·                │     │    ╰─── Message 3
+    ·                │     ╰──────── Message 2
+    ·                ╰────────────── Message 1
+    ·
+    ├─
+    ·
+    ·   This is a separate note, but it is also very long so therefore we have to still make
+    ·   sure that this note gets cut in pieces.
+    ·
+    ├─
+    ·   This is a note
+    └─`)
+})
+
 it('should print a message with multiple notes', () => {
   let code = html`<div class="flex block" />`
   let diagnostics = [
@@ -1360,6 +1392,7 @@ describe('responsiveness', () => {
     └─`)
     })
   })
+
   describe('notes wrapping', () => {
     it('should wrap a single note that is too long', () => {
       let code = html`<div class="text-grey-200"></div>`
