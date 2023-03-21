@@ -43,5 +43,8 @@
   "dependencies": {
     "cli-highlight": "^2.1.11",
     "picocolors": "^1.0.0"
+  },
+  "peerDependencies": {
+    "prettier": "^2.8.6"
   }
 }
