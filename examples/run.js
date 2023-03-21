@@ -3,6 +3,7 @@ let fs = require('fs/promises')
 let { printer, htmlPrinter } = require('../dist')
 
 let cli = parseArgs({
+  allowPositionals: true,
   options: {
     target: {
       type: 'string',
