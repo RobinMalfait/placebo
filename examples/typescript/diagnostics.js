@@ -21,7 +21,10 @@ module.exports = async function run(files) {
   let root = process.cwd()
 
   let configPath = ts.findConfigFile(root, ts.sys.fileExists, 'tsconfig.json')
-  if (!configPath) throw new Error("Could not find a valid 'tsconfig.json'.")
+  if (!configPath) {
+    console.error("Could not find a valid 'tsconfig.json'.")
+    process.exit(1)
+  }
   let configFile = ts.readConfigFile(configPath, ts.sys.readFile)
   let compilerOptions = ts.parseJsonConfigFileContent(configFile.config, ts.sys, root)
   let program = ts.createProgram(compilerOptions.fileNames, compilerOptions.options)
