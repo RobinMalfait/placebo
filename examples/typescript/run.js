@@ -1,6 +1,6 @@
 let run = require('../run')(require('./diagnostics'))
 
-if (module.parent === null) {
+if (module.parent == null) {
   run()
 } else {
   module.exports = run

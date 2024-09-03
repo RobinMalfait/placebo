@@ -20,20 +20,24 @@ module.exports = async function run(files) {
   let results = await eslint.lintFiles(files)
   for (let result of results) {
     for (let x of result.messages) {
-      diagnostics.push({
-        block: x.line,
-        file: result.filePath,
-        message: x.message,
-        location: [
-          [x.line, x.column],
-          [x.line, x.line === x.endLine ? x.endColumn : x.column + 1],
-        ],
-        notes: `
+      try {
+        diagnostics.push({
+          block: x.line,
+          file: result.filePath,
+          message: x.message,
+          location: [
+            [x.line, x.column],
+            [x.line, x.line === x.endLine ? x.endColumn : x.column + 1],
+          ],
+          notes: `
           | Severity                | Rule        |
           | :---------------------- | :---------- |
           | ${severity(x.severity)} | ${x.ruleId} | 
         `,
-      })
+        })
+      } catch {
+        // Ignore
+      }
     }
   }
 

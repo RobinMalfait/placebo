@@ -10,7 +10,7 @@ function run(write = console.log, files = resolve(__dirname, file)) {
 }
 
 if (module.parent === null) {
-  run()
+  run(console.log, process.argv.slice(2))
 } else {
   module.exports = run
 }
