@@ -16,13 +16,18 @@
     "preexamples:generate-readme": "npm run build",
     "postinstall": "if [ -e .placebo-post-install ]; then npm install --prefix examples; fi"
   },
-  "files": ["dist"],
-  "keywords": ["diagnostics"],
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "diagnostics"
+  ],
   "author": "Robin Malfait",
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "1.9.0",
     "@types/node": "^22.5.4",
+    "@types/prettier": "^2.7.3",
     "prettier": "2",
     "tsup": "^8.2.4",
     "typescript": "^5.6.2",

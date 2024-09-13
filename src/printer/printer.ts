@@ -103,8 +103,8 @@ function reportBlock(
   // TODO: This should probably be an array when we are rendering issues across
   // different files in the same block. In addition, diagnostic lines _can_
   // cross those file boundaries so that is going to be interesting...
-  let file = diagnostics[0].file!
-  let code = sources.get(file)!
+  let file = diagnostics[0].file ?? ''
+  let code = sources.get(file) ?? []
 
   // Find all printable lines. Lines with issues + context lines. We'll use an object for now which
   // will make it easier for overlapping context lines.
@@ -174,7 +174,7 @@ function reportBlock(
   // Compute available working space (excluding the frame and all of that...)
   let availableStartPosition =
     /* Reserved values for the frame: */
-    lineNumberGutterWidth /* Amount of space to reserve for the linenumbers in the current block */ +
+    lineNumberGutterWidth /* Amount of space to reserve for the line numbers in the current block */ +
     MARGIN /* The amount of margin in front of the line numbers */ +
     1 /* A space after the line number */ +
     1 /* The "border" of the frame */
@@ -228,10 +228,10 @@ function reportBlock(
   // Find the correct color per diagnostic
   for (let [idx, diagnostic] of diagnostics.entries()) {
     if (diagnosticsByContext.has(diagnostic.context)) {
-      let [firstDiagnostic] = diagnosticsByContext.get(diagnostic.context)!
+      let [firstDiagnostic] = diagnosticsByContext.get(diagnostic.context) ?? []
 
       if (diagnosticToColor.has(firstDiagnostic)) {
-        diagnosticToColor.set(diagnostic, diagnosticToColor.get(firstDiagnostic)!)
+        diagnosticToColor.set(diagnostic, diagnosticToColor.get(firstDiagnostic) ?? ((x) => x))
       } else {
         diagnosticToColor.set(diagnostic, COLORS[idx % COLORS.length])
       }
@@ -275,12 +275,12 @@ function reportBlock(
   }
 
   function isLastDiagnosticInContext(diagnostic: InternalDiagnostic) {
-    let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context)!
+    let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context) ?? []
     return diagnosticsInContext[diagnosticsInContext.length - 1] === diagnostic
   }
 
   function isFirstDiagnosticInContext(diagnostic: InternalDiagnostic) {
-    let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context)!
+    let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context) ?? []
     return diagnosticsInContext[0] === diagnostic
   }
 
@@ -434,10 +434,10 @@ function reportBlock(
       if (diagnostic.loc.col + diagnostic.loc.len >= row.length) {
         // TODO: Figure out if the diagnostic is pointing to a location that doesn't exist (e.g.: a
         // missing semicolon after the line). By definition it would point to a `col` that exceeds
-        // the `row.length` therefore it is "splitup" incorrectly.
+        // the `row.length` therefore it is "split up" incorrectly.
         if (diagnostic.loc.len === 1) continue // Hacky solution, or good?
         let next = { ...diagnostic, loc: { ...diagnostic.loc } }
-        let decorate = diagnosticToColor.get(diagnostic)!
+        let decorate = diagnosticToColor.get(diagnostic) ?? ((x) => x)
         diagnosticToColor.set(next, decorate)
 
         let skipWhitespaceAmount =
@@ -478,19 +478,18 @@ function reportBlock(
 
           // Force the same context on the split diagnostics
           // TODO: Do we want to connect the lines visually?
-          if (false) {
-            if (diagnostic.context == null) {
-              let context = Buffer.from(JSON.stringify(diagnostic.loc)).toString('base64')
-              diagnostic.context = context
-              next.context = context
+          // biome-ignore lint/correctness/noConstantCondition: tmp
+          if (false && diagnostic.context == null) {
+            let context = Buffer.from(JSON.stringify(diagnostic.loc)).toString('base64')
+            diagnostic.context = context
+            next.context = context
 
-              let byContext = diagnosticsByContext.get(context) ?? []
-              byContext.push(diagnostic, next)
-              diagnosticsByContext.set(context, byContext)
+            let byContext = diagnosticsByContext.get(context) ?? []
+            byContext.push(diagnostic, next)
+            diagnosticsByContext.set(context, byContext)
 
-              // TODO: Should not be needed
-              contextIdentifiers = Array.from(diagnosticsByContext.keys())
-            }
+            // TODO: Should not be needed
+            contextIdentifiers = Array.from(diagnosticsByContext.keys())
           }
 
           // TODO: Why is this needed?
@@ -530,7 +529,10 @@ function reportBlock(
     let lastDiagnostic = diagnostics[diagnostics.length - 1]
     let lastPosition = (() => {
       if (lastDiagnostic.type === 'combined') {
-        let { col, len } = lastDiagnostic.locations?.[lastDiagnostic.locations.length - 1]!
+        let { col, len } = lastDiagnostic.locations?.[lastDiagnostic.locations.length - 1] ?? {
+          col: 0,
+          len: 0,
+        }
         return col + len + 1 /* Spacing */
       }
 
@@ -538,8 +540,8 @@ function reportBlock(
     })()
 
     for (let [idx, diagnostic] of diagnostics.entries()) {
-      let decorate = diagnosticToColor.get(diagnostic)!
-      let rowIdx = output.indexOf(lineNumberToRow.get(lineNumber)!)
+      let decorate = diagnosticToColor.get(diagnostic) ?? ((x) => x)
+      let rowIdx = output.indexOf(lineNumberToRow.get(lineNumber) ?? [])
 
       let nextLine = output[rowIdx + 1] ?? inject(rowIdx + 1)
 
@@ -595,7 +597,7 @@ function reportBlock(
         let nextLine = output[nextLineIdx] ?? inject(nextLineIdx)
 
         if (diagnostic.type === 'combined') {
-          for (let { col, len } of diagnostic.locations!) {
+          for (let { col, len } of diagnostic.locations ?? []) {
             let attachmentIdx = col + Math.floor((len - 1) / 2) + 1 // Center of the highlighted word
 
             nextLine[attachmentIdx] = createDiagnosticCell(
@@ -659,7 +661,7 @@ function reportBlock(
       }
 
       if (diagnostic.type === 'combined') {
-        for (let { col, len } of diagnostic.locations?.slice(1)) {
+        for (let { col, len } of diagnostic.locations?.slice(1) ?? []) {
           let attachmentIdx = col + Math.floor((len - 1) / 2) + 1
 
           // Underline
@@ -760,7 +762,7 @@ function reportBlock(
           }
 
           // Fill in the blanks for all diagnostics that are not the first nor the last one, just
-          // the inbetween ones.
+          // the in between ones.
           if (
             idx !== 0 &&
             diagnostics.filter(
@@ -805,7 +807,8 @@ function reportBlock(
       currentRow.every((c) => c.type & Type.Whitespace)
     ) {
       // Drop information about this line
-      lineNumberToRow.delete(rowToLineNumber.get(currentRow)!)
+      let number = rowToLineNumber.get(currentRow)
+      if (number !== undefined) lineNumberToRow.delete(number)
       rowToLineNumber.delete(output[rowIdx])
 
       // Remove line from output
@@ -841,8 +844,8 @@ function reportBlock(
     if (!hasType(currentRow, Type.Code | Type.ContextLine)) continue
     if (!hasType(previousRow, Type.Code | Type.ContextLine)) continue
 
-    let currentLineNumber = rowToLineNumber.get(currentRow)!
-    let previousLineNumber = rowToLineNumber.get(previousRow)!
+    let currentLineNumber = rowToLineNumber.get(currentRow) ?? 0
+    let previousLineNumber = rowToLineNumber.get(previousRow) ?? 0
 
     if (((currentLineNumber - previousLineNumber) | 0) > 1) {
       // Inject empty line between a code line and a non-code line. This will
@@ -858,38 +861,38 @@ function reportBlock(
     if (seen.has(diagnostic.context)) continue
     seen.add(diagnostic.context)
 
-    let decorate = diagnosticToColor.get(diagnostic)!
+    let decorate = diagnosticToColor.get(diagnostic) ?? ((x) => x)
     let offset =
       1 /* Offset for the gutter line */ +
       contextIdentifiers.indexOf(diagnostic.context) *
         2 /* To have some breathing room between each line */
 
     let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context)?.slice()
-    let startRowIdx = diagnosticsInContext.reduce(
+    let startRowIdx = (diagnosticsInContext ?? []).reduce(
       (smallestRowIdx, diagnostic) => Math.min(smallestRowIdx, diagnostic.loc.row),
       Number.POSITIVE_INFINITY,
     )
-    startRowIdx = output.indexOf(lineNumberToRow.get(startRowIdx)!) + 3
-    let endRowIdx = diagnosticsInContext.reduce(
+    startRowIdx = output.indexOf(lineNumberToRow.get(startRowIdx) ?? []) + 3
+    let endRowIdx = (diagnosticsInContext ?? []).reduce(
       (largestRowIdx, diagnostic) => Math.max(largestRowIdx, diagnostic.loc.row),
       Number.NEGATIVE_INFINITY,
     )
-    endRowIdx = output.indexOf(lineNumberToRow.get(endRowIdx)!) + 1
+    endRowIdx = output.indexOf(lineNumberToRow.get(endRowIdx) ?? []) + 1
 
     // Diagnostics in this group in between the start & end positions
-    let inbetweenPositions = new Set<number>()
-    for (let diagnostic of diagnosticsInContext.slice(1, -1)) {
-      let row = lineNumberToRow.get(diagnostic.loc.row)!
+    let inBetweenPositions = new Set<number>()
+    for (let diagnostic of (diagnosticsInContext ?? []).slice(1, -1)) {
+      let row = lineNumberToRow.get(diagnostic.loc.row) ?? []
       let rowIdx = output.indexOf(row)
 
-      inbetweenPositions.add(
+      inBetweenPositions.add(
         rowIdx +
           2 /* Because we have 2 lines below the actual diagnostic. 1 underline, 1 rounded corner */,
       )
     }
 
     for (let position = startRowIdx; position <= endRowIdx; position++) {
-      if (inbetweenPositions.has(position)) {
+      if (inBetweenPositions.has(position)) {
         output[position][offset] = createDiagnosticCell(decorate(CHARS.LConnector))
       } else {
         output[position][offset] = createDiagnosticCell(decorate(CHARS.V))
@@ -1161,7 +1164,7 @@ export function printer(
   let files = new Set(diagnostics.map((d) => d.file))
   let optimizedSources = new Map(
     Array.from(files).map((file) => {
-      return [file, prepareSource(sources.get(file)!, file)]
+      return [file, prepareSource(sources.get(file) ?? '', file)]
     }),
   )
 
