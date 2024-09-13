@@ -2,10 +2,12 @@ import { printer as basePrinter } from '~/printer/printer'
 import type { Diagnostic } from '~/types'
 import { dedent } from '~/utils/dedent'
 
-const ANSI = /(?:\x9B|\x1B\[)([0-?]*)([ -\/]*)[@-~]/g
-const offs = [22, 23, 24, 27, 28, 29, 39, 49]
+// biome-ignore lint/suspicious/noControlCharactersInRegex: We do need `\x1B`…
+const ESCAPE = /(?:\x9B|\x1B\[)([0-?]*)([ -\/]*)[@-~]/g
 
-const ansiStyleMap = new Map([
+const OFFS = [22, 23, 24, 27, 28, 29, 39, 49]
+
+const ANSI_STYLE_MAP = new Map([
   [1, '<span class="font-bold">'], // bold
   [2, '<span class="text-gray-400/70">'], // dim
   [3, '<span class="italic">'], // italic
@@ -15,7 +17,7 @@ const ansiStyleMap = new Map([
   [9, '<span class="line-through">'], // strikethrough
 ])
 
-const ansiTextColorMap = new Map([
+const ANSI_TEXT_COLOR_MAP = new Map([
   [30, '<span class="text-black">'], // black
   [31, '<span class="text-red-600 dark:text-red-400">'], // red
   [32, '<span class="text-green-600 dark:text-green-400">'], // green
@@ -27,7 +29,7 @@ const ansiTextColorMap = new Map([
   [90, '<span class="text-gray-800 dark:text-gray-400">'], // gray
 ])
 
-const ansiBackgroundColorMap = new Map([
+const ANSI_BACKGROUND_COLOR_MAP = new Map([
   [40, '<span class="bg-black">'], // black
   [41, '<span class="bg-red-600 dark:bg-red-400">'], // red
   [42, '<span class="bg-green-600 dark:bg-green-400">'], // green
@@ -38,7 +40,7 @@ const ansiBackgroundColorMap = new Map([
   [47, '<span class="bg-white">'], // white
 ])
 
-const ansiMap = new Map([...ansiStyleMap, ...ansiTextColorMap, ...ansiBackgroundColorMap])
+const ANSI_MAP = new Map([...ANSI_STYLE_MAP, ...ANSI_TEXT_COLOR_MAP, ...ANSI_BACKGROUND_COLOR_MAP])
 
 const html = String.raw
 const template = dedent(html`
@@ -87,9 +89,11 @@ export async function printer(
       message
         .split('\n')
         .map((line) =>
-          line.replace(ANSI, (_, code) => {
-            if (offs.includes(+code)) return '</span>'
-            if (ansiMap.has(+code)) return ansiMap.get(+code)!
+          line.replace(ESCAPE, (_, code) => {
+            if (OFFS.includes(+code)) return '</span>'
+
+            let ansi = ANSI_MAP.get(+code)
+            if (ansi !== undefined) return ansi
 
             return _
           }),

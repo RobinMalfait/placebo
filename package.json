@@ -16,12 +16,8 @@
     "preexamples:generate-readme": "npm run build",
     "postinstall": "if [ -e .placebo-post-install ]; then npm install --prefix examples; fi"
   },
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "diagnostics"
-  ],
+  "files": ["dist"],
+  "keywords": ["diagnostics"],
   "author": "Robin Malfait",
   "license": "MIT",
   "devDependencies": {
