@@ -1,11 +1,11 @@
 import pc from 'picocolors'
 import prettier from 'prettier'
-import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
-import { dedent } from '~/utils/dedent'
+import {clearAnsiEscapes, highlightCode, rasterizeCode} from '~/utils/highlight-code'
+import {dedent} from '~/utils/dedent'
 import CHARS from '~/printer/char-maps/fancy'
 
 function parseTable(input: string) {
-  let result: { widths: number[]; styles: ('left' | 'center' | 'right')[]; data: string[][] } = {
+  let result: {widths: number[]; styles: ('left' | 'center' | 'right')[]; data: string[][]} = {
     widths: [],
     styles: [],
     data: [],
@@ -70,8 +70,8 @@ function parseMarkdown(input: string, availableSpace: number) {
                   let color = diffs[idx].startsWith('+')
                     ? pc.green
                     : diffs[idx].startsWith('-')
-                    ? pc.red
-                    : (v: string) => v
+                      ? pc.red
+                      : (v: string) => v
                   return `${color(diffs[idx])}${row}`
                 })
                 .join('\n')
@@ -140,14 +140,14 @@ function parseMarkdown(input: string, availableSpace: number) {
 
       // Tables
       .replace(/(\n?(\|.+\|\n)+)/gim, (table) => {
-        let { widths, styles, data } = parseTable(table)
+        let {widths, styles, data} = parseTable(table)
 
         // Format data
         let output = data.map((row, rowIdx) =>
           [
             pc.dim(
               `${rowIdx === 0 ? CHARS.TLSquare : CHARS.LConnector}${CHARS.H}${widths
-                .map((width, idx) => CHARS.H.repeat(width))
+                .map((width) => CHARS.H.repeat(width))
                 .join(
                   `${CHARS.H}${rowIdx === 0 ? CHARS.TConnector : CHARS.SConnector}${CHARS.H}`
                 )}${CHARS.H}${rowIdx === 0 ? CHARS.TRSquare : CHARS.RConnector}`
@@ -172,12 +172,12 @@ function parseMarkdown(input: string, availableSpace: number) {
               .join(` ${pc.dim(CHARS.V)} `)} ${pc.dim(CHARS.V)}`,
             ...(rowIdx === data.length - 1
               ? [
-                  pc.dim(
-                    `${CHARS.BLSquare}${CHARS.H}${widths
-                      .map((width) => CHARS.H.repeat(width))
-                      .join(`${CHARS.H}${CHARS.BConnector}${CHARS.H}`)}${CHARS.H}${CHARS.BRSquare}`
-                  ),
-                ]
+                pc.dim(
+                  `${CHARS.BLSquare}${CHARS.H}${widths
+                    .map((width) => CHARS.H.repeat(width))
+                    .join(`${CHARS.H}${CHARS.BConnector}${CHARS.H}`)}${CHARS.H}${CHARS.BRSquare}`
+                ),
+              ]
               : []),
           ].join('\n')
         )
