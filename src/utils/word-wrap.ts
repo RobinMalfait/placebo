@@ -17,13 +17,13 @@ export function wordWrap(text: string, width: number) {
     }
   }
 
-  let minima = [0, ...Array(count).fill(Infinity)]
+  let minima = [0, ...Array(count).fill(Number.POSITIVE_INFINITY)]
   let breaks = Array(count).fill(0)
 
   for (let j of range(count)) {
     let i = j
     while (i >= 0) {
-      let cost = slack[i][j] < 0 ? Infinity : minima[i] + slack[i][j] ** 2
+      let cost = slack[i][j] < 0 ? Number.POSITIVE_INFINITY : minima[i] + slack[i][j] ** 2
       if (minima[j + 1] > cost) {
         minima[j + 1] = cost
         breaks[j] = i

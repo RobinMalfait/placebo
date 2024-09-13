@@ -4,9 +4,9 @@ export function dedent(input: string) {
   let amount = Math.min(
     ...lines.map((line) => {
       let idx = line.search(/[^\s]/g)
-      if (idx === -1) return Infinity
+      if (idx === -1) return Number.POSITIVE_INFINITY
       return idx
-    })
+    }),
   )
   return lines
     .map((line) => line.slice(amount))

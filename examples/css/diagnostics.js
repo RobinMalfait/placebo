@@ -1,12 +1,12 @@
-let fs = require('fs/promises')
-let { randomUUID } = require('crypto')
+const fs = require('node:fs/promises')
+const { randomUUID } = require('node:crypto')
 
-let postcss = require('postcss')
+const postcss = require('postcss')
 
-let list = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
-let alphabetically = new Intl.Collator().compare
+const list = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
+const alphabetically = new Intl.Collator().compare
 
-let issues = [
+const issues = [
   [
     ['display', 'inline'],
     ['width', 'height', 'margin', 'margin-top', 'margin-bottom', 'float'],
@@ -62,7 +62,7 @@ module.exports = async function run(files) {
                   decl.source.start.column,
                   value === undefined
                     ? decl.prop.length
-                    : decl.source.end.column - decl.source.start.column + 1
+                    : decl.source.end.column - decl.source.start.column + 1,
                 ),
               })
 
@@ -89,8 +89,8 @@ module.exports = async function run(files) {
                         list.format(
                           Array.from(issues)
                             .sort(alphabetically)
-                            .map((v) => `"${v}"`)
-                        )
+                            .map((v) => `"${v}"`),
+                        ),
                       )
                     },
                     location: location(
@@ -98,7 +98,7 @@ module.exports = async function run(files) {
                       otherDecl.source.start.column,
                       value === undefined
                         ? otherDecl.prop.length
-                        : otherDecl.source.end.column - otherDecl.source.start.column + 1
+                        : otherDecl.source.end.column - otherDecl.source.start.column + 1,
                     ),
                   })
                 }
@@ -110,7 +110,7 @@ module.exports = async function run(files) {
         // Declaration with value 0px, 0rem, ... should just be `0`
         root.walkDecls((decl) => {
           if (decl.value === '0') return
-          if (parseInt(decl.value, 10) !== 0) return
+          if (Number.parseInt(decl.value, 10) !== 0) return
 
           diagnostics.push({
             file,
@@ -118,7 +118,7 @@ module.exports = async function run(files) {
             location: location(
               decl.source.start.line,
               decl.source.end.column - decl.value.length,
-              decl.value.length
+              decl.value.length,
             ),
           })
         })

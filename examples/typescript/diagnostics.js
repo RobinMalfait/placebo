@@ -1,6 +1,6 @@
-let { randomUUID: uuid } = require('crypto')
-let path = require('path')
-let ts = require('typescript')
+const { randomUUID: uuid } = require('node:crypto')
+const path = require('node:path')
+const ts = require('typescript')
 
 function location(row, col, len = 1) {
   return [
@@ -48,8 +48,8 @@ module.exports = async function run(files) {
             notes: [`\`TS${diagnostic.code}\` (https://typescript.tv/errors/#TS${diagnostic.code})`]
               .filter(Boolean)
               .join('\n'),
-          }
-        )
+          },
+        ),
       )
 
       // Related files
@@ -60,13 +60,11 @@ module.exports = async function run(files) {
             other.file.fileName,
             ts.flattenDiagnosticMessageText(other.messageText, '\n'),
             location(line + 1, character + 1, diagnostic.length),
-            { context: id }
-          )
+            { context: id },
+          ),
         )
       }
-    } catch {
-      continue
-    }
+    } catch {}
   }
 
   return diagnostics

@@ -1,5 +1,5 @@
 /* eslint-disable */
-let { ESLint } = require('eslint')
+const { ESLint } = require('eslint')
 
 function severity(input) {
   return {

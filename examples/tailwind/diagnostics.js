@@ -1,9 +1,9 @@
-let fs = require('fs/promises')
-let { randomUUID } = require('crypto')
+const fs = require('node:fs/promises')
+const { randomUUID } = require('node:crypto')
 
-let { parser: parse } = require('posthtml-parser')
+const { parser: parse } = require('posthtml-parser')
 
-let classCollisions = [
+const classCollisions = [
   [
     [
       'block',
@@ -234,8 +234,8 @@ module.exports = async function run(files) {
                     ? `Colliding classes, they operate on the same "${property}" property.`
                     : 'Colliding classes.',
                   location(node.location.start.line, line.indexOf(fullOther) + 1, fullOther.length),
-                  { block }
-                )
+                  { block },
+                ),
               )
             }
 
@@ -276,8 +276,8 @@ module.exports = async function run(files) {
                      \`\`\`
                   `
                     : undefined,
-                }
-              )
+                },
+              ),
             )
             isFirst = false
           }

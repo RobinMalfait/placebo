@@ -1,11 +1,11 @@
 import { printer as basePrinter } from '~/printer/printer'
-import { Diagnostic } from '~/types'
+import type { Diagnostic } from '~/types'
 import { dedent } from '~/utils/dedent'
 
-let ANSI = /(?:\x9B|\x1B\[)([0-?]*)([ -\/]*)[@-~]/g
-let offs = [22, 23, 24, 27, 28, 29, 39, 49]
+const ANSI = /(?:\x9B|\x1B\[)([0-?]*)([ -\/]*)[@-~]/g
+const offs = [22, 23, 24, 27, 28, 29, 39, 49]
 
-let ansiStyleMap = new Map([
+const ansiStyleMap = new Map([
   [1, '<span class="font-bold">'], // bold
   [2, '<span class="text-gray-400/70">'], // dim
   [3, '<span class="italic">'], // italic
@@ -15,7 +15,7 @@ let ansiStyleMap = new Map([
   [9, '<span class="line-through">'], // strikethrough
 ])
 
-let ansiTextColorMap = new Map([
+const ansiTextColorMap = new Map([
   [30, '<span class="text-black">'], // black
   [31, '<span class="text-red-600 dark:text-red-400">'], // red
   [32, '<span class="text-green-600 dark:text-green-400">'], // green
@@ -27,7 +27,7 @@ let ansiTextColorMap = new Map([
   [90, '<span class="text-gray-800 dark:text-gray-400">'], // gray
 ])
 
-let ansiBackgroundColorMap = new Map([
+const ansiBackgroundColorMap = new Map([
   [40, '<span class="bg-black">'], // black
   [41, '<span class="bg-red-600 dark:bg-red-400">'], // red
   [42, '<span class="bg-green-600 dark:bg-green-400">'], // green
@@ -38,10 +38,10 @@ let ansiBackgroundColorMap = new Map([
   [47, '<span class="bg-white">'], // white
 ])
 
-let ansiMap = new Map([...ansiStyleMap, ...ansiTextColorMap, ...ansiBackgroundColorMap])
+const ansiMap = new Map([...ansiStyleMap, ...ansiTextColorMap, ...ansiBackgroundColorMap])
 
-let html = String.raw
-let template = dedent(html`
+const html = String.raw
+const template = dedent(html`
   <!DOCTYPE html>
   <html lang="en" class="antialised bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
     <head>
@@ -63,7 +63,7 @@ let template = dedent(html`
 export async function printer(
   sources: Map<string, string>,
   diagnostics: Diagnostic[],
-  write = console.log
+  write = console.log,
 ) {
   function wrap(input: string) {
     return `<div class="bg-white dark:bg-gray-900 px-4 py-8 leading-tight font-mono rounded-lg shadow-md overflow-auto"><pre>${input}</pre></div>`
@@ -92,9 +92,9 @@ export async function printer(
             if (ansiMap.has(+code)) return ansiMap.get(+code)!
 
             return _
-          })
+          }),
         )
-        .join('\n')
+        .join('\n'),
     )
   })
 

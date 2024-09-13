@@ -1,5 +1,5 @@
-let fs = require('fs/promises')
-let { randomUUID } = require('crypto')
+const fs = require('node:fs/promises')
+const { randomUUID } = require('node:crypto')
 
 module.exports = async function run(files) {
   files = [].concat(files)

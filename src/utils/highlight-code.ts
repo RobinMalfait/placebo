@@ -1,9 +1,10 @@
 import { highlight, plain, supportsLanguage } from 'cli-highlight'
 import pc from 'picocolors'
 
-let ESCAPE = /((?:\x9B|\x1B\[)[0-?]*[ -\/]*[@-~])/g
+// biome-ignore lint/suspicious/noControlCharactersInRegex: We do need `\x1B`…
+const ESCAPE = /((?:\x9B|\x1B\[)[0-?]*[ -\/]*[@-~])/g
 
-let ansiStyleMap = new Map([
+const ANSI_STYLE_MAP = new Map([
   ['\x1B[1m', '\x1B[22m'], // bold
   ['\x1B[2m', '\x1B[22m'], // dim
   ['\x1B[3m', '\x1B[23m'], // italic
@@ -13,7 +14,7 @@ let ansiStyleMap = new Map([
   ['\x1B[9m', '\x1B[29m'], // strikethrough
 ])
 
-let ansiTextColorMap = new Map([
+const ANSI_TEXT_COLOR_MAP = new Map([
   ['\x1B[30m', '\x1B[39m'], // black
   ['\x1B[31m', '\x1B[39m'], // red
   ['\x1B[32m', '\x1B[39m'], // green
@@ -25,7 +26,7 @@ let ansiTextColorMap = new Map([
   ['\x1B[90m', '\x1B[39m'], // gray
 ])
 
-let ansiBackgroundColorMap = new Map([
+const ANSI_BACKGROUND_COLOR_MAP = new Map([
   ['\x1B[40m', '\x1B[49m'], // black
   ['\x1B[41m', '\x1B[49m'], // red
   ['\x1B[42m', '\x1B[49m'], // green
@@ -36,12 +37,12 @@ let ansiBackgroundColorMap = new Map([
   ['\x1B[47m', '\x1B[49m'], // white
 ])
 
-let ansiMap = new Map<string, string>([
-  ...ansiStyleMap,
-  ...ansiTextColorMap,
-  ...ansiBackgroundColorMap,
+const ANSI_MAP = new Map<string, string>([
+  ...ANSI_STYLE_MAP,
+  ...ANSI_TEXT_COLOR_MAP,
+  ...ANSI_BACKGROUND_COLOR_MAP,
 ])
-let offs = new Set(ansiMap.values())
+const OFFS = new Set(ANSI_MAP.values())
 
 export function highlightCode(code: string, language: string) {
   return highlight(code, {
@@ -78,22 +79,22 @@ export function rasterizeCode(input: string) {
   return input.split('\n').map((row) => {
     return row.split(ESCAPE).flatMap((current) => {
       if (current.startsWith('\x1B[')) {
-        // - If ansi escape is an "off" ansi escape, remove last item from the stack (assuming that
-        //   the ansi escapes are in proper order)
-        // - If ansi escape is a text color, drop all other text colors from the stack, push
-        //   current ansi escape.
-        // - If ansi escape is a background color, drop all other background colors from the stack, push
-        //   current ansi escape.
-        if (offs.has(current)) {
+        // - If ansi escape is an "off" ansi escape, remove last item from the
+        //   stack (assuming that the ansi escapes are in proper order)
+        // - If ansi escape is a text color, drop all other text colors from the
+        //   stack, push current ansi escape.
+        // - If ansi escape is a background color, drop all other background
+        //   colors from the stack, push current ansi escape.
+        if (OFFS.has(current)) {
           stack.pop()
         } else {
           // Text color
-          if (ansiTextColorMap.has(current)) {
-            stack = stack.filter((value) => !ansiTextColorMap.has(value))
+          if (ANSI_TEXT_COLOR_MAP.has(current)) {
+            stack = stack.filter((value) => !ANSI_TEXT_COLOR_MAP.has(value))
           }
           // Background color
-          else if (ansiBackgroundColorMap.has(current)) {
-            stack = stack.filter((value) => !ansiBackgroundColorMap.has(value))
+          else if (ANSI_BACKGROUND_COLOR_MAP.has(current)) {
+            stack = stack.filter((value) => !ANSI_BACKGROUND_COLOR_MAP.has(value))
           }
 
           // Remember current ansi escape
@@ -107,11 +108,11 @@ export function rasterizeCode(input: string) {
       let after = stack
         .slice()
         .reverse()
-        .map((ansi) => ansiMap.get(ansi))
+        .map((ansi) => ANSI_MAP.get(ansi))
         .join('')
 
-      // Wrap each character in whatever is on the stack and close it again once we are done with
-      // the character.
+      // Wrap each character in whatever is on the stack and close it again once
+      // we are done with the character.
       return current.split('').flatMap((character) => `${before}${character}${after}`)
     })
   })

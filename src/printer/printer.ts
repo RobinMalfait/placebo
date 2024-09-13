@@ -1,21 +1,20 @@
-import path from 'path'
+import path from 'node:path'
 import pc from 'picocolors'
-import type { Diagnostic, InternalDiagnostic } from '~/types'
-
 import { env } from '~/env'
+import CHARS from '~/printer/char-maps/fancy'
+import { parseNotes } from '~/printer/parse-notes'
+import type { Diagnostic, InternalDiagnostic } from '~/types'
 import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
 import { range } from '~/utils/range'
 import { wordWrap } from '~/utils/word-wrap'
-import { parseNotes } from '~/printer/parse-notes'
-import CHARS from '~/printer/char-maps/fancy'
 
-let COLORS = [pc.yellow, pc.red, pc.blue, pc.magenta, pc.cyan, pc.green]
+const COLORS = [pc.yellow, pc.red, pc.blue, pc.magenta, pc.cyan, pc.green]
 
 // The default indentation to add some padding in the box.
-let PADDING = 3
+const PADDING = 3
 
 // The margin before the line numbers
-let MARGIN = 2
+const MARGIN = 2
 
 enum Type {
   None = 0,
@@ -57,7 +56,7 @@ function createDiagnosticCell(value: string, type = Type.None) {
   return createCell(value, type | Type.Diagnostic)
 }
 
-function createWhitespaceCell(value: string = ' ') {
+function createWhitespaceCell(value = ' ') {
   return { type: Type.Whitespace, value }
 }
 
@@ -78,7 +77,7 @@ function typeCode(input: string[][]): Item[] {
       if (clearAnsiEscapes(value) === ' ') type |= Type.Whitespace
 
       return { type, value }
-    })
+    }),
   )
 }
 
@@ -89,13 +88,13 @@ function prepareSource(source: string, file: string) {
 function reportBlock(
   sources: Map<string, Item[]>,
   diagnostics: InternalDiagnostic[],
-  write: (input: string) => void
+  write: (input: string) => void,
 ) {
   // Group by same line
   let groupedByRow = new Map<number, InternalDiagnostic[]>()
   for (let diagnostic of diagnostics) {
     if (groupedByRow.has(diagnostic.loc.row)) {
-      groupedByRow.get(diagnostic.loc.row)!.push(diagnostic)
+      groupedByRow.get(diagnostic.loc.row)?.push(diagnostic)
     } else {
       groupedByRow.set(diagnostic.loc.row, [diagnostic])
     }
@@ -116,14 +115,14 @@ function reportBlock(
     for (let [idx, line] of code.slice(beforeStart, lineNumber).entries()) {
       printableLines.set(
         beforeStart + idx,
-        line.map((x) => ({ ...x }))
+        line.map((x) => ({ ...x })),
       )
     }
 
     // Line with diagnostics
     printableLines.set(
       lineNumber,
-      code[lineNumber].map((x) => ({ ...x }))
+      code[lineNumber].map((x) => ({ ...x })),
     )
 
     // After context lines
@@ -131,7 +130,7 @@ function reportBlock(
     for (let [idx, line] of code.slice(lineNumber + 1, afterEnd).entries()) {
       printableLines.set(
         lineNumber + 1 + idx,
-        line.map((x) => ({ ...x }))
+        line.map((x) => ({ ...x })),
       )
     }
   }
@@ -153,15 +152,15 @@ function reportBlock(
   }
 
   // Strip leading whitespace
-  let smallestIndentWidth = Infinity
+  let smallestIndentWidth = Number.POSITIVE_INFINITY
   for (let line of printableLines.values()) {
     if (line.length === 0) continue // Empty line
     smallestIndentWidth = Math.min(
       smallestIndentWidth,
       Math.max(
         0,
-        line.findIndex((v) => !(v.type & Type.Whitespace))
-      )
+        line.findIndex((v) => !(v.type & Type.Whitespace)),
+      ),
     )
   }
 
@@ -169,7 +168,7 @@ function reportBlock(
   // correctly. E.g.: When we have 420 lines of code, then this number will be
   // `3`, because that's the amount of characters it requires.
   let lineNumberGutterWidth = Array.from(printableLines.keys())
-    .reduce((max, lineNumber) => Math.max(max, lineNumber + 1), -Infinity)
+    .reduce((max, lineNumber) => Math.max(max, lineNumber + 1), Number.NEGATIVE_INFINITY)
     .toString().length
 
   // Compute available working space (excluding the frame and all of that...)
@@ -220,7 +219,7 @@ function reportBlock(
     if (!diagnostic.context) continue
 
     if (diagnosticsByContext.has(diagnostic.context)) {
-      diagnosticsByContext.get(diagnostic.context)!.push(diagnostic)
+      diagnosticsByContext.get(diagnostic.context)?.push(diagnostic)
     } else {
       diagnosticsByContext.set(diagnostic.context, [diagnostic])
     }
@@ -313,13 +312,16 @@ function reportBlock(
       else {
         let whitespaceIndent = line.findIndex((v) => !(v.type & Type.Whitespace))
         let [before, current, after] = [-1, 0, 1].map((offset) =>
-          Math.max(code[lineNumber + offset]?.findIndex((v) => !(v.type & Type.Whitespace)) ?? 0, 0)
+          Math.max(
+            code[lineNumber + offset]?.findIndex((v) => !(v.type & Type.Whitespace)) ?? 0,
+            0,
+          ),
         )
         let indent = Math.min(
           8, // 8+ indents is just crazy...
           Math.abs(before - current) ||
             Math.abs(current - after) ||
-            0 /* A default indent of 0 characters if we can't figure it out based on previous and next lines */
+            0 /* A default indent of 0 characters if we can't figure it out based on previous and next lines */,
         )
         let forcedIndent = whitespaceIndent + indent
         forcedIndentByLineNumber.set(lineNumber, forcedIndent)
@@ -598,20 +600,18 @@ function reportBlock(
 
             nextLine[attachmentIdx] = createDiagnosticCell(
               decorate(CHARS.V),
-              Type.DiagnosticVerticalConnector
+              Type.DiagnosticVerticalConnector,
             )
           }
         } else {
           nextLine[connectorIdx] = createDiagnosticCell(
             decorate(CHARS.V),
-            Type.DiagnosticVerticalConnector
+            Type.DiagnosticVerticalConnector,
           )
         }
       }
 
-      let lastLineIdx = Boolean(diagnostic.context)
-        ? rowIdx + 2
-        : rowIdx + (diagnostics.length - idx) + 1
+      let lastLineIdx = diagnostic.context ? rowIdx + 2 : rowIdx + (diagnostics.length - idx) + 1
 
       let lastLine = output[lastLineIdx] ?? inject(lastLineIdx)
 
@@ -622,7 +622,7 @@ function reportBlock(
       // Rounded corner
       if (!diagnostic.context) {
         lastLine[connectorIdx] = createDiagnosticCell(
-          decorate(lastLine[connectorIdx] === undefined ? CHARS.BLRound : CHARS.LConnector)
+          decorate(lastLine[connectorIdx] === undefined ? CHARS.BLRound : CHARS.LConnector),
         )
       } else {
         if (isLastDiagnosticInContext(diagnostic)) {
@@ -659,7 +659,7 @@ function reportBlock(
       }
 
       if (diagnostic.type === 'combined') {
-        for (let { col, len } of diagnostic.locations!.slice(1)) {
+        for (let { col, len } of diagnostic.locations?.slice(1)) {
           let attachmentIdx = col + Math.floor((len - 1) / 2) + 1
 
           // Underline
@@ -672,7 +672,7 @@ function reportBlock(
 
           // Connect to the friend line below
           output[rowIdx + 1 + (diagnostics.length - idx)][attachmentIdx] = createDiagnosticCell(
-            decorate(CHARS.BConnector)
+            decorate(CHARS.BConnector),
           )
         }
       }
@@ -694,7 +694,7 @@ function reportBlock(
         if (!mustBeMultiLine && availableSpace >= diagnostic.message.length) {
           lastLine.push(
             createCell(' ', Type.Diagnostic | Type.Whitespace),
-            ...diagnostic.message.split('').map((v) => createDiagnosticCell(decorate(v)))
+            ...diagnostic.message.split('').map((v) => createDiagnosticCell(decorate(v))),
           )
         } else {
           // For the additional character that we are about to put in front of the multi-line
@@ -724,10 +724,10 @@ function reportBlock(
 
           // The "before" box art
           output[output.indexOf(lastLine) - 1][lastLineOffset - 1] = createDiagnosticCell(
-            decorate(CHARS.TLRound)
+            decorate(CHARS.TLRound),
           )
           output[output.indexOf(lastLine) - 1][lastLineOffset] = createDiagnosticCell(
-            decorate(CHARS.H)
+            decorate(CHARS.H),
           )
 
           // Override the default `-` with a `|` to make the box look like a box.
@@ -737,13 +737,13 @@ function reportBlock(
             if (idx !== 0) {
               lastLine.push(
                 /* (1*) This extra character is why we added `availableSpace -= 1` */
-                createDiagnosticCell(decorate(CHARS.V))
+                createDiagnosticCell(decorate(CHARS.V)),
               )
             }
 
             lastLine.push(
               createCell(' ', Type.Diagnostic | Type.Whitespace),
-              ...sentence.split('').map((v) => createDiagnosticCell(decorate(v)))
+              ...sentence.split('').map((v) => createDiagnosticCell(decorate(v))),
             )
 
             lastLine = injectIfEnoughRoom(output.indexOf(lastLine) + 1, lastLineOffset - 1)
@@ -764,7 +764,7 @@ function reportBlock(
           if (
             idx !== 0 &&
             diagnostics.filter(
-              (d) => d.loc.row === diagnostic.loc.row && d.loc.col === diagnostic.loc.col
+              (d) => d.loc.row === diagnostic.loc.row && d.loc.col === diagnostic.loc.col,
             ).length > 1
           ) {
             let offset = 0
@@ -778,7 +778,7 @@ function reportBlock(
           // The "after" box art
           lastLine.push(
             createDiagnosticCell(decorate(CHARS.BLRound)),
-            createDiagnosticCell(decorate(CHARS.H))
+            createDiagnosticCell(decorate(CHARS.H)),
           )
         }
       }
@@ -864,15 +864,15 @@ function reportBlock(
       contextIdentifiers.indexOf(diagnostic.context) *
         2 /* To have some breathing room between each line */
 
-    let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context)!.slice()
+    let diagnosticsInContext = diagnosticsByContext.get(diagnostic.context)?.slice()
     let startRowIdx = diagnosticsInContext.reduce(
       (smallestRowIdx, diagnostic) => Math.min(smallestRowIdx, diagnostic.loc.row),
-      Infinity
+      Number.POSITIVE_INFINITY,
     )
     startRowIdx = output.indexOf(lineNumberToRow.get(startRowIdx)!) + 3
     let endRowIdx = diagnosticsInContext.reduce(
       (largestRowIdx, diagnostic) => Math.max(largestRowIdx, diagnostic.loc.row),
-      -Infinity
+      Number.NEGATIVE_INFINITY,
     )
     endRowIdx = output.indexOf(lineNumberToRow.get(endRowIdx)!) + 1
 
@@ -884,7 +884,7 @@ function reportBlock(
 
       inbetweenPositions.add(
         rowIdx +
-          2 /* Because we have 2 lines below the actual diagnostic. 1 underline, 1 rounded corner */
+          2 /* Because we have 2 lines below the actual diagnostic. 1 underline, 1 rounded corner */,
       )
     }
 
@@ -898,7 +898,9 @@ function reportBlock(
   }
 
   // NOTES
-  let noteGroups = (Array.from(groupedByRow.values()).flat(Infinity) as InternalDiagnostic[])
+  let noteGroups = (
+    Array.from(groupedByRow.values()).flat(Number.POSITIVE_INFINITY) as InternalDiagnostic[]
+  )
     // We print them from top row to bottom row, however we also print the diagnostic from left to
     // right which means that the left most (first) will be rendered at the bottom, that's why we
     // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
@@ -983,9 +985,9 @@ function reportBlock(
         responsiveFileName(
           ((relative) =>
             relative.startsWith('.') || relative.startsWith('/') ? relative : `./${relative}`)(
-            path.relative(process.cwd(), path.resolve(file))
-          )
-        )
+            path.relative(process.cwd(), path.resolve(file)),
+          ),
+        ),
       ),
       pc.dim(']'),
     ],
@@ -1027,7 +1029,7 @@ function reportBlock(
                 }
 
                 return data.value
-              }
+              },
         ),
       ]
 
@@ -1038,7 +1040,7 @@ function reportBlock(
           lineNumber.length,
           ...(rowType & Type.ContextLine
             ? lineNumber.split('').map((x) => pc.dim(x))
-            : lineNumber.split(''))
+            : lineNumber.split('')),
         )
       }
 
@@ -1071,7 +1073,7 @@ function reportBlock(
       ? [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.V].map((v) => pc.dim(v))
       : null,
     [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.BLSquare, CHARS.H].map((v) =>
-      pc.dim(v)
+      pc.dim(v),
     ),
   ].filter(Boolean) as string[][]
 
@@ -1136,10 +1138,10 @@ function prepareDiagnostics(diagnostics: Diagnostic[]) {
   for (let diagnostic of all) {
     let block = diagnostic.block
       ? diagnostic.file + diagnostic.block // Scope per file and block
-      : diagnostic.file + '-' + diagnostic.loc.row // Scope by file and line number by default
+      : `${diagnostic.file}-${diagnostic.loc.row}` // Scope by file and line number by default
 
     if (grouped.has(block)) {
-      grouped.get(block)!.push(diagnostic)
+      grouped.get(block)?.push(diagnostic)
     } else {
       grouped.set(block, [diagnostic])
     }
@@ -1151,7 +1153,7 @@ function prepareDiagnostics(diagnostics: Diagnostic[]) {
 export function printer(
   sources: Map<string, string>,
   diagnostics: Diagnostic[],
-  write = console.log
+  write = console.log,
 ) {
   env.DEBUG && console.time('[PLACEBO]: Print')
   let diagnosticsPerBlock = prepareDiagnostics(diagnostics)
@@ -1160,7 +1162,7 @@ export function printer(
   let optimizedSources = new Map(
     Array.from(files).map((file) => {
       return [file, prepareSource(sources.get(file)!, file)]
-    })
+    }),
   )
 
   // Report per block, that will be cleaner from a UI perspective

@@ -1,8 +1,8 @@
-let file = './code.css'
+const file = './code.css'
 
 // ---
 
-let { resolve } = require('path')
+const { resolve } = require('node:path')
 
 function run(write = console.log, files = resolve(__dirname, file)) {
   return require('./run')(files, write)

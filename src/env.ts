@@ -1,4 +1,4 @@
-export let env = {
+export const env = {
   // The amount of lines before and after the current line to give more context
   // to the user.
   BEFORE_CONTEXT_LINES_COUNT: parseNumberEnv('PLACEBO_CONTEXT_LINES_BEFORE', 3),
@@ -18,7 +18,7 @@ export let env = {
 
 function parseNumberEnv(name: string, defaultValue: number) {
   let valueAsNumber = Number(process.env[name] ?? defaultValue)
-  return isNaN(valueAsNumber) ? defaultValue : valueAsNumber
+  return Number.isNaN(valueAsNumber) ? defaultValue : valueAsNumber
 }
 
 function parseBooleanEnv(name: string, defaultValue: boolean) {

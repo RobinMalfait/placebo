@@ -1,8 +1,8 @@
-let { parseArgs } = require('node:util')
-let fs = require('fs/promises')
-let { printer, htmlPrinter } = require('../dist')
+const { parseArgs } = require('node:util')
+const fs = require('node:fs/promises')
+const { printer, htmlPrinter } = require('../dist')
 
-let cli = parseArgs({
+const cli = parseArgs({
   allowPositionals: true,
   options: {
     target: {
@@ -15,7 +15,7 @@ let cli = parseArgs({
   },
 }).values
 
-let printers = {
+const printers = {
   default: printer,
   html: htmlPrinter,
 }
@@ -28,8 +28,8 @@ module.exports = (diagnose) => {
         Array.from(new Set(diagnostics.map((d) => d.file))).map(async (file) => [
           file,
           await fs.readFile(file, 'utf8'),
-        ])
-      )
+        ]),
+      ),
     )
     let printer = printers[cli.target ?? 'default'] ?? printers.default
 

@@ -1,5 +1,5 @@
 /* eslint-disable */
-let run = require('../run')(require('./diagnostics'))
+const run = require('../run')(require('./diagnostics'))
 
 if (module.parent === null) {
   run()

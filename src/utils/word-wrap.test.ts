@@ -1,3 +1,4 @@
+import { expect, it } from 'vitest'
 import { wordWrap } from '~/utils/word-wrap'
 
 it('should be possible to wrap a sentence based on a given width', () => {
@@ -14,7 +15,7 @@ it('should optimize real world examples', () => {
   // won't split at all.
   // TODO: Look into even smarter ways to do this.
   expect(
-    wordWrap('Colliding classes, they operate on the same "text-decoration" property.', 15)
+    wordWrap('Colliding classes, they operate on the same "text-decoration" property.', 15),
   ).toEqual([
     'Colliding',
     'classes,',

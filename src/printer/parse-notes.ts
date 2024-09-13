@@ -1,11 +1,11 @@
 import pc from 'picocolors'
 import prettier from 'prettier'
-import {clearAnsiEscapes, highlightCode, rasterizeCode} from '~/utils/highlight-code'
-import {dedent} from '~/utils/dedent'
 import CHARS from '~/printer/char-maps/fancy'
+import { dedent } from '~/utils/dedent'
+import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
 
 function parseTable(input: string) {
-  let result: {widths: number[]; styles: ('left' | 'center' | 'right')[]; data: string[][]} = {
+  let result: { widths: number[]; styles: ('left' | 'center' | 'right')[]; data: string[][] } = {
     widths: [],
     styles: [],
     data: [],
@@ -63,7 +63,7 @@ function parseMarkdown(input: string, availableSpace: number) {
                     return row.slice(2)
                   })
                   .join('\n'),
-                lang
+                lang,
               )
                 .split('\n')
                 .map((row, idx) => {
@@ -76,21 +76,20 @@ function parseMarkdown(input: string, availableSpace: number) {
                 })
                 .join('\n')
               return [
-                indentBefore + pc.dim('```' + lang + (lang === 'diff' ? '' : ' (diff)')),
+                indentBefore + pc.dim(`\`\`\`${lang}${lang === 'diff' ? '' : ' (diff)'}`),
                 highlighted,
                 indentAfter + pc.dim('```'),
               ].join('\n')
-            } else {
-              return [
-                indentBefore + pc.dim('```' + lang),
-                highlightCode(code, lang),
-                indentAfter + pc.dim('```'),
-              ].join('\n')
             }
+            return [
+              indentBefore + pc.dim(`\`\`\`${lang}`),
+              highlightCode(code, lang),
+              indentAfter + pc.dim('```'),
+            ].join('\n')
           } catch (e) {
             return pc.dim(_)
           }
-        }
+        },
       )
 
       // Inline code
@@ -115,7 +114,7 @@ function parseMarkdown(input: string, availableSpace: number) {
           let label = link
 
           return [OSC, '8', SEP, SEP, href, BEL, label, OSC, '8', SEP, SEP, BEL].join('')
-        }
+        },
       )
 
       // Horizontal ruler
@@ -140,7 +139,7 @@ function parseMarkdown(input: string, availableSpace: number) {
 
       // Tables
       .replace(/(\n?(\|.+\|\n)+)/gim, (table) => {
-        let {widths, styles, data} = parseTable(table)
+        let { widths, styles, data } = parseTable(table)
 
         // Format data
         let output = data.map((row, rowIdx) =>
@@ -149,8 +148,8 @@ function parseMarkdown(input: string, availableSpace: number) {
               `${rowIdx === 0 ? CHARS.TLSquare : CHARS.LConnector}${CHARS.H}${widths
                 .map((width) => CHARS.H.repeat(width))
                 .join(
-                  `${CHARS.H}${rowIdx === 0 ? CHARS.TConnector : CHARS.SConnector}${CHARS.H}`
-                )}${CHARS.H}${rowIdx === 0 ? CHARS.TRSquare : CHARS.RConnector}`
+                  `${CHARS.H}${rowIdx === 0 ? CHARS.TConnector : CHARS.SConnector}${CHARS.H}`,
+                )}${CHARS.H}${rowIdx === 0 ? CHARS.TRSquare : CHARS.RConnector}`,
             ),
             `${pc.dim(CHARS.V)} ${widths
               .map((width, columnIdx) => {
@@ -172,22 +171,22 @@ function parseMarkdown(input: string, availableSpace: number) {
               .join(` ${pc.dim(CHARS.V)} `)} ${pc.dim(CHARS.V)}`,
             ...(rowIdx === data.length - 1
               ? [
-                pc.dim(
-                  `${CHARS.BLSquare}${CHARS.H}${widths
-                    .map((width) => CHARS.H.repeat(width))
-                    .join(`${CHARS.H}${CHARS.BConnector}${CHARS.H}`)}${CHARS.H}${CHARS.BRSquare}`
-                ),
-              ]
+                  pc.dim(
+                    `${CHARS.BLSquare}${CHARS.H}${widths
+                      .map((width) => CHARS.H.repeat(width))
+                      .join(`${CHARS.H}${CHARS.BConnector}${CHARS.H}`)}${CHARS.H}${CHARS.BRSquare}`,
+                  ),
+                ]
               : []),
-          ].join('\n')
+          ].join('\n'),
         )
 
         return `\n${output.join('\n')}\n`
       })
 
       // Italic
-      .replace(/(.)?_(.*)_/gim, (_, before = '', code) => {
-        if (before == '\\') return _.replace(/\\_/g, '_')
+      .replace(/(.)?_(.*)_/gim, (_, before, code) => {
+        if (before === '\\') return _.replace(/\\_/g, '_')
         return `${before}${pc.italic(code)}`
       })
 
@@ -204,13 +203,13 @@ function parseMarkdown(input: string, availableSpace: number) {
   )
 }
 
-export function parseNotes(notes: string = ''): (availableSpace: number) => string[] {
+export function parseNotes(notes = ''): (availableSpace: number) => string[] {
   return (availableSpace: number) => {
     let output = parseMarkdown(dedent(notes), availableSpace)
     if (output === '') return []
 
-    // The rasterization will normalize all the ansi escapes and apply them on each character so
-    // that it never leaks styles.
+    // The rasterization will normalize all the ansi escapes and apply them on
+    // each character so that it never leaks styles.
     return rasterizeCode(output).map((x) => x.join(''))
   }
 }

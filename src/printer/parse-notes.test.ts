@@ -1,4 +1,6 @@
+import { expect, it } from 'vitest'
 import { parseNotes } from '~/printer/parse-notes'
+import { clearAnsiEscapes } from '~/utils/highlight-code'
 
 it('should parse no notes to a notes object', () => {
   expect(parseNotes(undefined)(80)).toEqual([])
@@ -16,8 +18,8 @@ it('should parse tables', () => {
       | :--- | :----: | ----: |
       | A    | B      | C     |
       | 1    | 2      | 3     |
-      `
-    )(80)
+      `,
+    )(80).map((x) => clearAnsiEscapes(x)),
   ).toEqual([
     '┌──────┬────────┬───────┐',
     '│ Left │ Center │ Right │',
@@ -33,7 +35,7 @@ it('should parse markdown-esque notes', () => {
   expect(
     parseNotes(
       `
-        This issue only occurse in certain scenario's
+        This issue only occurs in certain scenario's
 
         1. When the code is incorrect
         2. When the code is correct but some bits flipped
@@ -52,10 +54,10 @@ it('should parse markdown-esque notes', () => {
         - console.log('Hello w0rld:', 1 + 2)
         + console.log('Hello world:', 1 + 2)
         \`\`\`
-      `
-    )(80)
+      `,
+    )(80).map((x) => clearAnsiEscapes(x)),
   ).toEqual([
-    "This issue only occurse in certain scenario's",
+    "This issue only occurs in certain scenario's",
     '',
     '1. When the code is incorrect',
     '2. When the code is correct but some bits flipped',

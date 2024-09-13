@@ -1,11 +1,13 @@
+import { stripVTControlCharacters } from 'node:util'
+import { describe, expect, it } from 'vitest'
 import { env } from '~/env'
 import { printer } from '~/printer/printer'
 import type { Diagnostic, Location } from '~/types'
 import { dedent } from '~/utils/dedent'
 
-let html = String.raw
-let css = String.raw
-let javascript = String.raw
+const html = String.raw
+const css = String.raw
+const javascript = String.raw
 
 function diagnose(
   message: string,
@@ -18,20 +20,20 @@ function diagnose(
     notes?: string
     block?: string
     context?: string
-  } = {}
+  } = {},
 ): Diagnostic[] {
   return locations.map((location) => {
     return { file: '', block, context, message, location, notes }
   })
 }
 
-function findLocation(code: string, word: string, occurences: number | number[] = 1): Location[] {
-  if (!Array.isArray(occurences)) {
-    occurences = [occurences]
+function findLocation(code: string, word: string, occurrences: number | number[] = 1): Location[] {
+  if (!Array.isArray(occurrences)) {
+    occurrences = [occurrences]
   }
 
   let result: Location[] = []
-  for (let occurence of occurences) {
+  for (let occurrence of occurrences) {
     let row = 0
     let col = 0
 
@@ -40,13 +42,13 @@ function findLocation(code: string, word: string, occurences: number | number[] 
     outer: for (let [rowIdx, line] of lines.entries()) {
       let offset = 0
 
-      while (occurence > 0) {
+      while (occurrence > 0) {
         let idx = line.indexOf(word, offset + 1)
         if (idx === -1) continue outer
 
-        if (occurence !== 1) {
+        if (occurrence !== 1) {
           offset = idx
-          occurence--
+          occurrence--
           continue
         }
 
@@ -76,7 +78,7 @@ function render(source: string, diagnostics: Diagnostic[][] = [], file = './exam
   printer(
     sources,
     diagnostics.flat().map((d) => ({ ...d, file })),
-    collector
+    collector,
   )
 
   let debug = false // For debugging width issues
@@ -85,7 +87,7 @@ function render(source: string, diagnostics: Diagnostic[][] = [], file = './exam
     lines.push('\u25A1'.repeat(env.PRINT_WIDTH))
   }
 
-  return lines.join('\n').trimEnd()
+  return stripVTControlCharacters(lines.join('\n').trimEnd())
 }
 
 it('should print a message', () => {
@@ -115,7 +117,7 @@ it("should allow for diagnostics for places that don't exist", () => {
         x[0][1]++
         x[1][1]++
         return x
-      })
+      }),
     ),
   ]
 
@@ -131,7 +133,7 @@ it("should allow for diagnostics for places that don't exist", () => {
     └─`)
 })
 
-it('should print a message and reindent it to save space', () => {
+it('should print a message and re-indent it to save space', () => {
   let code = `                                                 <div class="flex block" />`
   let diagnostics = [diagnose('Message 1', findLocation(code, 'flex'))]
 
@@ -267,14 +269,11 @@ it('should print nested notes in a hierarchy', () => {
 
 it('should render syntax highlighted code in notes', () => {
   let code = html`<div class="flex block" />`
-  let notes =
-    '```css\n' +
-    dedent(css`
+  let notes = `\`\`\`css\n${dedent(css`
       .flex {
         display: flex;
       }
-    `) +
-    '\n```'
+    `)}\n\`\`\``
 
   let diagnostics = [
     diagnose('The generated CSS looks like:', findLocation(code, 'flex'), {
@@ -456,7 +455,7 @@ it('should print multiple messages with multiple notes', () => {
 })
 
 it('should be possible to print a lot of messages', () => {
-  let code = `a b c d e f g h i j k l m n o p q r s t u v w x y z`
+  let code = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'
   let diagnostics = Array(26)
     .fill(0)
     .map((_, idx) => idx * 2)
@@ -500,7 +499,7 @@ it('should be possible to print a lot of messages', () => {
 })
 
 it('should be possible to print a lot of similar messages', () => {
-  let code = `a b c d e f g h i j k l m n o p q r s t u v w x y z`
+  let code = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'
   let diagnostics = Array(26)
     .fill(0)
     .map((_, idx) => idx * 2)
@@ -949,17 +948,17 @@ describe('multi-line diagnostics', () => {
       diagnose(
         'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
         findLocation(code, '{'),
-        { block: 'one', context: 'one' }
+        { block: 'one', context: 'one' },
       ),
       diagnose(
         'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
         findLocation(code, 'b'),
-        { block: 'one', context: 'one' }
+        { block: 'one', context: 'one' },
       ),
       diagnose(
         'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
         findLocation(code, '}'),
-        { block: 'one', context: 'one' }
+        { block: 'one', context: 'one' },
       ),
     ]
 
@@ -1062,7 +1061,7 @@ describe('multi-line diagnostics', () => {
     └─`)
   })
 
-  xit('should be possible to print multiple related diagnostics together spread across multiple lines', () => {
+  it.skip('should be possible to print multiple related diagnostics together spread across multiple lines', () => {
     let code = `
       a b c d e f g
       These lines are connected
@@ -1070,14 +1069,14 @@ describe('multi-line diagnostics', () => {
     `
     let block = 'one'
     let diagnostics = [
-      diagnose('Pair 1', findLocation(code, 'a'), { block, context: `0` }),
-      diagnose('Pair 1', findLocation(code, '1'), { block, context: `0` }),
+      diagnose('Pair 1', findLocation(code, 'a'), { block, context: '0' }),
+      diagnose('Pair 1', findLocation(code, '1'), { block, context: '0' }),
 
-      diagnose('Pair 2', findLocation(code, 'b'), { block, context: `1` }),
-      diagnose('Pair 2', findLocation(code, '2'), { block, context: `1` }),
+      diagnose('Pair 2', findLocation(code, 'b'), { block, context: '1' }),
+      diagnose('Pair 2', findLocation(code, '2'), { block, context: '1' }),
 
-      diagnose('Pair 3', findLocation(code, 'c'), { block, context: `2` }),
-      diagnose('Pair 3', findLocation(code, '3'), { block, context: `2` }),
+      diagnose('Pair 3', findLocation(code, 'c'), { block, context: '2' }),
+      diagnose('Pair 3', findLocation(code, '3'), { block, context: '2' }),
     ]
 
     let result = render(code, diagnostics)
@@ -1111,7 +1110,7 @@ describe('responsiveness', () => {
       let result = render(
         code,
         diagnostics,
-        './products/tailwind-ui-marketing/components/contact-pages.03-split-with-image-and-centered-cta-section.html'
+        './products/tailwind-ui-marketing/components/contact-pages.03-split-with-image-and-centered-cta-section.html',
       )
       expect(result).toEqual(`
     ┌─[./p/t/components/contact-pages.03-split-with-image-and-centered-cta-section.html]
@@ -1196,8 +1195,8 @@ describe('responsiveness', () => {
           findLocation(
             code,
             'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
-            2
-          )
+            2,
+          ),
         ),
       ]
 
@@ -1232,7 +1231,7 @@ describe('responsiveness', () => {
       let diagnostics = [
         diagnose(
           'This color should be "gray" and not "grey". This is because the letter "a" has an ascii value of 97 but an "e" has an ascii value of 101. This means that "a" is cheaper to store. Lol, jk, I just need a long message here...',
-          findLocation(code, 'grey')
+          findLocation(code, 'grey'),
         ),
       ]
 
@@ -1265,7 +1264,7 @@ describe('responsiveness', () => {
       let diagnostics = [
         diagnose(
           'This color should be "gray" and not "grey". This is because the letter "a" has an ascii value of 97 but an "e" has an ascii value of 101. This means that "a" is cheaper to store. Lol, jk, I just need a long message here...',
-          findLocation(code, 'grey')
+          findLocation(code, 'grey'),
         ),
       ]
 
@@ -1290,11 +1289,11 @@ describe('responsiveness', () => {
       let diagnostics = [
         diagnose(
           '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
-          findLocation(code, 'grey')
+          findLocation(code, 'grey'),
         ),
         diagnose(
           '(2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
-          findLocation(code, '200')
+          findLocation(code, '200'),
         ),
       ]
       let result = render(code, diagnostics, './example.html')
@@ -1325,12 +1324,12 @@ describe('responsiveness', () => {
       let diagnostics = [
         diagnose(
           '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.',
-          findLocation(code, 'text')
+          findLocation(code, 'text'),
         ),
         diagnose('(2) Lorem ipsum.', findLocation(code, 'grey')),
         diagnose(
           '(3) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.',
-          findLocation(code, '200')
+          findLocation(code, '200'),
         ),
       ]
       let result = render(code, diagnostics, './example.css')
@@ -1359,12 +1358,12 @@ describe('responsiveness', () => {
         diagnose(
           '(1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
           findLocation(code, 'class'),
-          { notes: 'Note A' }
+          { notes: 'Note A' },
         ),
         diagnose(
           '(2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pulvinar sapien sit amet tellus dapibus, ut mollis massa porta. Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.',
           findLocation(code, 'class'),
-          { notes: 'Note B' }
+          { notes: 'Note B' },
         ),
       ]
       let result = render(code, diagnostics, './example.html')

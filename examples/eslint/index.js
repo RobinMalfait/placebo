@@ -1,9 +1,9 @@
 /* eslint-disable */
-let file = './code.js'
+const file = './code.js'
 
 // ---
 
-let { resolve } = require('path')
+const { resolve } = require('node:path')
 
 function run(write = console.log, files = resolve(__dirname, file)) {
   return require('./run')(files, write)

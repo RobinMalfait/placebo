@@ -3,9 +3,8 @@ export interface DeepArray<T> extends Array<T | DeepArray<T>> {}
 export type Location = [
   /** The row location of the diagnostic. Value should be 1-based. */
   [startLine: number, startColumn: number],
-
   /** The column location of the diagnostic. Value should be 1-based. */
-  [endLine: number, endColumn: number]
+  [endLine: number, endColumn: number],
 ]
 
 export interface InternalLocation {
@@ -40,7 +39,7 @@ export interface Diagnostic {
 
   /**
    * An optional string identifier, each diagnostic with the same context will be visually connected
-   * with eachother.
+   * with each other.
    */
   context?: string
 }

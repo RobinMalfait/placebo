@@ -1,4 +1,4 @@
-let SUPER_SCRIPT_MAP: Record<string, string> = {
+const SUPER_SCRIPT_MAP: Record<string, string> = {
   0: '⁰',
   1: '¹',
   2: '²',

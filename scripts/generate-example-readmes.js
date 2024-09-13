@@ -1,8 +1,8 @@
-let fs = require('fs/promises')
-let path = require('path')
-let prettier = require('prettier')
+const fs = require('node:fs/promises')
+const path = require('node:path')
+const prettier = require('prettier')
 
-let root = process.cwd()
+const root = process.cwd()
 
 async function generate() {
   let base = path.resolve(root, 'examples')
@@ -48,22 +48,22 @@ async function generate() {
         result.push('')
         result.push('```')
         result.push(
-          output.replaceAll('examples/readme/code/', '').replace(/\n\n/g, '\n```\n\n```\n')
+          output.replaceAll('examples/readme/code/', '').replace(/\n\n/g, '\n```\n\n```\n'),
         )
         result.push('```')
         result.push('')
         result.push('<details>')
         result.push('')
         result.push(
-          '<summary>The actual diagnostics input for this readme can be found here.</summary>'
+          '<summary>The actual diagnostics input for this readme can be found here.</summary>',
         )
         result.push('')
         result.push('```json')
         result.push(
           JSON.stringify(diagnostics, null, 2).replaceAll(
             path.resolve(__dirname, '..', 'examples', 'readme', 'code', 'README.md'),
-            'README.md'
-          )
+            'README.md',
+          ),
         )
         result.push('```')
         result.push('')
@@ -79,7 +79,7 @@ async function generate() {
         prettier.format(contents, {
           parser: 'markdown',
           ...require(path.resolve(root, 'package.json')).prettier,
-        })
+        }),
       )
     }
   }
