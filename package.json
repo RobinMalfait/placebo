@@ -16,8 +16,12 @@
     "preexamples:generate-readme": "npm run build",
     "postinstall": "if [ -e .placebo-post-install ]; then npm install --prefix examples; fi"
   },
-  "files": ["dist"],
-  "keywords": ["diagnostics"],
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "diagnostics"
+  ],
   "author": "Robin Malfait",
   "license": "MIT",
   "devDependencies": {
@@ -31,6 +35,7 @@
   },
   "dependencies": {
     "cli-highlight": "^2.1.11",
+    "dedent": "^1.5.3",
     "picocolors": "^1.1.0"
   },
   "peerDependencies": {

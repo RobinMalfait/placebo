@@ -11,6 +11,9 @@ importers:
       cli-highlight:
         specifier: ^2.1.11
         version: 2.1.11
+      dedent:
+        specifier: ^1.5.3
+        version: 1.5.3
       picocolors:
         specifier: ^1.1.0
         version: 1.1.0
@@ -714,6 +717,14 @@ packages:
       supports-color: '*'
     peerDependenciesMeta:
       supports-color:
+        optional: true
+
+  dedent@1.5.3:
+    resolution: {integrity: sha512-NHQtfOOW68WD8lgypbLA5oT+Bt0xXJhiYvoR6SmmNXZfpzOGXwdKWmcwG8N7PwVVWV3eF/68nmD9BaJSsTBhyQ==}
+    peerDependencies:
+      babel-plugin-macros: ^3.1.0
+    peerDependenciesMeta:
+      babel-plugin-macros:
         optional: true
 
   deep-eql@5.0.2:
@@ -1725,6 +1736,8 @@ snapshots:
   debug@4.3.7:
     dependencies:
       ms: 2.1.3
+
+  dedent@1.5.3: {}
 
   deep-eql@5.0.2: {}
 

@@ -1,6 +1,6 @@
 import { printer as basePrinter } from '~/printer/printer'
 import type { Diagnostic } from '~/types'
-import { dedent } from '~/utils/dedent'
+import dedent from 'dedent'
 
 // biome-ignore lint/suspicious/noControlCharactersInRegex: We do need `\x1B`…
 const ESCAPE = /(?:\x9B|\x1B\[)([0-?]*)([ -\/]*)[@-~]/g

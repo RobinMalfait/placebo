@@ -1,7 +1,7 @@
 import pc from 'picocolors'
 import prettier from 'prettier'
 import CHARS from '~/printer/char-maps/fancy'
-import { dedent } from '~/utils/dedent'
+import dedent from 'dedent'
 import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
 
 function parseTable(input: string) {
