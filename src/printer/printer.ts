@@ -35,11 +35,20 @@ enum Type {
 }
 
 function combinedType(row: { type: Type }[]) {
-  return row.reduce((acc, cell) => acc | cell.type, Type.None)
+  let type = Type.None
+  for (let cell of row) {
+    if (!cell) continue // Holes
+    type |= cell.type
+  }
+  return type
 }
 
 function hasType(row: { type: Type }[], type: Type) {
-  return row.some((cell) => cell.type & type)
+  for (let cell of row) {
+    if (!cell) continue // Holes
+    if (cell.type & type) return true
+  }
+  return false
 }
 
 function createCell(value: string, type: Type) {
@@ -68,7 +77,7 @@ function createNoteCells(input: string | number, decorate = (s: string) => s) {
   return input.split('').map((v) => createCell(decorate(v), Type.Note))
 }
 
-type Item = Array<{ type: Type; value: string }>
+type Item = { type: Type; value: string }[]
 
 function typeCode(input: string[][]): Item[] {
   return input.map((row) =>

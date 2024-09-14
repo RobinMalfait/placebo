@@ -4,10 +4,10 @@ export const env = {
   BEFORE_CONTEXT_LINES_COUNT: parseNumberEnv('PLACEBO_CONTEXT_LINES_BEFORE', 3),
   AFTER_CONTEXT_LINES_COUNT: parseNumberEnv('PLACEBO_CONTEXT_LINES_AFTER', 3),
 
-  // Whether or not you want syntax highlighting for the context lines
+  // Whether or not you want syntax highlighting for the context lines.
   COLOR_CONTEXT_LINES: parseBooleanEnv('PLACEBO_COLOR_CONTEXT_LINES', false),
 
-  // Print width to make everything fit as good as possible
+  // Print width to make everything fit as good as possible.
   get PRINT_WIDTH() {
     return parseNumberEnv('PLACEBO_PRINT_WIDTH', process.stdout.columns ?? 80)
   },
