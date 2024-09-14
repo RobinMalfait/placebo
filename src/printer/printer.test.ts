@@ -1,9 +1,9 @@
 import { stripVTControlCharacters } from 'node:util'
+import dedent from 'dedent'
 import { describe, expect, it } from 'vitest'
 import { env } from '~/env'
 import { printer } from '~/printer/printer'
 import type { Diagnostic, Location } from '~/types'
-import dedent from 'dedent'
 
 const html = String.raw
 const css = String.raw
