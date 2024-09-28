@@ -4,6 +4,7 @@ import { env } from '~/env'
 import CHARS from '~/printer/char-maps/fancy'
 import { parseNotes } from '~/printer/parse-notes'
 import type { Diagnostic, InternalDiagnostic } from '~/types'
+import { DefaultMap } from '~/utils/default-map'
 import { clearAnsiEscapes, highlightCode, rasterizeCode } from '~/utils/highlight-code'
 import { range } from '~/utils/range'
 import { wordWrap } from '~/utils/word-wrap'
@@ -100,13 +101,9 @@ function reportBlock(
   write: (input: string) => void,
 ) {
   // Group by same line
-  let groupedByRow = new Map<number, InternalDiagnostic[]>()
+  let groupedByRow = new DefaultMap<number, InternalDiagnostic[]>(() => [])
   for (let diagnostic of diagnostics) {
-    if (groupedByRow.has(diagnostic.loc.row)) {
-      groupedByRow.get(diagnostic.loc.row)?.push(diagnostic)
-    } else {
-      groupedByRow.set(diagnostic.loc.row, [diagnostic])
-    }
+    groupedByRow.get(diagnostic.loc.row).push(diagnostic)
   }
 
   // TODO: This should probably be an array when we are rendering issues across
@@ -221,17 +218,12 @@ function reportBlock(
   let lineNumberToRow = new Map<number, Item>()
   let diagnosticToColor = new Map<InternalDiagnostic, (input: string) => string>()
 
-  let diagnosticsByContext = new Map<string | null, InternalDiagnostic[]>()
+  let diagnosticsByContext = new DefaultMap<string | null, InternalDiagnostic[]>(() => [])
 
   // Group by context
   for (let diagnostic of diagnostics) {
     if (!diagnostic.context) continue
-
-    if (diagnosticsByContext.has(diagnostic.context)) {
-      diagnosticsByContext.get(diagnostic.context)?.push(diagnostic)
-    } else {
-      diagnosticsByContext.set(diagnostic.context, [diagnostic])
-    }
+    diagnosticsByContext.get(diagnostic.context).push(diagnostic)
   }
 
   // Find the correct color per diagnostic
@@ -375,7 +367,7 @@ function reportBlock(
           if (nextLine.length === 0) break
         }
 
-        let diagnostics = groupedByRow.get(lineNumber) ?? []
+        let diagnostics = groupedByRow.get(lineNumber)
         let moved = new Map<InternalDiagnostic, number>()
 
         // Adjust diagnostics location info to link to the correct line after word-wrapping.
@@ -408,7 +400,7 @@ function reportBlock(
           }
 
           // Move diagnostic to new location
-          let newGroup = groupedByRow.get(newLineNumber) ?? []
+          let newGroup = groupedByRow.get(newLineNumber)
           newGroup.push(diagnostic)
           groupedByRow.set(newLineNumber, newGroup)
         }
@@ -436,7 +428,7 @@ function reportBlock(
   }
 
   for (let [lineNumber, row] of lineNumberToRow) {
-    let diagnostics = groupedByRow.get(lineNumber)
+    let diagnostics = groupedByRow.getRaw(lineNumber)
     if (!diagnostics) continue
 
     for (let diagnostic of diagnostics) {
@@ -1107,56 +1099,47 @@ function reportBlock(
 }
 
 function prepareDiagnostics(diagnostics: Diagnostic[]) {
-  let all = diagnostics
-    // Map the public location API to the internal location API. For now this is the easiest thing to
-    // get things working without changing all the internals.
-    .map(({ location, ...d }) => ({
-      ...d,
+  let internalDiagnostics: InternalDiagnostic[] = []
+  for (let diagnostic of diagnostics) {
+    let internalDiagnostic: InternalDiagnostic = {
+      file: diagnostic.file,
+      message: diagnostic.message,
       loc: {
-        row: location[0][0],
-        col: location[0][1],
-        len: location[1][1] - location[0][1],
+        // Map the public location API to the internal location API. For now
+        // this is the easiest thing to get things working without changing all
+        // the internals.
+        row: diagnostic.location[0][0],
+        col: diagnostic.location[0][1],
+        len: diagnostic.location[1][1] - diagnostic.location[0][1],
       },
-    }))
+      notes: parseNotes(diagnostic.notes),
+      block: diagnostic.block ?? null,
+      context: diagnostic.context ?? null,
+    }
 
-    // `row` and `col` are 1-based when they come in. This is because most tools use `row` and
-    // `col` to point to a location in your editor and editors usually start with `1` instead of
-    // `0`. For now, let's make it a bit simpler and use them as 0-based values.
-    .map((d) => ({
-      ...d,
-      loc: { ...d.loc, row: d.loc.row - 1, col: d.loc.col - 1 },
-    }))
+    // `row` and `col` are 1-based when they come in. This is because most tools
+    // use `row` and `col` to point to a location in your editor and editors
+    // usually start with `1` instead of `0`. For now, let's make it a bit
+    // simpler and use them as 0-based values.
+    internalDiagnostic.loc.row -= 1
+    internalDiagnostic.loc.col -= 1
 
-    // Ensure that both the `block` and `context` are filled in with something.
-    .map((d) => ({
-      ...d,
-      block: d.block ?? null,
-      context: d.context ?? null,
-    }))
+    // Track the internal diagnostic
+    internalDiagnostics.push(internalDiagnostic)
+  }
 
-    // Sort diagnostics by location, first by row then by column so that it is sorted top to
-    // bottom, left to right.
+  let all = internalDiagnostics
+    // Sort diagnostics by location, first by row then by column so that it is
+    // sorted top to bottom, left to right.
     .sort((a, z) => a.loc.row - z.loc.row || a.loc.col - z.loc.col)
 
-    // Cleanup notes to a consistent nested structure.
-    .map((d) => {
-      let copy = { ...d }
-      // @ts-expect-error Uh yeah so w/e
-      copy.notes = parseNotes(d.notes)
-      return copy as unknown as InternalDiagnostic
-    })
-
-  let grouped = new Map<string, InternalDiagnostic[]>()
+  let grouped = new DefaultMap<string, InternalDiagnostic[]>(() => [])
   for (let diagnostic of all) {
     let block = diagnostic.block
       ? diagnostic.file + diagnostic.block // Scope per file and block
       : `${diagnostic.file}-${diagnostic.loc.row}` // Scope by file and line number by default
 
-    if (grouped.has(block)) {
-      grouped.get(block)?.push(diagnostic)
-    } else {
-      grouped.set(block, [diagnostic])
-    }
+    grouped.get(block).push(diagnostic)
   }
 
   return Array.from(grouped.values())
@@ -1170,12 +1153,7 @@ export function printer(
   env.DEBUG && console.time('[PLACEBO]: Print')
   let diagnosticsPerBlock = prepareDiagnostics(diagnostics)
 
-  let files = new Set(diagnostics.map((d) => d.file))
-  let optimizedSources = new Map(
-    Array.from(files).map((file) => {
-      return [file, prepareSource(sources.get(file) ?? '', file)]
-    }),
-  )
+  let optimizedSources = new DefaultMap((file) => prepareSource(sources.get(file) ?? '', file))
 
   // Report per block, that will be cleaner from a UI perspective
   write('') // Before

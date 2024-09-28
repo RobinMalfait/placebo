@@ -78,7 +78,7 @@ export function rasterizeCode(input: string) {
   let stack: string[] = []
   return input.split('\n').map((row) => {
     return row.split(ESCAPE).flatMap((current) => {
-      if (current.startsWith('\x1B[')) {
+      if (current[0] === '\x1B') {
         // - If ansi escape is an "off" ansi escape, remove last item from the
         //   stack (assuming that the ansi escapes are in proper order)
         // - If ansi escape is a text color, drop all other text colors from the
