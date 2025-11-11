@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Nothing yet!
+### Fixed
+
+- Add missing repository field ([f6a7825](https://github.com/RobinMalfait/placebo/commit/f6a78252a1588a146f43cfddb3dce87227ce5ec2))
 
 ## [0.2.0-alpha.1] - 2025-11-12
 
