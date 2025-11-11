@@ -1,3 +1,4 @@
+import type { Location } from '@robinmalfait/placebo'
 import { ESLint } from 'eslint'
 
 function severity(input: 0 | 1 | 2): string {
@@ -20,13 +21,13 @@ export async function diagnose(files: string[]) {
     for (let x of result.messages) {
       try {
         diagnostics.push({
-          block: `${x.line}`,
+          blockId: `${x.line}`,
           file: result.filePath,
           message: x.message,
           location: [
             [x.line, x.column],
-            [x.line, x.line === x.endLine ? x.endColumn : x.column + 1],
-          ],
+            [x.line, x.line === x.endLine ? (x.endColumn ?? x.column) : x.column + 1],
+          ] satisfies Location,
           notes:
             x.suggestions?.map((suggestion) => suggestion.fix.text).join('\n') ??
             ['Severity: ' + severity(x.severity), 'Rule: ' + x.ruleId].join('\n'),

@@ -12,48 +12,6 @@
     ·   `TS2339` (https://typescript.tv/errors/#TS2339)
     └─
 
-     ┌─[./examples/eslint/index.ts]
-     │
-   6 │   const __dirname = fileURLToPath(new URL('.', import.meta.url))
-     ·
-   8 │   if (import.meta.url.endsWith(process.argv[1])) {
-∙  9 │     run(diagnose)(process.argv.length > 2 ? process.argv.slice(2) : globSync(`${__dirname}code/*`))
-  10 │   }     ───┬──── ╭─
-     ·            ╰─────┤ Argument of type '(files: string[]) => Promise<{ block: string; file: string;
-     ·                  │ message: string; location: (number | undefined)[][]; notes: string; }[]>' is not
-     ·                  │ assignable to parameter of type '(files: string[]) => Promise<Diagnostic[]>'.
-     ·                  │   Type 'Promise<{ block: string; file: string; message: string; location: (number |
-     ·                  │ undefined)[][]; notes: string; }[]>' is not assignable to type 'Promise<Diagnostic[]>'.
-     ·                  │     Type '{ block: string; file: string; message: string; location: (number |
-     ·                  │ undefined)[][]; notes: string; }[]' is not assignable to type 'Diagnostic[]'.
-     ·                  │       Type '{ block: string; file: string; message: string; location: (number
-     ·                  │ | undefined)[][]; notes: string; }' is not assignable to type 'Diagnostic'.
-     ·                  │         Types of property 'location' are incompatible.
-     ·                  │           Type '(number | undefined)[][]' is not assignable to type 'Location'.
-     ·                  │             Target requires 2 element(s) but source may have fewer.
-     ·                  ╰─
-     ·
-  12 │   export default function (write = console.log) {
-∙ 13 │     return run(diagnose)(globSync(`${__dirname}code/*`), write)
-  14 │   }            ───┬──── ╭─
-     ·                   ╰─────┤ Argument of type '(files: string[]) => Promise<{ block: string; file: string;
-     ·                         │ message: string; location: (number | undefined)[][]; notes: string; }[]>' is not
-     ·                         │ assignable to parameter of type '(files: string[]) => Promise<Diagnostic[]>'.
-     ·                         │   Type 'Promise<{ block: string; file: string; message: string; location: (number |
-     ·                         │ undefined)[][]; notes: string; }[]>' is not assignable to type 'Promise<Diagnostic[]>'.
-     ·                         │     Type '{ block: string; file: string; message: string; location: (number |
-     ·                         │ undefined)[][]; notes: string; }[]' is not assignable to type 'Diagnostic[]'.
-     ·                         │       Type '{ block: string; file: string; message: string; location: (number
-     ·                         │ | undefined)[][]; notes: string; }' is not assignable to type 'Diagnostic'.
-     ·                         │         Types of property 'location' are incompatible.
-     ·                         │           Type '(number | undefined)[][]' is not assignable to type 'Location'.
-     ·                         │             Target requires 2 element(s) but source may have fewer.
-     ·                         ╰─
-     ·
-     ├─
-     ·   `TS2345` (https://typescript.tv/errors/#TS2345)
-     └─
-
      ┌─[./examples/typescript/code/index.ts]
      │
    9 │   // ---
