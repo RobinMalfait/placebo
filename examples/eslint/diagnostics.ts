@@ -13,7 +13,9 @@ export async function diagnose(files: string[]) {
   let diagnostics = []
 
   // 1. Create an instance.
-  let eslint = new ESLint()
+  let eslint = new ESLint({
+    cwd: __dirname,
+  })
 
   // 2. Lint files.
   let results = await eslint.lintFiles(files)
