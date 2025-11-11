@@ -5,6 +5,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RobinMalfait/placebo"
+  },
   "exports": {
     ".": {
       "import": "./src/index.ts",
