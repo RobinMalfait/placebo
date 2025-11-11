@@ -321,16 +321,63 @@ let diagnostics: Diagnostic[] = [
      * The location of the diagnostic in the source code.
      */
     location: [
-      [3, 5],
-      [3, 15],
+      [3, 5], // start: [line, column]
+      [3, 15], // end: [line, column
     ] satisfies Location,
+
+    /**
+     * Optional: additional information about the diagnostic. Will be rendered in
+     * a separate notes section.
+     */
+    notes: 'Some additional information about this diagnostic.',
+
+    /**
+     * Optional: Every diagnostic with the same block id will be rendered in the
+     * same diagnostic block.
+     */
+    blockId: string,
+
+    /**
+     * Optional: Every diagnostic with the same diagnostic id will be visually connected if possible.
+     */
+    diagnosticId: string,
   },
+
   // More diagnostics...
 ]
 
 print(diagnostics, {
   write: console.error, // Defaults to `console.error`
   source: (file) => fs.readFileSync(file, 'utf-8'), // Only necessary if the `diagnostic` doesn't contain the source code already
+
+  /**
+   * Optional rendering options that influence how diagnostics are rendered.
+   */
+  rendering: {
+    /**
+     * The amount of lines of the source code to show before a diagnostic line.
+     *
+     * Defaults to:       `3`
+     * Overrideable via:  `process.env.PLACEBO_CONTEXT_LINES_BEFORE`
+     */
+    beforeContextLines: 3,
+
+    /**
+     * The amount of lines of the source code to show after a diagnostic line.
+     *
+     * Defaults to:       `3`
+     * Overrideable via:  `process.env.PLACEBO_CONTEXT_LINES_AFTER`
+     */
+    afterContextLines: 3,
+
+    /**
+     * Available print width for rendering the diagnostics.
+     *
+     * Defaults to:       `process.stdout.columns ?? 80`
+     * Overrideable via:  `process.env.PLACEBO_PRINT_WIDTH`
+     */
+    printWidth: process.stdout.columns ?? 80,
+  },
 })
 ```
 
