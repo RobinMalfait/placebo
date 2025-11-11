@@ -1,5 +1,5 @@
 
-    ┌─[./examples/eslint/code.js]
+    ┌─[./examples/eslint/code/index.js]
     │
 ∙ 1 │   let abc = '123'
     ·       ─┬─        ┬
@@ -11,31 +11,22 @@
     ·
     ├─
     ·
-    ·   ┌──────────┬──────┐
-    ·   │ Severity │ Rule │
-    ·   ├──────────┼──────┤
-    ·   │ Error    │ semi │
-    ·   └──────────┴──────┘
+    ·   Severity: Error
+    ·   Rule: semi
     ·
     ├─
     ·
-    ·   ┌──────────┬──────────────┐
-    ·   │ Severity │ Rule         │
-    ·   ├──────────┼──────────────┤
-    ·   │ Error    │ prefer-const │
-    ·   └──────────┴──────────────┘
+    ·   Severity: Error
+    ·   Rule: prefer-const
     ·
     ├─
     ·
-    ·   ┌──────────┬────────────────┐
-    ·   │ Severity │ Rule           │
-    ·   ├──────────┼────────────────┤
-    ·   │ Error    │ no-unused-vars │
-    ·   └──────────┴────────────────┘
+    ·   Severity: Error
+    ·   Rule: no-unused-vars
     ·
     └─
 
-    ┌─[./examples/eslint/code.js]
+    ┌─[./examples/eslint/code/index.js]
     │
   1 │   let abc = '123'
     ·
@@ -49,31 +40,22 @@
     ·
     ├─
     ·
-    ·   ┌──────────┬───────────────┐
-    ·   │ Severity │ Rule          │
-    ·   ├──────────┼───────────────┤
-    ·   │ Error    │ padded-blocks │
-    ·   └──────────┴───────────────┘
+    ·   Severity: Error
+    ·   Rule: padded-blocks
     ·
     ├─
     ·
-    ·   ┌──────────┬────────────────┐
-    ·   │ Severity │ Rule           │
-    ·   ├──────────┼────────────────┤
-    ·   │ Error    │ no-unused-vars │
-    ·   └──────────┴────────────────┘
+    ·   Severity: Error
+    ·   Rule: no-unused-vars
     ·
     ├─
     ·
-    ·   ┌──────────┬─────────────────┐
-    ·   │ Severity │ Rule            │
-    ·   ├──────────┼─────────────────┤
-    ·   │ Error    │ no-multi-spaces │
-    ·   └──────────┴─────────────────┘
+    ·   Severity: Error
+    ·   Rule: no-multi-spaces
     ·
     └─
 
-    ┌─[./examples/eslint/code.js]
+    ┌─[./examples/eslint/code/index.js]
     │
   3 │   function   hello() {
     ·
@@ -85,14 +67,11 @@
   7 │     }
     ·
     ├─
-    ·   ┌──────────┬─────────────────────────┐
-    ·   │ Severity │ Rule                    │
-    ·   ├──────────┼─────────────────────────┤
-    ·   │ Error    │ no-multiple-empty-lines │
-    ·   └──────────┴─────────────────────────┘
+    ·   Severity: Error
+    ·   Rule: no-multiple-empty-lines
     └─
 
-    ┌─[./examples/eslint/code.js]
+    ┌─[./examples/eslint/code/index.js]
     │
   3 │   function   hello() {
     ·
@@ -107,31 +86,22 @@
     ·
     ├─
     ·
-    ·   ┌──────────┬──────┐
-    ·   │ Severity │ Rule │
-    ·   ├──────────┼──────┤
-    ·   │ Error    │ semi │
-    ·   └──────────┴──────┘
+    ·   Severity: Error
+    ·   Rule: semi
     ·
     ├─
     ·
-    ·   ┌──────────┬────────┐
-    ·   │ Severity │ Rule   │
-    ·   ├──────────┼────────┤
-    ·   │ Error    │ quotes │
-    ·   └──────────┴────────┘
+    ·   Severity: Error
+    ·   Rule: quotes
     ·
     ├─
     ·
-    ·   ┌──────────┬────────┐
-    ·   │ Severity │ Rule   │
-    ·   ├──────────┼────────┤
-    ·   │ Error    │ indent │
-    ·   └──────────┴────────┘
+    ·   Severity: Error
+    ·   Rule: indent
     ·
     └─
 
-    ┌─[./examples/eslint/code.js]
+    ┌─[./examples/eslint/code/index.js]
     │
   6 │       return "sup"
 ∙ 7 │   }
@@ -139,9 +109,6 @@
     · ╰─── Expected indentation of 0 spaces but found 2.
     ·
     ├─
-    ·   ┌──────────┬────────┐
-    ·   │ Severity │ Rule   │
-    ·   ├──────────┼────────┤
-    ·   │ Error    │ indent │
-    ·   └──────────┴────────┘
+    ·   Severity: Error
+    ·   Rule: indent
     └─

@@ -1,5 +1,5 @@
 
-    ┌─[./examples/javascript/code.js]
+    ┌─[./examples/javascript/code/index.js]
     │
   1 │   let a = 123
 ∙ 2 │   let b = '321'

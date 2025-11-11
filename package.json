@@ -1,41 +1,28 @@
 {
   "name": "@robinmalfait/placebo",
-  "version": "0.1.4",
-  "description": "Placebo, the beautiful diagnostics printer",
-  "main": "dist/index.js",
-  "publishConfig": {
-    "access": "public"
+  "private": true,
+  "author": "Robin Malfait",
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 100,
+    "plugins": [
+      "prettier-plugin-organize-imports"
+    ]
   },
   "scripts": {
-    "prepublishOnly": "npm run build",
-    "build": "tsup ./src/index.ts --dts --minify --clean --external prettier",
-    "dev": "tsup ./src/index.ts --dts --clean --watch --sourcemap",
-    "format": "biome check --fix .",
-    "test": "PLACEBO_PRINT_WIDTH=100 vitest",
-    "examples:generate-readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=150 node ./scripts/generate-example-readmes.js",
-    "preexamples:generate-readme": "npm run build",
-    "postinstall": "if [ -e .placebo-post-install ]; then npm install --prefix examples; fi"
+    "test": "vitest",
+    "build": "pnpm --recursive --if-present run build",
+    "format": "prettier --write .",
+    "examples:generate-readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=150 bun ./scripts/generate-example-readmes.ts",
+    "preexamples:generate-readme": "pnpm run build"
   },
-  "files": ["dist"],
-  "keywords": ["diagnostics"],
-  "author": "Robin Malfait",
-  "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "1.9.0",
-    "@types/node": "^22.5.4",
-    "@types/prettier": "^2.7.3",
-    "prettier": "2",
-    "tsup": "^8.2.4",
-    "typescript": "^5.6.2",
-    "vitest": "^2.1.1"
+    "@types/node": "^22.19.0",
+    "prettier": "3.6.2",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   },
-  "dependencies": {
-    "cli-highlight": "^2.1.11",
-    "dedent": "^1.5.3",
-    "picocolors": "^1.1.0"
-  },
-  "peerDependencies": {
-    "prettier": "^2.8.6"
-  },
-  "packageManager": "pnpm@10.6.2"
+  "packageManager": "pnpm@10.10.0"
 }

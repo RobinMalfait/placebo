@@ -17,7 +17,7 @@ together.
 
 It is also possible to group related diagnostics together via a `context`
 property. This is a unique identifier per `block`. This will be useful, if you
-have some diagnostics that are located further away from eachother. The same
+have some diagnostics that are located further away from each other. The same
 `context` will be your friend here.
 
 

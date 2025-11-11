@@ -13,7 +13,7 @@
 ∙ 6 │   It can render multiple messages together.
     ·                 ───┬──── ───┬──── ───┬────
     ·                    │        │        ╰────── Messages will be rendered
-    ·                    │        ╰─────────────── underneath eachother just
+    ·                    │        ╰─────────────── underneath each other just
     ·                    ╰──────────────────────── like the messages you see here.
     ·
   7 │   These lines will make it easier to locate your code and know what these messages
@@ -39,7 +39,7 @@
      · ╭──────────────────────────────────────────────────────────────────────╯
      · │
   19 │ │  property. This is a unique identifier per `block`. This will be useful, if you
-  20 │ │  have some diagnostics that are located further away from eachother. The same
+  20 │ │  have some diagnostics that are located further away from each other. The same
 ∙ 21 │ │  `context` will be your friend here.
      · │  ────┬────
      · ╰──────┴────── Yay, found my `context` friends!
@@ -67,7 +67,7 @@
      ·
      ├─
      ·   - This note can contain more information about the specific diagnostic.
-     ·   - What do you think? More info at ]8;;https://github.com/RobinMalfait/placebohttps://github.com/RobinMalfait/placebo]8;;!
+     ·   - What do you think? More info at https://github.com/RobinMalfait/placebo!
      └─
 
      ┌─[./examples/readme/code/README.md]

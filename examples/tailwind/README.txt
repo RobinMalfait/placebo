@@ -1,5 +1,5 @@
 
-    ┌─[./examples/tailwind/code.html]
+    ┌─[./examples/tailwind/code/index.html]
     │
 ∙ 1 │   <div class="block text-gray-900 flex sm:block sm:flex">
     ·               ──┬──               ─┬──
@@ -10,7 +10,7 @@
     │
     └─
 
-    ┌─[./examples/tailwind/code.html]
+    ┌─[./examples/tailwind/code/index.html]
     │
 ∙ 1 │   <div class="block text-gray-900 flex sm:block sm:flex">
     ·                                        ───┬──── ───┬───
@@ -21,7 +21,7 @@
     │
     └─
 
-    ┌─[./examples/tailwind/code.html]
+    ┌─[./examples/tailwind/code/index.html]
     │
   1 │   <div class="block text-gray-900 flex sm:block sm:flex">
 ∙ 2 │     <div class="text-gray-100 block text-gray-100 block">Hello</div>
@@ -32,14 +32,13 @@
     ·
     ├─
     ·   You can solve this by removing one of the duplicate classes:
-    ·   
-    ·   ```html (diff)
+    ·   ```diff
     ·   - <div class="text-gray-100 block text-gray-100 block">Hello</div>
     ·   + <div class="text-gray-100 block block">Hello</div>
     ·   ```
     └─
 
-    ┌─[./examples/tailwind/code.html]
+    ┌─[./examples/tailwind/code/index.html]
     │
   1 │   <div class="block text-gray-900 flex sm:block sm:flex">
 ∙ 2 │     <div class="text-gray-100 block text-gray-100 block">Hello</div>
@@ -50,14 +49,13 @@
     ·
     ├─
     ·   You can solve this by removing one of the duplicate classes:
-    ·   
-    ·   ```html (diff)
+    ·   ```diff
     ·   - <div class="text-gray-100 block text-gray-100 block">Hello</div>
     ·   + <div class="text-gray-100 text-gray-100 block">Hello</div>
     ·   ```
     └─
 
-    ┌─[./examples/tailwind/code.html]
+    ┌─[./examples/tailwind/code/index.html]
     │
   2 │     <div class="text-gray-100 block text-gray-100 block">Hello</div>
   3 │   </div>
@@ -73,7 +71,7 @@
     │
     └─
 
-    ┌─[./examples/tailwind/code.html]
+    ┌─[./examples/tailwind/code/index.html]
     │
   2 │     <div class="text-gray-100 block text-gray-100 block">Hello</div>
   3 │   </div>
@@ -88,7 +86,7 @@
     │
     └─
 
-     ┌─[./examples/tailwind/code.html]
+     ┌─[./examples/tailwind/code/index.html]
      │
    5 │   <div class="underline block text-gray-100 antialiased flex line-through">
    6 │     <div class="text-gray-200 text-gray-300"></div>
@@ -100,7 +98,7 @@
      │
      └─
 
-     ┌─[./examples/tailwind/code.html]
+     ┌─[./examples/tailwind/code/index.html]
      │
    5 │   <div class="underline block text-gray-100 antialiased flex line-through">
    6 │     <div class="text-gray-200 text-gray-300"></div>
@@ -112,7 +110,7 @@
      │
      └─
 
-     ┌─[./examples/tailwind/code.html]
+     ┌─[./examples/tailwind/code/index.html]
      │
    7 │     <div class="truncate text-gray-200 overflow-ellipsis overflow-scroll"></div>
    8 │   </div>
@@ -126,7 +124,7 @@
      │
      └─
 
-     ┌─[./examples/tailwind/code.html]
+     ┌─[./examples/tailwind/code/index.html]
      │
    7 │     <div class="truncate text-gray-200 overflow-ellipsis overflow-scroll"></div>
    8 │   </div>
@@ -140,7 +138,7 @@
      │
      └─
 
-     ┌─[./examples/tailwind/code.html]
+     ┌─[./examples/tailwind/code/index.html]
      │
    8 │   </div>
      ·
@@ -151,8 +149,7 @@
      ·
      ├─
      ·   You can solve this by removing one of the duplicate classes:
-     ·   
-     ·   ```html (diff)
+     ·   ```diff
      ·   - <div class="text-gray-100 grid place-content-center text-gray-100">Hello</div>
      ·   + <div class="text-gray-100 grid place-content-center">Hello</div>
      ·   ```

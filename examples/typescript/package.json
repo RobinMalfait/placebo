@@ -1,0 +1,12 @@
+{
+  "name": "@placebo/typescript-example",
+  "private": true,
+  "scripts": {
+    "generate:readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=150 bun run ./index.ts > README.txt"
+  },
+  "dependencies": {
+    "@robinmalfait/placebo": "workspace:*",
+    "@robinmalfait/placebo-cli": "workspace:*",
+    "typescript": "^5.5.4"
+  }
+}

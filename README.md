@@ -22,7 +22,7 @@ A beautiful new language agnostic diagnostics printer!
 ∙ 6 │   It can render multiple messages together.
     ·                 ───┬──── ───┬──── ───┬────
     ·                    │        │        ╰────── Messages will be rendered
-    ·                    │        ╰─────────────── underneath eachother just
+    ·                    │        ╰─────────────── underneath each other just
     ·                    ╰──────────────────────── like the messages you see here.
     ·
   7 │   These lines will make it easier to locate your code and know what these messages
@@ -52,7 +52,7 @@ A beautiful new language agnostic diagnostics printer!
      · ╭──────────────────────────────────────────────────────────────────────╯
      · │
   19 │ │  property. This is a unique identifier per `block`. This will be useful, if you
-  20 │ │  have some diagnostics that are located further away from eachother. The same
+  20 │ │  have some diagnostics that are located further away from each other. The same
 ∙ 21 │ │  `context` will be your friend here.
      · │  ────┬────
      · ╰──────┴────── Yay, found my `context` friends!
@@ -84,7 +84,7 @@ A beautiful new language agnostic diagnostics printer!
      ·
      ├─
      ·   - This note can contain more information about the specific diagnostic.
-     ·   - What do you think? More info at ]8;;https://github.com/RobinMalfait/placebohttps://github.com/RobinMalfait/placebo]8;;!
+     ·   - What do you think? More info at https://github.com/RobinMalfait/placebo!
      └─
 ```
 
@@ -159,16 +159,16 @@ A beautiful new language agnostic diagnostics printer!
       [6, 33],
       [6, 41]
     ],
-    "block": "042a1912-3ac5-47c2-bc58-7ed2928dc2a8"
+    "block": "96e75980-16bd-4cf6-9964-400a04dd8bfd"
   },
   {
     "file": "README.md",
-    "message": "underneath eachother just",
+    "message": "underneath each other just",
     "location": [
       [6, 24],
       [6, 32]
     ],
-    "block": "042a1912-3ac5-47c2-bc58-7ed2928dc2a8"
+    "block": "96e75980-16bd-4cf6-9964-400a04dd8bfd"
   },
   {
     "file": "README.md",
@@ -177,7 +177,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 15],
       [6, 23]
     ],
-    "block": "042a1912-3ac5-47c2-bc58-7ed2928dc2a8"
+    "block": "96e75980-16bd-4cf6-9964-400a04dd8bfd"
   },
   {
     "file": "README.md",
@@ -186,7 +186,7 @@ A beautiful new language agnostic diagnostics printer!
       [12, 28],
       [12, 31]
     ],
-    "block": "27ae686c-14c8-430f-a690-223204dc149b"
+    "block": "9b3e076f-4d6b-48e4-ac09-d000543b8e4b"
   },
   {
     "file": "README.md",
@@ -195,7 +195,7 @@ A beautiful new language agnostic diagnostics printer!
       [12, 32],
       [12, 35]
     ],
-    "block": "27ae686c-14c8-430f-a690-223204dc149b"
+    "block": "9b3e076f-4d6b-48e4-ac09-d000543b8e4b"
   },
   {
     "file": "README.md",
@@ -204,8 +204,8 @@ A beautiful new language agnostic diagnostics printer!
       [18, 65],
       [18, 74]
     ],
-    "block": "7c334318-91d3-492f-96bd-6d5b1b07cb5a",
-    "context": "26105627-0e70-4f30-a692-b9634f632b2e"
+    "block": "3ddce4cb-4675-419c-9031-0460efad04f9",
+    "context": "b44c8924-7ce8-41cc-a47a-e528b4a83301"
   },
   {
     "file": "README.md",
@@ -214,8 +214,8 @@ A beautiful new language agnostic diagnostics printer!
       [21, 1],
       [21, 10]
     ],
-    "block": "7c334318-91d3-492f-96bd-6d5b1b07cb5a",
-    "context": "26105627-0e70-4f30-a692-b9634f632b2e"
+    "block": "3ddce4cb-4675-419c-9031-0460efad04f9",
+    "context": "b44c8924-7ce8-41cc-a47a-e528b4a83301"
   },
   {
     "file": "README.md",
@@ -232,7 +232,7 @@ A beautiful new language agnostic diagnostics printer!
       [29, 33],
       [29, 40]
     ],
-    "notes": "\n          - This note can contain more information about the specific diagnostic.\n          - What do you think? More info at https://github.com/RobinMalfait/placebo!\n        "
+    "notes": "- This note can contain more information about the specific diagnostic.\n- What do you think? More info at https://github.com/RobinMalfait/placebo!"
   },
   {
     "file": "README.md",
@@ -241,8 +241,8 @@ A beautiful new language agnostic diagnostics printer!
       [35, 8],
       [35, 30]
     ],
-    "block": "a2703dc5-ef81-4b4b-b6cc-4b0528f30818",
-    "notes": "\n            - This note belongs to the superscript indicator.\n            - This note also belongs to the superscript indicator.\n              - And also has some nested/child notes.\n              - Just like these right here!\n          "
+    "block": "2245f531-04fa-4abf-8dce-ec1012e3dab1",
+    "notes": "- This note belongs to the superscript indicator.\n- This note also belongs to the superscript indicator.\n  - And also has some nested/child notes.\n  - Just like these right here!"
   },
   {
     "file": "README.md",
@@ -251,7 +251,7 @@ A beautiful new language agnostic diagnostics printer!
       [35, 31],
       [35, 35]
     ],
-    "block": "a2703dc5-ef81-4b4b-b6cc-4b0528f30818",
+    "block": "2245f531-04fa-4abf-8dce-ec1012e3dab1",
     "notes": "This note belongs to the other diagnostic"
   },
   {

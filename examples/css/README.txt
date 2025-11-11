@@ -1,5 +1,5 @@
 
-    ┌─[./examples/css/code.css]
+    ┌─[./examples/css/code/styles.css]
     │
   1 │    html,
   2 │    body {
@@ -20,7 +20,7 @@
     │
     └─
 
-     ┌─[./examples/css/code.css]
+     ┌─[./examples/css/code/styles.css]
      │
   10 │    }
      · 
@@ -47,7 +47,7 @@
      │
      └─
 
-     ┌─[./examples/css/code.css]
+     ┌─[./examples/css/code/styles.css]
      │
   18 │   }
      ·

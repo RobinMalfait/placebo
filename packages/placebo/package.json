@@ -1,0 +1,44 @@
+{
+  "name": "@robinmalfait/placebo",
+  "version": "0.1.4",
+  "description": "Placebo, the beautiful diagnostics printer",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "publishConfig": {
+    "provenance": true,
+    "access": "public",
+    "exports": {
+      ".": {
+        "import": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup ./src/index.ts --format esm --dts --clean",
+    "dev": "tsup ./src/index.ts --format esm --dts --clean --watch --sourcemap",
+    "prepublishOnly": "npm run build",
+    "test": "PLACEBO_PRINT_WIDTH=100 vitest"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "diagnostics"
+  ],
+  "author": "Robin Malfait",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.3"
+  }
+}

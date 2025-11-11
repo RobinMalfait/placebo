@@ -1,0 +1,12 @@
+{
+  "name": "@placebo/tailwind-example",
+  "private": true,
+  "scripts": {
+    "generate:readme": "NO_COLOR=1 PLACEBO_PRINT_WIDTH=150 bun run ./index.ts > README.txt"
+  },
+  "dependencies": {
+    "@robinmalfait/placebo": "workspace:*",
+    "@robinmalfait/placebo-cli": "workspace:*",
+    "posthtml-parser": "^0.11.0"
+  }
+}

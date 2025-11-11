@@ -1,0 +1,29 @@
+{
+  "name": "@robinmalfait/placebo-cli",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsup ./src/index.ts --format esm --clean",
+    "dev": "tsup ./src/index.ts --format esm --clean --watch --sourcemap",
+    "prepublishOnly": "npm run build"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    }
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "import": "./dist/index.js"
+      }
+    }
+  },
+  "dependencies": {
+    "@robinmalfait/placebo": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0"
+  }
+}
