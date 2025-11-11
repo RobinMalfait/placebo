@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.2.0-alpha.1] - 2025-11-12
+
+### Added
+
+- Initial alpha release of Placebo v0.2.0.
+
 ## [0.1.4] - 2022-10-21
 
 ### Added
