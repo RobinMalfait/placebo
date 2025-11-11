@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Nothing yet!
+
+## [0.2.0-alpha.2] - 2025-11-12
+
 ### Fixed
 
 - Add missing repository field ([f6a7825](https://github.com/RobinMalfait/placebo/commit/f6a78252a1588a146f43cfddb3dce87227ce5ec2))
@@ -23,5 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.4...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.2...HEAD
+[0.2.0-alpha.2]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.4...v0.2.0-alpha.2
 [0.1.4]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.3...v0.1.4
