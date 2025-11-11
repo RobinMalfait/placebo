@@ -88,6 +88,10 @@ async function generate() {
           ...require(path.resolve(root, 'package.json')).prettier,
         }),
       )
+
+      // Copy main readme to `packages/placebo/README.md`
+      let placeboReadme = path.resolve(root, 'packages', 'placebo', 'README.md')
+      await fs.writeFile(placeboReadme, await fs.readFile(mainReadme, 'utf8'))
     }
   }
 
