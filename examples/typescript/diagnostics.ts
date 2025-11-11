@@ -14,18 +14,11 @@ export async function diagnose(_files: string[]) {
     file: string,
     message: string,
     location: Location,
-    {
-      block,
-      context,
-      notes,
-    }: {
-      block?: string
-      context?: string
-      notes?: string
-    } = {},
+    rest: Partial<Diagnostic> = {},
   ): Diagnostic {
-    return { file, message, location, block, context, notes }
+    return { file, message, location, ...rest }
   }
+
   let diagnostics: Diagnostic[] = []
 
   let root = process.cwd()
@@ -57,7 +50,7 @@ export async function diagnose(_files: string[]) {
           ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
           location(line + 1, character + 1, diagnostic.length),
           {
-            ...(hasRelatedFiles ? { context: id } : { block: `${diagnostic.code}` }),
+            ...(hasRelatedFiles ? { diagnosticId: id } : { blockId: `${diagnostic.code}` }),
             notes: [`\`TS${diagnostic.code}\` (https://typescript.tv/errors/#TS${diagnostic.code})`]
               .filter(Boolean)
               .join('\n'),
@@ -76,7 +69,7 @@ export async function diagnose(_files: string[]) {
             other.file?.fileName ?? 'unknown',
             ts.flattenDiagnosticMessageText(other.messageText, '\n'),
             location(line + 1, character + 1, diagnostic.length),
-            { context: id },
+            { diagnosticId: id },
           ),
         )
       }

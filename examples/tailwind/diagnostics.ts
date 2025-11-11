@@ -197,9 +197,9 @@ export async function diagnose(files: string[]) {
     file: string,
     message: string,
     location: Location,
-    { block, context, notes }: { block?: string; context?: string; notes?: string } = {},
-  ) {
-    return { file, message, location, block, context, notes }
+    rest: Partial<Diagnostic> = {},
+  ): Diagnostic {
+    return { file, message, location, ...rest }
   }
 
   for (let file of files) {
@@ -242,7 +242,7 @@ export async function diagnose(files: string[]) {
                     line.indexOf(fullOther) + 1,
                     fullOther.length,
                   ),
-                  { block },
+                  { blockId: block },
                 ),
               )
             }
@@ -275,7 +275,7 @@ export async function diagnose(files: string[]) {
                 `Duplicate class "${klass}"`,
                 location(node.location?.start?.line ?? 0, idx + 1, klass.length),
                 {
-                  block,
+                  blockId: block,
                   notes: isFirst
                     ? [
                         'You can solve this by removing one of the duplicate classes:',

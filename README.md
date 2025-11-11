@@ -159,7 +159,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 33],
       [6, 41]
     ],
-    "block": "96e75980-16bd-4cf6-9964-400a04dd8bfd"
+    "blockId": "cac5d98b-e63f-4394-8131-134c5c9985df"
   },
   {
     "file": "README.md",
@@ -168,7 +168,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 24],
       [6, 32]
     ],
-    "block": "96e75980-16bd-4cf6-9964-400a04dd8bfd"
+    "blockId": "cac5d98b-e63f-4394-8131-134c5c9985df"
   },
   {
     "file": "README.md",
@@ -177,7 +177,7 @@ A beautiful new language agnostic diagnostics printer!
       [6, 15],
       [6, 23]
     ],
-    "block": "96e75980-16bd-4cf6-9964-400a04dd8bfd"
+    "blockId": "cac5d98b-e63f-4394-8131-134c5c9985df"
   },
   {
     "file": "README.md",
@@ -186,7 +186,7 @@ A beautiful new language agnostic diagnostics printer!
       [12, 28],
       [12, 31]
     ],
-    "block": "9b3e076f-4d6b-48e4-ac09-d000543b8e4b"
+    "blockId": "70fe83d0-47d7-4cfd-a1dd-0b6454b402ad"
   },
   {
     "file": "README.md",
@@ -195,7 +195,7 @@ A beautiful new language agnostic diagnostics printer!
       [12, 32],
       [12, 35]
     ],
-    "block": "9b3e076f-4d6b-48e4-ac09-d000543b8e4b"
+    "blockId": "70fe83d0-47d7-4cfd-a1dd-0b6454b402ad"
   },
   {
     "file": "README.md",
@@ -204,8 +204,8 @@ A beautiful new language agnostic diagnostics printer!
       [18, 65],
       [18, 74]
     ],
-    "block": "3ddce4cb-4675-419c-9031-0460efad04f9",
-    "context": "b44c8924-7ce8-41cc-a47a-e528b4a83301"
+    "blockId": "e52d43d4-3a3a-4c07-8b1b-0d4985889242",
+    "diagnosticId": "7834d455-8b6f-491d-8420-6a6e15d3d3d3"
   },
   {
     "file": "README.md",
@@ -214,8 +214,8 @@ A beautiful new language agnostic diagnostics printer!
       [21, 1],
       [21, 10]
     ],
-    "block": "3ddce4cb-4675-419c-9031-0460efad04f9",
-    "context": "b44c8924-7ce8-41cc-a47a-e528b4a83301"
+    "blockId": "e52d43d4-3a3a-4c07-8b1b-0d4985889242",
+    "diagnosticId": "7834d455-8b6f-491d-8420-6a6e15d3d3d3"
   },
   {
     "file": "README.md",
@@ -241,8 +241,8 @@ A beautiful new language agnostic diagnostics printer!
       [35, 8],
       [35, 30]
     ],
-    "block": "2245f531-04fa-4abf-8dce-ec1012e3dab1",
-    "notes": "- This note belongs to the superscript indicator.\n- This note also belongs to the superscript indicator.\n  - And also has some nested/child notes.\n  - Just like these right here!"
+    "notes": "- This note belongs to the superscript indicator.\n- This note also belongs to the superscript indicator.\n  - And also has some nested/child notes.\n  - Just like these right here!",
+    "blockId": "297ecd98-c6a2-4226-afba-775b83ebf40c"
   },
   {
     "file": "README.md",
@@ -251,8 +251,8 @@ A beautiful new language agnostic diagnostics printer!
       [35, 31],
       [35, 35]
     ],
-    "block": "2245f531-04fa-4abf-8dce-ec1012e3dab1",
-    "notes": "This note belongs to the other diagnostic"
+    "notes": "This note belongs to the other diagnostic",
+    "blockId": "297ecd98-c6a2-4226-afba-775b83ebf40c"
   },
   {
     "file": "README.md",
@@ -281,21 +281,70 @@ A beautiful new language agnostic diagnostics printer!
 
 ---
 
-**Note**, this is still in active development. Currently there is no real API
-to use it yet, the diagnostics format can still change, and we may or may not
-want to introduce configuration options.
+## Getting started
+
+Install the library:
+
+```sh
+npm install @robinmalfait/placebo
+```
+
+Usage:
+
+```ts
+import fs from 'node:fs'
+import { print, type Diagnostic, type Location } from '@robinmalfait/placebo'
+
+// Any `Iterable<Diagnostic>` will work here
+let diagnostics: Diagnostic[] = [
+  {
+    /**
+     * The file path of the source code related to this diagnostic
+     */
+    file: 'example.ts',
+
+    /**
+     * Optional: The actual source code related to the diagnostic.
+     *
+     * If this is not known at the time of creating the diagnostic (or you don't
+     * want to perform IO operations at that time), you can provide a function
+     * to retrieve the source code later when printing the diagnostics.
+     */
+    source: '',
+
+    /**
+     * The diagnostic message to display.
+     */
+    message: 'This is an example diagnostic message',
+
+    /**
+     * The location of the diagnostic in the source code.
+     */
+    location: [
+      [3, 5],
+      [3, 15],
+    ] satisfies Location,
+  },
+  // More diagnostics...
+]
+
+print(diagnostics, {
+  write: console.error, // Defaults to `console.error`
+  source: (file) => fs.readFileSync(file, 'utf-8'), // Only necessary if the `diagnostic` doesn't contain the source code already
+})
+```
 
 ### Examples
 
 1. `git clone https://github.com/RobinMalfait/placebo && cd placebo`
-2. `npm install`
-3. `npm run build`
+2. `pnpm install`
+3. `pnpm run build`
 4. See below...
 
-| Project                                        | Script                       |
-| ---------------------------------------------- | ---------------------------- |
-| [CSS](./examples/css/README.txt)               | `node ./examples/css`        |
-| [ESLint](./examples/eslint/README.txt)         | `node ./examples/eslint`     |
-| [JavaScript](./examples/javascript/README.txt) | `node ./examples/javascript` |
-| [README](./examples/readme/README.txt)         | `node ./examples/readme`     |
-| [Tailwind CSS](./examples/tailwind/README.txt) | `node ./examples/tailwind`   |
+| Project                                        | Script                      |
+| ---------------------------------------------- | --------------------------- |
+| [CSS](./examples/css/README.txt)               | `bun ./examples/css`        |
+| [ESLint](./examples/eslint/README.txt)         | `bun ./examples/eslint`     |
+| [JavaScript](./examples/javascript/README.txt) | `bun ./examples/javascript` |
+| [README](./examples/readme/README.txt)         | `bun ./examples/readme`     |
+| [Tailwind CSS](./examples/tailwind/README.txt) | `bun ./examples/tailwind`   |

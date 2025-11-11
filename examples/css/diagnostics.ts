@@ -43,10 +43,10 @@ export async function diagnose(files: string[]) {
     await postcss([
       (root: Root) => {
         root.walkRules((rule) => {
-          let block = randomUUID()
+          let blockId = randomUUID()
 
           rule.walkDecls((decl) => {
-            let context = randomUUID()
+            let diagnosticId = randomUUID()
 
             for (let [[property, value], conflictingProperties, message] of issues) {
               if (property instanceof RegExp) {
@@ -61,8 +61,8 @@ export async function diagnose(files: string[]) {
 
               diagnostics.push({
                 file,
-                block,
-                context,
+                blockId,
+                diagnosticId,
                 location: location(
                   decl.source?.start?.line ?? 0,
                   decl.source?.start?.column ?? 0,
@@ -88,8 +88,8 @@ export async function diagnose(files: string[]) {
 
                   diagnostics.push({
                     file,
-                    block,
-                    context,
+                    blockId,
+                    diagnosticId,
                     get message() {
                       return message(
                         main,

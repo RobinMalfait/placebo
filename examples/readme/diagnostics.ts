@@ -1,24 +1,24 @@
-import type {Diagnostic, Location} from '@robinmalfait/placebo'
-import {randomUUID} from 'node:crypto'
+import type { Diagnostic, Location } from '@robinmalfait/placebo'
+import { randomUUID } from 'node:crypto'
 
 export async function diagnose(files: string[]) {
   function diagnose(
     file: string,
     message: string,
     location: Location,
-    {block, context, notes}: {block?: string; context?: string; notes?: string} = {},
-  ) {
-    return {file, message, location, block, context, notes}
+    rest: Partial<Diagnostic> = {},
+  ): Diagnostic {
+    return { file, message, location, ...rest }
   }
 
   function group(...diagnostics: Diagnostic[]) {
-    let id = randomUUID()
-    return diagnostics.map((diagnostic) => ({...diagnostic, block: id}))
+    let blockId = randomUUID()
+    return diagnostics.map((diagnostic) => ({ ...diagnostic, blockId }))
   }
 
-  function groupContext(...diagnostics: Diagnostic[]) {
-    let id = randomUUID()
-    return diagnostics.map((diagnostic) => ({...diagnostic, context: id}))
+  function connect(...diagnostics: Diagnostic[]) {
+    let diagnosticId = randomUUID()
+    return diagnostics.map((diagnostic) => ({ ...diagnostic, diagnosticId }))
   }
 
   function location(row: number, col: number, len = 1): Location {
@@ -41,7 +41,7 @@ export async function diagnose(files: string[]) {
         diagnose(file, 'You wrote `the` twice!', location(12, 28, 3)),
         diagnose(file, 'You wrote `the` twice!', location(12, 32, 3)),
       ),
-      ...groupContext(
+      ...connect(
         ...group(
           diagnose(file, 'Yay, found my `context` friends!', location(18, 65, 9)),
           diagnose(file, 'Yay, found my `context` friends!', location(21, 1, 9)),

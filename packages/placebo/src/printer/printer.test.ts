@@ -1,11 +1,7 @@
 import { stripVTControlCharacters } from 'node:util'
 import { describe, expect, it } from 'vitest'
-import { env } from '../env'
-import { printer } from '../printer/printer'
+import { print } from '../printer/printer'
 import type { Diagnostic, Location } from '../types'
-
-// Mock PRINT_WIDTH for consistent test results
-Object.defineProperty(env, 'PRINT_WIDTH', { get: () => 100 })
 
 const html = String.raw
 const css = String.raw
@@ -14,18 +10,10 @@ const javascript = String.raw
 function diagnose(
   message: string,
   locations: Location[],
-  {
-    notes,
-    block,
-    context,
-  }: {
-    notes?: string
-    block?: string
-    context?: string
-  } = {},
+  rest: Partial<Diagnostic> = {},
 ): Diagnostic[] {
   return locations.map((location) => {
-    return { file: '', block, context, message, location, notes }
+    return { file: '', message, location, ...rest } satisfies Diagnostic
   })
 }
 
@@ -70,23 +58,24 @@ function findLocation(code: string, word: string, occurrences: number | number[]
 }
 
 async function render(source: string, diagnostics: Diagnostic[][] = [], file = './example.txt') {
+  const PRINT_WIDTH = 100
   let sources = new Map([[file, source]])
 
   let lines: string[] = []
-  function collector(...args: string[]) {
-    lines.push(args.join(' '))
-  }
 
-  await printer(
-    sources,
+  print(
     diagnostics.flat().map((d) => ({ ...d, file })),
-    collector,
+    {
+      write: (line) => lines.push(line),
+      source: (file) => sources.get(file) || '',
+      rendering: { printWidth: PRINT_WIDTH },
+    },
   )
 
   let debug = false // For debugging width issues
   if (debug) {
-    lines.unshift('\u25A1'.repeat(env.PRINT_WIDTH))
-    lines.push('\u25A1'.repeat(env.PRINT_WIDTH))
+    lines.unshift('\u25A1'.repeat(PRINT_WIDTH))
+    lines.push('\u25A1'.repeat(PRINT_WIDTH))
   }
 
   return stripVTControlCharacters(lines.join('\n').trimEnd())
@@ -589,8 +578,8 @@ it('should be possible to print messages across different lines and group them i
     <span class="bg-give-500"></span>
   `
   let diagnostics = [
-    diagnose('gonna', findLocation(code, 'never'), { block: 'abc' }),
-    diagnose('you up', findLocation(code, 'give'), { block: 'abc' }),
+    diagnose('gonna', findLocation(code, 'never'), { blockId: 'abc' }),
+    diagnose('you up', findLocation(code, 'give'), { blockId: 'abc' }),
   ]
 
   let result = await render(code, diagnostics, './example.html')
@@ -660,11 +649,11 @@ it('should be possible to print messages across different lines and group them i
   `
   let diagnostics = [
     diagnose('gonna', findLocation(code, 'never'), {
-      block: 'abc',
+      blockId: 'abc',
       notes: 'I am a note from message 1',
     }),
     diagnose('you up', findLocation(code, 'give'), {
-      block: 'abc',
+      blockId: 'abc',
       notes: 'I am a note from message 2',
     }),
   ]
@@ -791,10 +780,10 @@ describe('context lines', () => {
     `
     let diagnostics = [
       diagnose('With context lines around', findLocation(code, '"b"'), {
-        block: 'abc',
+        blockId: 'abc',
       }),
       diagnose('With context lines around', findLocation(code, '"d"'), {
-        block: 'abc',
+        blockId: 'abc',
       }),
     ]
 
@@ -839,10 +828,10 @@ describe('context lines', () => {
     `
     let diagnostics = [
       diagnose('With context lines around', findLocation(code, '"b"'), {
-        block: 'abc',
+        blockId: 'abc',
       }),
       diagnose('With context lines around', findLocation(code, '"l"'), {
-        block: 'abc',
+        blockId: 'abc',
       }),
     ]
 
@@ -943,12 +932,12 @@ describe('multi-line diagnostics', () => {
     `
     let diagnostics = [
       diagnose('This is a group', findLocation(code, '{'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
       diagnose('This is a group', findLocation(code, '}'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
     ]
 
@@ -983,16 +972,16 @@ describe('multi-line diagnostics', () => {
     `
     let diagnostics = [
       diagnose('This is a group', findLocation(code, '{'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
       diagnose('This is a group', findLocation(code, 'b'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
       diagnose('This is a group', findLocation(code, '}'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
     ]
 
@@ -1031,17 +1020,17 @@ describe('multi-line diagnostics', () => {
       diagnose(
         'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
         findLocation(code, '{'),
-        { block: 'one', context: 'one' },
+        { blockId: 'one', diagnosticId: 'one' },
       ),
       diagnose(
         'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
         findLocation(code, 'b'),
-        { block: 'one', context: 'one' },
+        { blockId: 'one', diagnosticId: 'one' },
       ),
       diagnose(
         'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
         findLocation(code, '}'),
-        { block: 'one', context: 'one' },
+        { blockId: 'one', diagnosticId: 'one' },
       ),
     ]
 
@@ -1080,20 +1069,20 @@ describe('multi-line diagnostics', () => {
     `
     let diagnostics = [
       diagnose('This is a group', findLocation(code, '{'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
       diagnose('This is a group', findLocation(code, 'b'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
       diagnose('This is a group', findLocation(code, 'a'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
       diagnose('This is a group', findLocation(code, '}'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
     ]
 
@@ -1134,16 +1123,16 @@ describe('multi-line diagnostics', () => {
     `
     let diagnostics = [
       diagnose('This is a group', findLocation(code, '{'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
       diagnose('This is a group', findLocation(code, 'b'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
       diagnose('This is a group', findLocation(code, '}'), {
-        block: 'one',
-        context: 'one',
+        blockId: 'one',
+        diagnosticId: 'one',
       }),
     ]
 
@@ -1177,16 +1166,16 @@ describe('multi-line diagnostics', () => {
       These lines are connected
       1 2 3 4 5 6 7
     `
-    let block = 'one'
+    let blockId = 'one'
     let diagnostics = [
-      diagnose('Pair 1', findLocation(code, 'a'), { block, context: '0' }),
-      diagnose('Pair 1', findLocation(code, '1'), { block, context: '0' }),
+      diagnose('Pair 1', findLocation(code, 'a'), { blockId, diagnosticId: '0' }),
+      diagnose('Pair 1', findLocation(code, '1'), { blockId, diagnosticId: '0' }),
 
-      diagnose('Pair 2', findLocation(code, 'b'), { block, context: '1' }),
-      diagnose('Pair 2', findLocation(code, '2'), { block, context: '1' }),
+      diagnose('Pair 2', findLocation(code, 'b'), { blockId, diagnosticId: '1' }),
+      diagnose('Pair 2', findLocation(code, '2'), { blockId, diagnosticId: '1' }),
 
-      diagnose('Pair 3', findLocation(code, 'c'), { block, context: '2' }),
-      diagnose('Pair 3', findLocation(code, '3'), { block, context: '2' }),
+      diagnose('Pair 3', findLocation(code, 'c'), { blockId, diagnosticId: '2' }),
+      diagnose('Pair 3', findLocation(code, '3'), { blockId, diagnosticId: '2' }),
     ]
 
     let result = await render(code, diagnostics)

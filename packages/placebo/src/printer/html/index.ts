@@ -1,4 +1,4 @@
-import { printer as basePrinter } from '../../printer/printer'
+import { print as basePrint } from '../../printer/printer'
 import type { Diagnostic } from '../../types'
 
 const ESCAPE = /(?:\x9B|\x1B\[)([0-?]*)([ -\/]*)[@-~]/g
@@ -60,44 +60,42 @@ const template = html`
   </html>
 `
 
-export async function printer(
-  sources: Map<string, string>,
-  diagnostics: Diagnostic[],
-  write = console.log,
-) {
+export async function print(diagnostics: Iterable<Diagnostic>, write = console.log) {
   function wrap(input: string) {
     return `<div class="bg-white dark:bg-gray-900 px-4 py-8 leading-tight font-mono rounded-lg shadow-md overflow-auto"><pre>${input}</pre></div>`
   }
 
   let output = ''
-  await basePrinter(sources, diagnostics, (message: string) => {
-    if (message === '') {
-      return
-    }
+  basePrint(diagnostics, {
+    write(message: string) {
+      if (message === '') {
+        return
+      }
 
-    message = message
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/'/g, '&#39;')
-      .replace(/"/g, '&#34;')
-      .replace(/\//, '&#x2F;')
+      message = message
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/'/g, '&#39;')
+        .replace(/"/g, '&#34;')
+        .replace(/\//, '&#x2F;')
 
-    output += wrap(
-      message
-        .split('\n')
-        .map((line) =>
-          line.replace(ESCAPE, (_, code) => {
-            if (OFFS.includes(+code)) return '</span>'
+      output += wrap(
+        message
+          .split('\n')
+          .map((line) =>
+            line.replace(ESCAPE, (_, code) => {
+              if (OFFS.includes(+code)) return '</span>'
 
-            let ansi = ANSI_MAP.get(+code)
-            if (ansi !== undefined) return ansi
+              let ansi = ANSI_MAP.get(+code)
+              if (ansi !== undefined) return ansi
 
-            return _
-          }),
-        )
-        .join('\n'),
-    )
+              return _
+            }),
+          )
+          .join('\n'),
+      )
+    },
   })
 
   write(template.replace('<!-- SETUP -->', output))

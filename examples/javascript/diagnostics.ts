@@ -7,7 +7,7 @@ export async function diagnose(files: string[]) {
 
   for (let file of files) {
     let source = await fs.readFile(file, 'utf8')
-    let block = randomUUID()
+    let blockId = randomUUID()
     for (let [rowIdx, row] of source.split('\n').entries()) {
       if (row.match(/=\s*(\w*)\s*([-+/*])\s*(\2*)/g)) {
         let match = /(\w*)\s*([-+/*])\s*(\w*)/g.exec(row)
@@ -56,19 +56,19 @@ export async function diagnose(files: string[]) {
 
         if (lhsType !== 'number' || rhsType !== 'number') {
           diagnostics.push({
-            block,
+            blockId,
             file,
             message: `This is of type '${lhsType}'`,
             location: location(rowIdx, offset + _.indexOf(lhs), lhs.length),
           })
           diagnostics.push({
-            block,
+            blockId,
             file,
             message: messagesByOperator[operator as unknown as keyof typeof messagesByOperator]!(),
             location: location(rowIdx, offset + _.indexOf(operator), operator.length),
           })
           diagnostics.push({
-            block,
+            blockId,
             file,
             message: `This is of type '${rhsType}'`,
             location: location(rowIdx, offset + _.indexOf(rhs), rhs.length),
@@ -76,7 +76,7 @@ export async function diagnose(files: string[]) {
 
           if (lhsType !== 'number') {
             diagnostics.push({
-              block,
+              blockId,
               file,
               message: `Consider changing this to a 'number'`,
               location: lhsDefinitionLocation,
@@ -84,7 +84,7 @@ export async function diagnose(files: string[]) {
           }
           if (rhsType !== 'number') {
             diagnostics.push({
-              block,
+              blockId,
               file,
               message: `Consider changing this to a 'number'`,
               location: rhsDefinitionLocation,

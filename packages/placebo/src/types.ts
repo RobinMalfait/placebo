@@ -1,3 +1,23 @@
+export enum Type {
+  None = 0,
+
+  // Code
+  Code = 1 << 0,
+  Whitespace = 1 << 1,
+  ContextLine = 1 << 2,
+  Wrapped = 1 << 3,
+
+  // Diagnostics
+  Diagnostic = 1 << 4,
+  DiagnosticVerticalConnector = 1 << 5,
+
+  // Notes
+  Note = 1 << 6,
+  StartOfNote = 1 << 7,
+}
+
+export type Item = { type: Type; value: string }[]
+
 export interface DeepArray<T> extends Array<T | DeepArray<T>> {}
 
 export type Location = [
@@ -30,9 +50,17 @@ export interface InternalLocation {
 
 export interface Diagnostic {
   /**
-   * The file path for the current diagnostic.
+   * The file path for the diagnostic.
    */
   file: string
+
+  /**
+   * Optional: The source code of the file related to the diagnostic.
+   *
+   * When this is not provided, a `source(filePath)` function has to be provided
+   * as part of the `printer` options to retrieve the source code.
+   */
+  source?: string
 
   /**
    * The diagnostic message.
@@ -45,30 +73,31 @@ export interface Diagnostic {
   location: Location
 
   /**
-   * Optional notes with additional information about the current diagnostic.
+   * Optional: additional information about the diagnostic. Will be rendered in
+   * a separate notes section.
    */
   notes?: string
 
   /**
-   * An optional string identifier, each diagnostic with the same block value
-   * will be grouped and rendered within the same block.
+   * Optional: Every diagnostic with the same block id will be rendered in the
+   * same diagnostic block.
    */
-  block?: string
+  blockId?: string
 
   /**
-   * An optional string identifier, each diagnostic with the same context will
-   * be visually connected with each other.
+   * Optional: Every diagnostic with the same diagnostic id will be visually connected if possible.
    */
-  context?: string
+  diagnosticId?: string
 }
 
 export interface InternalDiagnostic {
   file: string
+  source: Item[]
   message: string
   loc: InternalLocation
   notes: (availableSpace: number) => string[]
-  block: string | null
-  context: string | null
+  blockId: string | null
+  diagnosticId: string | null
 
   // Things to clean up
   type?: string

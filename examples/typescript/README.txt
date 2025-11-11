@@ -19,14 +19,14 @@
    8 │   if (import.meta.url.endsWith(process.argv[1])) {
 ∙  9 │     run(diagnose)(process.argv.length > 2 ? process.argv.slice(2) : globSync(`${__dirname}code/*`))
   10 │   }     ───┬──── ╭─
-     ·            ╰─────┤ Argument of type '(files: string[]) => Promise<{ block: number; file: string;
+     ·            ╰─────┤ Argument of type '(files: string[]) => Promise<{ block: string; file: string;
      ·                  │ message: string; location: (number | undefined)[][]; notes: string; }[]>' is not
      ·                  │ assignable to parameter of type '(files: string[]) => Promise<Diagnostic[]>'.
-     ·                  │   Type 'Promise<{ block: number; file: string; message: string; location: (number |
+     ·                  │   Type 'Promise<{ block: string; file: string; message: string; location: (number |
      ·                  │ undefined)[][]; notes: string; }[]>' is not assignable to type 'Promise<Diagnostic[]>'.
-     ·                  │     Type '{ block: number; file: string; message: string; location: (number |
+     ·                  │     Type '{ block: string; file: string; message: string; location: (number |
      ·                  │ undefined)[][]; notes: string; }[]' is not assignable to type 'Diagnostic[]'.
-     ·                  │       Type '{ block: number; file: string; message: string; location: (number
+     ·                  │       Type '{ block: string; file: string; message: string; location: (number
      ·                  │ | undefined)[][]; notes: string; }' is not assignable to type 'Diagnostic'.
      ·                  │         Types of property 'location' are incompatible.
      ·                  │           Type '(number | undefined)[][]' is not assignable to type 'Location'.
@@ -36,14 +36,14 @@
   12 │   export default function (write = console.log) {
 ∙ 13 │     return run(diagnose)(globSync(`${__dirname}code/*`), write)
   14 │   }            ───┬──── ╭─
-     ·                   ╰─────┤ Argument of type '(files: string[]) => Promise<{ block: number; file: string;
+     ·                   ╰─────┤ Argument of type '(files: string[]) => Promise<{ block: string; file: string;
      ·                         │ message: string; location: (number | undefined)[][]; notes: string; }[]>' is not
      ·                         │ assignable to parameter of type '(files: string[]) => Promise<Diagnostic[]>'.
-     ·                         │   Type 'Promise<{ block: number; file: string; message: string; location: (number |
+     ·                         │   Type 'Promise<{ block: string; file: string; message: string; location: (number |
      ·                         │ undefined)[][]; notes: string; }[]>' is not assignable to type 'Promise<Diagnostic[]>'.
-     ·                         │     Type '{ block: number; file: string; message: string; location: (number |
+     ·                         │     Type '{ block: string; file: string; message: string; location: (number |
      ·                         │ undefined)[][]; notes: string; }[]' is not assignable to type 'Diagnostic[]'.
-     ·                         │       Type '{ block: number; file: string; message: string; location: (number
+     ·                         │       Type '{ block: string; file: string; message: string; location: (number
      ·                         │ | undefined)[][]; notes: string; }' is not assignable to type 'Diagnostic'.
      ·                         │         Types of property 'location' are incompatible.
      ·                         │           Type '(number | undefined)[][]' is not assignable to type 'Location'.
