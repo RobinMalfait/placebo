@@ -7,11 +7,17 @@
   "dependencies": {
     "@robinmalfait/placebo": "workspace:*",
     "@robinmalfait/placebo-cli": "workspace:*",
-    "eslint": "^9.39.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.32.0"
   },
   "devDependencies": {
-    "@types/eslint": "^9.6.1"
+    "@eslint/css": "^0.14.1",
+    "@eslint/js": "^9.39.1",
+    "@eslint/json": "^0.14.0",
+    "@eslint/markdown": "^7.5.1",
+    "@types/eslint": "^9.6.1",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "typescript-eslint": "^8.46.4"
   }
 }
