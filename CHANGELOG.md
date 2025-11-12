@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Nothing yet!
+
+## [0.2.0-alpha.3] - 2025-11-12
+
 ### Changed
 
 - Rename `diagnosticId` to `relatedId` ([7d8e053](https://github.com/RobinMalfait/placebo/commit/7d8e05387a20b515c8c19e3f83403ace1ff79ab2))
@@ -29,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.2...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.3...HEAD
+[0.2.0-alpha.3]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.2...v0.2.0-alpha.3
 [0.2.0-alpha.2]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.4...v0.2.0-alpha.2
 [0.1.4]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.3...v0.1.4
