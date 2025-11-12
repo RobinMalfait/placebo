@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Nothing yet!
+### Changed
+
+- Rename `diagnosticId` to `relatedId` ([7d8e053](https://github.com/RobinMalfait/placebo/commit/7d8e05387a20b515c8c19e3f83403ace1ff79ab2))
 
 ## [0.2.0-alpha.2] - 2025-11-12
 
