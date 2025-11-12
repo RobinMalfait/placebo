@@ -46,7 +46,7 @@ export async function diagnose(files: string[]) {
           let blockId = randomUUID()
 
           rule.walkDecls((decl) => {
-            let diagnosticId = randomUUID()
+            let relatedId = randomUUID()
 
             for (let [[property, value], conflictingProperties, message] of issues) {
               if (property instanceof RegExp) {
@@ -62,7 +62,7 @@ export async function diagnose(files: string[]) {
               diagnostics.push({
                 file,
                 blockId,
-                diagnosticId,
+                relatedId,
                 location: location(
                   decl.source?.start?.line ?? 0,
                   decl.source?.start?.column ?? 0,
@@ -89,7 +89,7 @@ export async function diagnose(files: string[]) {
                   diagnostics.push({
                     file,
                     blockId,
-                    diagnosticId,
+                    relatedId,
                     get message() {
                       return message(
                         main,

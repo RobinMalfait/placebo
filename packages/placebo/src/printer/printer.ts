@@ -179,7 +179,7 @@ class Printer {
         },
         notes: parseNotes(diagnostic.notes),
         blockId: diagnostic.blockId ?? null,
-        diagnosticId: diagnostic.diagnosticId ?? null,
+        relatedId: diagnostic.relatedId ?? null,
       }
 
       // `row` and `col` are 1-based when they come in. This is because most tools
@@ -330,14 +330,14 @@ class Printer {
 
     // Group by context
     for (let diagnostic of diagnostics) {
-      if (!diagnostic.diagnosticId) continue
-      diagnosticsByContext.get(diagnostic.diagnosticId).push(diagnostic)
+      if (!diagnostic.relatedId) continue
+      diagnosticsByContext.get(diagnostic.relatedId).push(diagnostic)
     }
 
     // Find the correct color per diagnostic
     for (let [idx, diagnostic] of diagnostics.entries()) {
-      if (diagnosticsByContext.has(diagnostic.diagnosticId)) {
-        let [firstDiagnostic] = diagnosticsByContext.get(diagnostic.diagnosticId) ?? []
+      if (diagnosticsByContext.has(diagnostic.relatedId)) {
+        let [firstDiagnostic] = diagnosticsByContext.get(diagnostic.relatedId) ?? []
 
         if (diagnosticToColor.has(firstDiagnostic!)) {
           diagnosticToColor.set(diagnostic, diagnosticToColor.get(firstDiagnostic!) ?? ((x) => x))
@@ -354,7 +354,7 @@ class Printer {
       if (diagnostics.length > 1) continue
 
       for (let diagnostic of diagnostics) {
-        diagnostic.diagnosticId = null
+        diagnostic.relatedId = null
         diagnosticsByContext.delete(context)
       }
     }
@@ -384,12 +384,12 @@ class Printer {
     }
 
     function isLastDiagnosticInContext(diagnostic: InternalDiagnostic) {
-      let diagnosticsInContext = diagnosticsByContext.get(diagnostic.diagnosticId) ?? []
+      let diagnosticsInContext = diagnosticsByContext.get(diagnostic.relatedId) ?? []
       return diagnosticsInContext[diagnosticsInContext.length - 1] === diagnostic
     }
 
     function isFirstDiagnosticInContext(diagnostic: InternalDiagnostic) {
-      let diagnosticsInContext = diagnosticsByContext.get(diagnostic.diagnosticId) ?? []
+      let diagnosticsInContext = diagnosticsByContext.get(diagnostic.relatedId) ?? []
       return diagnosticsInContext[0] === diagnostic
     }
 
@@ -659,7 +659,7 @@ class Printer {
         // same context. When we have the same context, we will draw lines
         // around the code to the left. We have to make sure that we can draw
         // that by reserving empty lines.
-        if (diagnostic.diagnosticId && nextLine!.slice(0, diagnostic.loc.col).length > 0) {
+        if (diagnostic.relatedId && nextLine!.slice(0, diagnostic.loc.col).length > 0) {
           nextLine = inject(rowIdx + 1)
         }
 
@@ -706,18 +706,18 @@ class Printer {
           }
         }
 
-        let lastLineIdx = diagnostic.diagnosticId
+        let lastLineIdx = diagnostic.relatedId
           ? rowIdx + 2
           : rowIdx + (diagnostics.length - idx) + 1
 
         let lastLine = output[lastLineIdx] ?? inject(lastLineIdx)
 
-        if (diagnostic.diagnosticId && lastLine!.slice(0, connectorIdx).length > 0) {
+        if (diagnostic.relatedId && lastLine!.slice(0, connectorIdx).length > 0) {
           lastLine = inject(lastLineIdx)
         }
 
         // Rounded corner
-        if (!diagnostic.diagnosticId) {
+        if (!diagnostic.relatedId) {
           lastLine![connectorIdx] = createDiagnosticCell(
             decorate(lastLine![connectorIdx] === undefined ? CHARS.BLRound : CHARS.LConnector),
           )
@@ -730,16 +730,16 @@ class Printer {
         }
 
         // Horizontal line next to rounded corner
-        if (!diagnostic.diagnosticId || isLastDiagnosticInContext(diagnostic)) {
+        if (!diagnostic.relatedId || isLastDiagnosticInContext(diagnostic)) {
           for (let x of range(lastPosition - connectorIdx + 1)) {
             lastLine![connectorIdx + 1 + x] = createDiagnosticCell(decorate(CHARS.H))
           }
         }
 
-        if (diagnostic.diagnosticId) {
+        if (diagnostic.relatedId) {
           let offset =
             1 +
-            contextIdentifiers.indexOf(diagnostic.diagnosticId) *
+            contextIdentifiers.indexOf(diagnostic.relatedId) *
               2 /* To have some breathing room between each line */
 
           for (let x of range(offset, connectorIdx)) {
@@ -783,7 +783,7 @@ class Printer {
         }
 
         // Inject the message after the horizontal line
-        if (!diagnostic.diagnosticId || isLastDiagnosticInContext(diagnostic)) {
+        if (!diagnostic.relatedId || isLastDiagnosticInContext(diagnostic)) {
           let lastLineOffset = lastLine!.length
           let availableSpace = availableWorkingSpace - lastLine!.length
 
@@ -954,17 +954,17 @@ class Printer {
     // Render vertical lines for diagnostics with the same context
     let seen = new Set<string | number>()
     for (let diagnostic of diagnostics) {
-      if (!diagnostic.diagnosticId) continue
-      if (seen.has(diagnostic.diagnosticId)) continue
-      seen.add(diagnostic.diagnosticId)
+      if (!diagnostic.relatedId) continue
+      if (seen.has(diagnostic.relatedId)) continue
+      seen.add(diagnostic.relatedId)
 
       let decorate = diagnosticToColor.get(diagnostic) ?? ((x) => x)
       let offset =
         1 /* Offset for the gutter line */ +
-        contextIdentifiers.indexOf(diagnostic.diagnosticId) *
+        contextIdentifiers.indexOf(diagnostic.relatedId) *
           2 /* To have some breathing room between each line */
 
-      let diagnosticsInContext = diagnosticsByContext.get(diagnostic.diagnosticId)?.slice()
+      let diagnosticsInContext = diagnosticsByContext.get(diagnostic.relatedId)?.slice()
       let startRowIdx = (diagnosticsInContext ?? []).reduce(
         (smallestRowIdx, diagnostic) => Math.min(smallestRowIdx, diagnostic.loc.row),
         Number.POSITIVE_INFINITY,

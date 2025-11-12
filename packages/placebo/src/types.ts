@@ -85,9 +85,9 @@ export interface Diagnostic {
   blockId?: string
 
   /**
-   * Optional: Every diagnostic with the same diagnostic id will be visually connected if possible.
+   * Optional: Every diagnostic with the same related id will be visually connected if possible.
    */
-  diagnosticId?: string
+  relatedId?: string
 }
 
 export interface InternalDiagnostic {
@@ -97,7 +97,7 @@ export interface InternalDiagnostic {
   loc: InternalLocation
   notes: (availableSpace: number) => string[]
   blockId: string | null
-  diagnosticId: string | null
+  relatedId: string | null
 
   // Things to clean up
   type?: string

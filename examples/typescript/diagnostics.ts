@@ -50,7 +50,7 @@ export async function diagnose(_files: string[]) {
           ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
           location(line + 1, character + 1, diagnostic.length),
           {
-            ...(hasRelatedFiles ? { diagnosticId: id } : { blockId: `${diagnostic.code}` }),
+            ...(hasRelatedFiles ? { relatedId: id } : { blockId: `${diagnostic.code}` }),
             notes: [`\`TS${diagnostic.code}\` (https://typescript.tv/errors/#TS${diagnostic.code})`]
               .filter(Boolean)
               .join('\n'),
@@ -69,7 +69,7 @@ export async function diagnose(_files: string[]) {
             other.file?.fileName ?? 'unknown',
             ts.flattenDiagnosticMessageText(other.messageText, '\n'),
             location(line + 1, character + 1, diagnostic.length),
-            { diagnosticId: id },
+            { relatedId: id },
           ),
         )
       }

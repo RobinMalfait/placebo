@@ -17,8 +17,8 @@ export async function diagnose(files: string[]) {
   }
 
   function connect(...diagnostics: Diagnostic[]) {
-    let diagnosticId = randomUUID()
-    return diagnostics.map((diagnostic) => ({ ...diagnostic, diagnosticId }))
+    let relatedId = randomUUID()
+    return diagnostics.map((diagnostic) => ({ ...diagnostic, relatedId }))
   }
 
   function location(row: number, col: number, len = 1): Location {

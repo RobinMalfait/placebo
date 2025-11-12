@@ -933,11 +933,11 @@ describe('multi-line diagnostics', () => {
     let diagnostics = [
       diagnose('This is a group', findLocation(code, '{'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
       diagnose('This is a group', findLocation(code, '}'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
     ]
 
@@ -973,15 +973,15 @@ describe('multi-line diagnostics', () => {
     let diagnostics = [
       diagnose('This is a group', findLocation(code, '{'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
       diagnose('This is a group', findLocation(code, 'b'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
       diagnose('This is a group', findLocation(code, '}'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
     ]
 
@@ -1020,17 +1020,17 @@ describe('multi-line diagnostics', () => {
       diagnose(
         'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
         findLocation(code, '{'),
-        { blockId: 'one', diagnosticId: 'one' },
+        { blockId: 'one', relatedId: 'one' },
       ),
       diagnose(
         'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
         findLocation(code, 'b'),
-        { blockId: 'one', diagnosticId: 'one' },
+        { blockId: 'one', relatedId: 'one' },
       ),
       diagnose(
         'This is a group with a very long message so we should be able to render this as a multi-line message as well.',
         findLocation(code, '}'),
-        { blockId: 'one', diagnosticId: 'one' },
+        { blockId: 'one', relatedId: 'one' },
       ),
     ]
 
@@ -1070,19 +1070,19 @@ describe('multi-line diagnostics', () => {
     let diagnostics = [
       diagnose('This is a group', findLocation(code, '{'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
       diagnose('This is a group', findLocation(code, 'b'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
       diagnose('This is a group', findLocation(code, 'a'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
       diagnose('This is a group', findLocation(code, '}'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
     ]
 
@@ -1124,15 +1124,15 @@ describe('multi-line diagnostics', () => {
     let diagnostics = [
       diagnose('This is a group', findLocation(code, '{'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
       diagnose('This is a group', findLocation(code, 'b'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
       diagnose('This is a group', findLocation(code, '}'), {
         blockId: 'one',
-        diagnosticId: 'one',
+        relatedId: 'one',
       }),
     ]
 
@@ -1168,14 +1168,14 @@ describe('multi-line diagnostics', () => {
     `
     let blockId = 'one'
     let diagnostics = [
-      diagnose('Pair 1', findLocation(code, 'a'), { blockId, diagnosticId: '0' }),
-      diagnose('Pair 1', findLocation(code, '1'), { blockId, diagnosticId: '0' }),
+      diagnose('Pair 1', findLocation(code, 'a'), { blockId, relatedId: '0' }),
+      diagnose('Pair 1', findLocation(code, '1'), { blockId, relatedId: '0' }),
 
-      diagnose('Pair 2', findLocation(code, 'b'), { blockId, diagnosticId: '1' }),
-      diagnose('Pair 2', findLocation(code, '2'), { blockId, diagnosticId: '1' }),
+      diagnose('Pair 2', findLocation(code, 'b'), { blockId, relatedId: '1' }),
+      diagnose('Pair 2', findLocation(code, '2'), { blockId, relatedId: '1' }),
 
-      diagnose('Pair 3', findLocation(code, 'c'), { blockId, diagnosticId: '2' }),
-      diagnose('Pair 3', findLocation(code, '3'), { blockId, diagnosticId: '2' }),
+      diagnose('Pair 3', findLocation(code, 'c'), { blockId, relatedId: '2' }),
+      diagnose('Pair 3', findLocation(code, '3'), { blockId, relatedId: '2' }),
     ]
 
     let result = await render(code, diagnostics)

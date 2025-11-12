@@ -205,7 +205,7 @@ A beautiful new language agnostic diagnostics printer!
       [18, 74]
     ],
     "blockId": "df73ecdf-1b70-4092-8d6b-5df9590bcf86",
-    "diagnosticId": "6b86b478-90de-4755-9eae-f2d8ad91c08b"
+    "relatedId": "6b86b478-90de-4755-9eae-f2d8ad91c08b"
   },
   {
     "file": "README.md",
@@ -215,7 +215,7 @@ A beautiful new language agnostic diagnostics printer!
       [21, 10]
     ],
     "blockId": "df73ecdf-1b70-4092-8d6b-5df9590bcf86",
-    "diagnosticId": "6b86b478-90de-4755-9eae-f2d8ad91c08b"
+    "relatedId": "6b86b478-90de-4755-9eae-f2d8ad91c08b"
   },
   {
     "file": "README.md",
@@ -338,9 +338,9 @@ let diagnostics: Diagnostic[] = [
     blockId: string,
 
     /**
-     * Optional: Every diagnostic with the same diagnostic id will be visually connected if possible.
+     * Optional: Every diagnostic with the same related id will be visually connected if possible.
      */
-    diagnosticId: string,
+    relatedId: string,
   },
 
   // More diagnostics...
