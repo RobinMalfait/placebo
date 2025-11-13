@@ -6,11 +6,15 @@ export const env = {
 }
 
 export function parseNumberEnv(name: string, defaultValue: number) {
+  if (typeof process === 'undefined') return defaultValue
+
   let valueAsNumber = Number(process.env[name] ?? defaultValue)
   return Number.isNaN(valueAsNumber) ? defaultValue : valueAsNumber
 }
 
 export function parseBooleanEnv(name: string, defaultValue: boolean) {
+  if (typeof process === 'undefined') return defaultValue
+
   let value = process.env[name] ?? defaultValue
   if (value === '1' || value === 'true') return true
   if (value === '0' || value === 'false') return false
@@ -20,6 +24,8 @@ export function parseBooleanEnv(name: string, defaultValue: boolean) {
 
 // More info about conventions: https://github.com/debug-js/debug#conventions
 function parseDebugEnv() {
+  if (typeof process === 'undefined') return false
+
   let debug = process.env.DEBUG
 
   if (debug === undefined) return false
