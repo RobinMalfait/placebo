@@ -11,6 +11,7 @@
   },
   "exports": {
     ".": {
+      "style": "./src/index.css",
       "import": "./src/index.ts",
       "types": "./src/index.ts"
     }
@@ -20,6 +21,7 @@
     "access": "public",
     "exports": {
       ".": {
+        "style": "./dist/index.css",
         "import": "./dist/index.js",
         "types": "./dist/index.d.ts"
       }
@@ -27,8 +29,9 @@
   },
   "scripts": {
     "build": "tsup ./src/index.ts --format esm --dts --clean",
+    "postbuild": "cp ./src/index.css ./dist/index.css",
     "dev": "tsup ./src/index.ts --format esm --dts --clean --watch --sourcemap",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm run build",
     "test": "vitest"
   },
   "files": [
