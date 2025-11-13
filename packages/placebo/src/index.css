@@ -1,1 +1,13 @@
 @source './';
+
+@theme {
+  --color-placebo-black: var(--color-black);
+  --color-placebo-red: var(--color-red-600);
+  --color-placebo-green: var(--color-green-600);
+  --color-placebo-yellow: var(--color-yellow-600);
+  --color-placebo-blue: var(--color-blue-600);
+  --color-placebo-magenta: var(--color-pink-600);
+  --color-placebo-cyan: var(--color-cyan-600);
+  --color-placebo-white: var(--color-white);
+  --color-placebo-gray: var(--color-gray-800);
+}

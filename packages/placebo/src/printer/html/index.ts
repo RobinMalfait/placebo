@@ -14,26 +14,26 @@ const ANSI_STYLE_MAP = new Map([
 ])
 
 const ANSI_TEXT_COLOR_MAP = new Map([
-  [30, '<span class="text-black">'], // black
-  [31, '<span class="text-red-600 dark:text-red-400">'], // red
-  [32, '<span class="text-green-600 dark:text-green-400">'], // green
-  [33, '<span class="text-yellow-600 dark:text-yellow-400">'], // yellow
-  [34, '<span class="text-blue-600 dark:text-blue-400">'], // blue
-  [35, '<span class="text-pink-600 dark:text-pink-400">'], // magenta
-  [36, '<span class="text-cyan-600 dark:text-cyan-400">'], // cyan
-  [37, '<span class="text-white">'], // white
-  [90, '<span class="text-gray-800 dark:text-gray-400">'], // gray
+  [30, '<span class="text-placebo-black">'], // black
+  [31, '<span class="text-placebo-red">'], // red
+  [32, '<span class="text-placebo-green">'], // green
+  [33, '<span class="text-placebo-yellow">'], // yellow
+  [34, '<span class="text-placebo-blue">'], // blue
+  [35, '<span class="text-placebo-magenta">'], // magenta
+  [36, '<span class="text-placebo-cyan">'], // cyan
+  [37, '<span class="text-placebo-white">'], // white
+  [90, '<span class="text-placebo-gray">'], // gray
 ])
 
 const ANSI_BACKGROUND_COLOR_MAP = new Map([
-  [40, '<span class="bg-black">'], // black
-  [41, '<span class="bg-red-600 dark:bg-red-400">'], // red
-  [42, '<span class="bg-green-600 dark:bg-green-400">'], // green
-  [43, '<span class="bg-yellow-600 dark:bg-yellow-400">'], // yellow
-  [44, '<span class="bg-blue-600 dark:bg-blue-400">'], // blue
-  [45, '<span class="bg-pink-600 dark:bg-pink-400">'], // magenta
-  [46, '<span class="bg-cyan-600 dark:bg-cyan-400">'], // cyan
-  [47, '<span class="bg-white">'], // white
+  [40, '<span class="bg-placebo-black">'], // black
+  [41, '<span class="bg-placebo-red">'], // red
+  [42, '<span class="bg-placebo-green">'], // green
+  [43, '<span class="bg-placebo-yellow">'], // yellow
+  [44, '<span class="bg-placebo-blue">'], // blue
+  [45, '<span class="bg-placebo-magenta">'], // magenta
+  [46, '<span class="bg-placebo-cyan">'], // cyan
+  [47, '<span class="bg-placebo-white">'], // white
 ])
 
 const ANSI_MAP = new Map([...ANSI_STYLE_MAP, ...ANSI_TEXT_COLOR_MAP, ...ANSI_BACKGROUND_COLOR_MAP])
