@@ -1,6 +1,6 @@
 {
   "name": "@robinmalfait/placebo",
-  "version": "0.2.0-alpha.3",
+  "version": "0.2.0-alpha.4",
   "description": "Placebo, the beautiful diagnostics printer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

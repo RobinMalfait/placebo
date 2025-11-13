@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Nothing yet!
+
+## [0.2.0-alpha.4] - 2025-11-13
+
 ### Added
 
 - Add `findLocation` and `findLocations` helpers ([c9a054c](https://github.com/RobinMalfait/placebo/commit/c9a054c5bebfba4d5107f52067b17a7536d893e7))
@@ -35,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.3...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.4...HEAD
+[0.2.0-alpha.4]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.3...v0.2.0-alpha.4
 [0.2.0-alpha.3]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.2...v0.2.0-alpha.3
 [0.2.0-alpha.2]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.4...v0.2.0-alpha.2
 [0.1.4]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.3...v0.1.4
