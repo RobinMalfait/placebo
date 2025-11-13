@@ -1,4 +1,3 @@
-import * as path from 'node:path'
 import { env, parseNumberEnv } from '../env'
 import CHARS from '../printer/char-maps/fancy'
 import { Type, type Diagnostic, type InternalDiagnostic } from '../types'
@@ -115,6 +114,14 @@ export interface PrinterOptions {
      * Overrideable via:  `process.env.PLACEBO_PRINT_WIDTH`
      */
     printWidth?: number
+
+    /**
+     * A way to format the file path when printing diagnostics.
+     *
+     * In Node-like environments, this will render paths relative to the
+     * `process.cwd()` by default.
+     */
+    formatFilePath?: (file: string) => string
   }
 }
 
@@ -1081,14 +1088,7 @@ class Printer {
         styles.dim(CHARS.TLSquare),
         styles.dim(CHARS.H),
         styles.dim('['),
-        styles.bold(
-          responsiveFileName(
-            ((relative) =>
-              relative.startsWith('.') || relative.startsWith('/') ? relative : `./${relative}`)(
-              path.relative(process.cwd(), path.resolve(file)),
-            ),
-          ),
-        ),
+        styles.bold(responsiveFileName(this.rendering.formatFilePath(file))),
         styles.dim(']'),
       ],
       [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.V].map((v) => styles.dim(v)),
@@ -1214,6 +1214,22 @@ export function print(diagnostics: Iterable<Diagnostic>, options: PrinterOptions
         'PLACEBO_PRINT_WIDTH',
         options.rendering?.printWidth ?? process.stdout.columns ?? 80,
       )
+    },
+    formatFilePath(file) {
+      let fn =
+        options.rendering?.formatFilePath ??
+        ((file) => {
+          // Create relative paths when running in Node-like environments
+          if (typeof process !== 'undefined') {
+            let path = require('path')
+            let relative = path.relative(process.cwd(), path.resolve(file))
+            return relative.startsWith('.') || relative.startsWith('/') ? relative : `./${relative}`
+          }
+
+          // Fallback: return the original file path
+          return file
+        })
+      return fn(file)
     },
   })
   printer.print(diagnostics)
