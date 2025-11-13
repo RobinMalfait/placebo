@@ -57,7 +57,11 @@ function findLocation(code: string, word: string, occurrences: number | number[]
   return result
 }
 
-async function render(source: string, diagnostics: Diagnostic[][] = [], file = './example.txt') {
+export async function render(
+  source: string,
+  diagnostics: Diagnostic[][] = [],
+  file = './example.txt',
+) {
   const PRINT_WIDTH = 100
   let sources = new Map([[file, source]])
 
