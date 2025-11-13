@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Nothing yet!
+### Added
+
+- Add `findLocation` and `findLocations` helpers ([c9a054c](https://github.com/RobinMalfait/placebo/commit/c9a054c5bebfba4d5107f52067b17a7536d893e7))
 
 ## [0.2.0-alpha.3] - 2025-11-12
 
