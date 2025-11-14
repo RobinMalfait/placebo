@@ -21,13 +21,16 @@ describe('findLocation', () => {
 
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.txt]
-          │
-      ∙ 1 │   abc
-          ·    ┬
-          ·    ╰── Found "b"
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.txt]                                                                               │
+      │    │                                                                                               │
+      │∙ 1 │   abc                                                                                         │
+      │    ·    ┬                                                                                          │
+      │    ·    ╰── Found "b"                                                                              │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -55,18 +58,21 @@ describe('findLocation', () => {
 
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.txt]
-          │
-        2 │   <div class="flex"></div>
-      ∙ 3 │   <div class="block"></div>
-          ·        ──────┬──────
-          ·              ╰──────── Found a class attribute with value "block"
-          ·
-        4 │   <div class="inline-block">
-        5 │     <div class="block"></div>
-        6 │   </div>
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.txt]                                                                               │
+      │    │                                                                                               │
+      │  2 │   <div class="flex"></div>                                                                    │
+      │∙ 3 │   <div class="block"></div>                                                                   │
+      │    ·        ──────┬──────                                                                          │
+      │    ·              ╰──────── Found a class attribute with value "block"                             │
+      │    ·                                                                                               │
+      │  4 │   <div class="inline-block">                                                                  │
+      │  5 │     <div class="block"></div>                                                                 │
+      │  6 │   </div>                                                                                      │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -95,18 +101,21 @@ describe('findLocation', () => {
 
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.txt]
-          │
-        2 │   <div class="flex"></div>
-      ∙ 3 │   <div class="block"></div>
-          ·               ──┬──
-          ·                 ╰──── Found a class attribute with value "block"
-          ·
-        4 │   <div class="inline-block">
-        5 │     <div class="block"></div>
-        6 │   </div>
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.txt]                                                                               │
+      │    │                                                                                               │
+      │  2 │   <div class="flex"></div>                                                                    │
+      │∙ 3 │   <div class="block"></div>                                                                   │
+      │    ·               ──┬──                                                                           │
+      │    ·                 ╰──── Found a class attribute with value "block"                              │
+      │    ·                                                                                               │
+      │  4 │   <div class="inline-block">                                                                  │
+      │  5 │     <div class="block"></div>                                                                 │
+      │  6 │   </div>                                                                                      │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 })
@@ -126,13 +135,16 @@ describe('findLocations', () => {
 
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.txt]
-          │
-      ∙ 1 │   foo bar baz FOO BAR BAZ
-          ·   ─┬─         ─┬─
-          ·    ╰───────────┴─── Found "foo"
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.txt]                                                                               │
+      │    │                                                                                               │
+      │∙ 1 │   foo bar baz FOO BAR BAZ                                                                     │
+      │    ·   ─┬─         ─┬─                                                                             │
+      │    ·    ╰───────────┴─── Found "foo"                                                               │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -161,19 +173,22 @@ describe('findLocations', () => {
 
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.txt]
-          │
-        2 │   <div class="flex"></div>
-      ∙ 3 │   <div class="block"></div>
-          ·        ──────┬──────
-          ·              ╰──────── Found a class attribute with value "block"
-          ·
-        4 │   <div class="inline-block">
-      ∙ 5 │     <div class="block"></div>
-        6 │   </div> ──────┬──────
-          ·                ╰──────── Found a class attribute with value "block"
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.txt]                                                                               │
+      │    │                                                                                               │
+      │  2 │   <div class="flex"></div>                                                                    │
+      │∙ 3 │   <div class="block"></div>                                                                   │
+      │    ·        ──────┬──────                                                                          │
+      │    ·              ╰──────── Found a class attribute with value "block"                             │
+      │    ·                                                                                               │
+      │  4 │   <div class="inline-block">                                                                  │
+      │∙ 5 │     <div class="block"></div>                                                                 │
+      │  6 │   </div> ──────┬──────                                                                        │
+      │    ·                ╰──────── Found a class attribute with value "block"                           │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -203,19 +218,22 @@ describe('findLocations', () => {
 
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.txt]
-          │
-        2 │   <div class="flex"></div>
-      ∙ 3 │   <div class="block"></div>
-          ·               ──┬──
-          ·                 ╰──── Found a class attribute with value "block"
-          ·
-        4 │   <div class="inline-block">
-      ∙ 5 │     <div class="block"></div>
-        6 │   </div>        ──┬──
-          ·                   ╰──── Found a class attribute with value "block"
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.txt]                                                                               │
+      │    │                                                                                               │
+      │  2 │   <div class="flex"></div>                                                                    │
+      │∙ 3 │   <div class="block"></div>                                                                   │
+      │    ·               ──┬──                                                                           │
+      │    ·                 ╰──── Found a class attribute with value "block"                              │
+      │    ·                                                                                               │
+      │  4 │   <div class="inline-block">                                                                  │
+      │∙ 5 │     <div class="block"></div>                                                                 │
+      │  6 │   </div>        ──┬──                                                                         │
+      │    ·                   ╰──── Found a class attribute with value "block"                            │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 })

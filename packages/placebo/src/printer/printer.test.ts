@@ -1,5 +1,6 @@
 import { stripVTControlCharacters } from 'node:util'
 import { describe, expect, it } from 'vitest'
+import CHARS from '../printer/char-maps/fancy'
 import { print } from '../printer/printer'
 import type { Diagnostic, Location } from '../types'
 
@@ -76,13 +77,41 @@ export async function render(
     },
   )
 
-  let debug = false // For debugging width issues
+  let out = stripVTControlCharacters(lines.join('\n').trimEnd())
+
+  let debug = true // For debugging width issues
   if (debug) {
-    lines.unshift('\u25A1'.repeat(PRINT_WIDTH))
-    lines.push('\u25A1'.repeat(PRINT_WIDTH))
+    // Print a box around the output to see if anything overflows
+    if (out.startsWith('\n')) out = out.slice(1)
+
+    let lines = out.split('\n')
+    for (let [idx, line] of lines.entries()) {
+      // Replace all backticks with a similar character that doesn't need
+      // escaping due to how inline snapshots work.
+      line = line.replaceAll('`', '\u2035')
+
+      if (line.length > PRINT_WIDTH) {
+        let good = line.slice(0, PRINT_WIDTH)
+        let bad = line.slice(PRINT_WIDTH + 1)
+        // Highlight the overflowed part
+        lines[idx] = CHARS.V + good + '×' + bad
+      } else {
+        lines[idx] = CHARS.V + line.padEnd(PRINT_WIDTH) + CHARS.V
+      }
+    }
+    out = lines.join('\n')
+
+    // Add top line
+    out = CHARS.TLSquare + CHARS.H.repeat(PRINT_WIDTH) + CHARS.TRSquare + '\n' + out + '\n'
+
+    // Add bottom line
+    out += CHARS.BLSquare + CHARS.H.repeat(PRINT_WIDTH) + CHARS.BRSquare
+
+    // Add additional newlines such that snapshots look better
+    out = `\n${out}\n`
   }
 
-  return stripVTControlCharacters(lines.join('\n').trimEnd())
+  return out
 }
 
 it('should print a message', async () => {
@@ -93,13 +122,16 @@ it('should print a message', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬──
-        ·                ╰──── Message 1
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬──                                                                            │
+    │    ·                ╰──── Message 1                                                                │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -122,13 +154,16 @@ it("should allow for diagnostics for places that don't exist", async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 2 │   console.log('Hello World')
-        ·                             ┬
-        ·                             ╰── Missing semicolon
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 2 │   console.log('Hello World')                                                                  │
+    │    ·                             ┬                                                                 │
+    │    ·                             ╰── Missing semicolon                                             │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -140,13 +175,16 @@ it('should print a message and re-indent it to save space', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬──
-        ·                ╰──── Message 1
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬──                                                                            │
+    │    ·                ╰──── Message 1                                                                │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -162,15 +200,18 @@ it('should print a message and a note', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬──
-        ·                ╰──── Message 1
-        ·
-        ├─
-        ·   This is a note
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬──                                                                            │
+    │    ·                ╰──── Message 1                                                                │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   This is a note                                                                              │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -193,19 +234,22 @@ it('should flatten duplicate notes when they occur multiple times in the same bl
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬── ──┬──  ┬─
-        ·                │     │    ╰─── Message 3
-        ·                │     ╰──────── Message 2
-        ·                ╰────────────── Message 1
-        ·
-        ├─
-        ·   This is a separate note, but it is also very long so therefore we have to still make sure that this note gets cut in pieces.
-        ├─
-        ·   This is a note
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬── ──┬──  ┬─                                                                  │
+    │    ·                │     │    ╰─── Message 3                                                      │
+    │    ·                │     ╰──────── Message 2                                                      │
+    │    ·                ╰────────────── Message 1                                                      │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   This is a separate note, but it is also very long so therefore we have to still make sure th×t this note gets cut in pieces.
+    │    ├─                                                                                              │
+    │    ·   This is a note                                                                              │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -220,17 +264,20 @@ it('should print a message with multiple notes', async () => {
   let result = await render(code, diagnostics, './example.html')
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬──
-        ·                ╰──── Message 1
-        ·
-        ├─
-        ·   - This is a note
-        ·   - This is another note
-        ·   - This is the last note
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬──                                                                            │
+    │    ·                ╰──── Message 1                                                                │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   - This is a note                                                                            │
+    │    ·   - This is another note                                                                      │
+    │    ·   - This is the last note                                                                     │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -256,24 +303,27 @@ it('should print nested notes in a hierarchy', async () => {
   let result = await render(code, diagnostics, './example.html')
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬──
-        ·                ╰──── Message 1
-        ·
-        ├─
-        ·   - Heading 1
-        ·   - Heading 2
-        ·     - Heading 3 A
-        ·       - A
-        ·       - B
-        ·       - C
-        ·     - Heading 3 B
-        ·       - D
-        ·       - E
-        ·       - F
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬──                                                                            │
+    │    ·                ╰──── Message 1                                                                │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   - Heading 1                                                                                 │
+    │    ·   - Heading 2                                                                                 │
+    │    ·     - Heading 3 A                                                                             │
+    │    ·       - A                                                                                     │
+    │    ·       - B                                                                                     │
+    │    ·       - C                                                                                     │
+    │    ·     - Heading 3 B                                                                             │
+    │    ·       - D                                                                                     │
+    │    ·       - E                                                                                     │
+    │    ·       - F                                                                                     │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -290,19 +340,22 @@ it('should render syntax highlighted code in notes', async () => {
   let result = await render(code, diagnostics, './example.html')
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬──
-        ·                ╰──── The generated CSS looks like:
-        ·
-        ├─
-        ·   \`\`\`css
-        ·   .flex {
-        ·     display: flex;
-        ·   }
-        ·   \`\`\`
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬──                                                                            │
+    │    ·                ╰──── The generated CSS looks like:                                            │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   ‵‵‵css                                                                                      │
+    │    ·   .flex {                                                                                     │
+    │    ·     display: flex;                                                                            │
+    │    ·   }                                                                                           │
+    │    ·   ‵‵‵                                                                                         │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -317,14 +370,17 @@ it('should print multiple messages', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬── ──┬──
-        ·                │     ╰──── Message 2
-        ·                ╰────────── Message 1
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬── ──┬──                                                                      │
+    │    ·                │     ╰──── Message 2                                                          │
+    │    ·                ╰────────── Message 1                                                          │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -339,13 +395,16 @@ it('should squash multiple equal messages #1', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬── ──┬──
-        ·                ╰─────┴──── I am a message
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬── ──┬──                                                                      │
+    │    ·                ╰─────┴──── I am a message                                                     │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -362,14 +421,17 @@ it('should squash multiple equal messages #2', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block text-black text-white" />
-        ·               ─┬── ──┬── ────┬───── ────┬─────
-        ·                │     │       ╰──────────┴─────── Colliding on the \`color\` property
-        ·                ╰─────┴────────────────────────── Colliding on the \`display\` property
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block text-black text-white" />                                            │
+    │    ·               ─┬── ──┬── ────┬───── ────┬─────                                                │
+    │    ·                │     │       ╰──────────┴─────── Colliding on the ‵color‵ property            │
+    │    ·                ╰─────┴────────────────────────── Colliding on the ‵display‵ property          │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -384,14 +446,17 @@ it('should properly render multiple messages for the same location', async () =>
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·        ──┬──
-        ·          ├──── This is a prop in React
-        ·          ╰──── This is an attribute in HTML
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·        ──┬──                                                                                  │
+    │    ·          ├──── This is a prop in React                                                        │
+    │    ·          ╰──── This is an attribute in HTML                                                   │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -407,15 +472,18 @@ it('should not squash multiple equal messages if there is a message in between',
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex hidden block" />
-        ·               ─┬── ──┬─── ──┬──
-        ·                │     │      ╰──── I am a message
-        ·                │     ╰─────────── I am another message
-        ·                ╰───────────────── I am a message
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex hidden block" />                                                           │
+    │    ·               ─┬── ──┬─── ──┬──                                                               │
+    │    ·                │     │      ╰──── I am a message                                              │
+    │    ·                │     ╰─────────── I am another message                                        │
+    │    ·                ╰───────────────── I am a message                                              │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -430,16 +498,19 @@ it('should print multiple messages with a note', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬── ──┬──
-        ·                │     ╰──── Message 2
-        ·                ╰────────── Message 1
-        ·
-        ├─
-        ·   I am a note
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬── ──┬──                                                                      │
+    │    ·                │     ╰──── Message 2                                                          │
+    │    ·                ╰────────── Message 1                                                          │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   I am a note                                                                                 │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -455,21 +526,24 @@ it('should print multiple messages with multiple notes', async () => {
   let result = await render(code, diagnostics, './example.html')
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 1 │   <div class="flex block" />
-        ·               ─┬── ──┬──
-        ·                │     ╰──── Message 2
-        ·                ╰────────── Message 1
-        ·
-        ├─
-        ·
-        ·   - I am also a note
-        ·   - With another note
-        ·
-        ├─
-        ·   I am a note
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 1 │   <div class="flex block" />                                                                  │
+    │    ·               ─┬── ──┬──                                                                      │
+    │    ·                │     ╰──── Message 2                                                          │
+    │    ·                ╰────────── Message 1                                                          │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·                                                                                               │
+    │    ·   - I am also a note                                                                          │
+    │    ·   - With another note                                                                         │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   I am a note                                                                                 │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -484,38 +558,41 @@ it('should be possible to print a lot of messages', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.txt]
-        │
-    ∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
-        ·   ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰── Symbol at position: 25
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──── Symbol at position: 24
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────── Symbol at position: 23
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────── Symbol at position: 22
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────── Symbol at position: 21
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────── Symbol at position: 20
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────────── Symbol at position: 19
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────────── Symbol at position: 18
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────────────── Symbol at position: 17
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────────────── Symbol at position: 16
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────────────────── Symbol at position: 15
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────────────────── Symbol at position: 14
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────────────────────── Symbol at position: 13
-        ·   │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────────────────────── Symbol at position: 12
-        ·   │ │ │ │ │ │ │ │ │ │ │ ╰────────────────────────────── Symbol at position: 11
-        ·   │ │ │ │ │ │ │ │ │ │ ╰──────────────────────────────── Symbol at position: 10
-        ·   │ │ │ │ │ │ │ │ │ ╰────────────────────────────────── Symbol at position: 9
-        ·   │ │ │ │ │ │ │ │ ╰──────────────────────────────────── Symbol at position: 8
-        ·   │ │ │ │ │ │ │ ╰────────────────────────────────────── Symbol at position: 7
-        ·   │ │ │ │ │ │ ╰──────────────────────────────────────── Symbol at position: 6
-        ·   │ │ │ │ │ ╰────────────────────────────────────────── Symbol at position: 5
-        ·   │ │ │ │ ╰──────────────────────────────────────────── Symbol at position: 4
-        ·   │ │ │ ╰────────────────────────────────────────────── Symbol at position: 3
-        ·   │ │ ╰──────────────────────────────────────────────── Symbol at position: 2
-        ·   │ ╰────────────────────────────────────────────────── Symbol at position: 1
-        ·   ╰──────────────────────────────────────────────────── Symbol at position: 0
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.txt]                                                                               │
+    │    │                                                                                               │
+    │∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z                                         │
+    │    ·   ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬                                         │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰── Symbol at position: 25                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──── Symbol at position: 24                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────── Symbol at position: 23                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────── Symbol at position: 22                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────── Symbol at position: 21                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────── Symbol at position: 20                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────────── Symbol at position: 19                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────────── Symbol at position: 18                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────────────── Symbol at position: 17                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────────────── Symbol at position: 16                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────────────────── Symbol at position: 15                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────────────────── Symbol at position: 14                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ │ ╰────────────────────────── Symbol at position: 13                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────────────────────── Symbol at position: 12                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ │ ╰────────────────────────────── Symbol at position: 11                │
+    │    ·   │ │ │ │ │ │ │ │ │ │ ╰──────────────────────────────── Symbol at position: 10                │
+    │    ·   │ │ │ │ │ │ │ │ │ ╰────────────────────────────────── Symbol at position: 9                 │
+    │    ·   │ │ │ │ │ │ │ │ ╰──────────────────────────────────── Symbol at position: 8                 │
+    │    ·   │ │ │ │ │ │ │ ╰────────────────────────────────────── Symbol at position: 7                 │
+    │    ·   │ │ │ │ │ │ ╰──────────────────────────────────────── Symbol at position: 6                 │
+    │    ·   │ │ │ │ │ ╰────────────────────────────────────────── Symbol at position: 5                 │
+    │    ·   │ │ │ │ ╰──────────────────────────────────────────── Symbol at position: 4                 │
+    │    ·   │ │ │ ╰────────────────────────────────────────────── Symbol at position: 3                 │
+    │    ·   │ │ ╰──────────────────────────────────────────────── Symbol at position: 2                 │
+    │    ·   │ ╰────────────────────────────────────────────────── Symbol at position: 1                 │
+    │    ·   ╰──────────────────────────────────────────────────── Symbol at position: 0                 │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -530,13 +607,16 @@ it('should be possible to print a lot of similar messages', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.txt]
-        │
-    ∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z
-        ·   ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬
-        ·   ╰─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴── This is part of the alphabet
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.txt]                                                                               │
+    │    │                                                                                               │
+    │∙ 1 │   a b c d e f g h i j k l m n o p q r s t u v w x y z                                         │
+    │    ·   ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬ ┬                                         │
+    │    ·   ╰─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴── This is part of the alphabet          │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -555,24 +635,27 @@ it('should be possible to print messages across different lines', async () => {
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 2 │   <span class="bg-never-500"></span>
-        ·                   ──┬──
-        ·                     ╰──── gonna
-        ·
-      3 │   <span class="bg-give-500"></span>
-        │
-        └─
-
-        ┌─[./example.html]
-        │
-      2 │   <span class="bg-never-500"></span>
-    ∙ 3 │   <span class="bg-give-500"></span>
-        ·                   ─┬──
-        ·                    ╰──── you up
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 2 │   <span class="bg-never-500"></span>                                                          │
+    │    ·                   ──┬──                                                                       │
+    │    ·                     ╰──── gonna                                                               │
+    │    ·                                                                                               │
+    │  3 │   <span class="bg-give-500"></span>                                                           │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    │                                                                                                    │
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │  2 │   <span class="bg-never-500"></span>                                                          │
+    │∙ 3 │   <span class="bg-give-500"></span>                                                           │
+    │    ·                   ─┬──                                                                        │
+    │    ·                    ╰──── you up                                                               │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -590,17 +673,20 @@ it('should be possible to print messages across different lines and group them i
 
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 2 │   <span class="bg-never-500"></span>
-        ·                   ──┬──
-        ·                     ╰──── gonna
-        ·
-    ∙ 3 │   <span class="bg-give-500"></span>
-        ·                   ─┬──
-        ·                    ╰──── you up
-        │
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 2 │   <span class="bg-never-500"></span>                                                          │
+    │    ·                   ──┬──                                                                       │
+    │    ·                     ╰──── gonna                                                               │
+    │    ·                                                                                               │
+    │∙ 3 │   <span class="bg-give-500"></span>                                                           │
+    │    ·                   ─┬──                                                                        │
+    │    ·                    ╰──── you up                                                               │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -621,28 +707,31 @@ it('should be possible to print messages across different lines including notes'
   let result = await render(code, diagnostics, './example.html')
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 2 │   <span class="bg-never-500"></span>
-        ·                   ──┬──
-        ·                     ╰──── gonna
-        ·
-      3 │   <span class="bg-give-500"></span>
-        ·
-        ├─
-        ·   I am a note from message 1
-        └─
-
-        ┌─[./example.html]
-        │
-      2 │   <span class="bg-never-500"></span>
-    ∙ 3 │   <span class="bg-give-500"></span>
-        ·                   ─┬──
-        ·                    ╰──── you up
-        ·
-        ├─
-        ·   I am a note from message 2
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 2 │   <span class="bg-never-500"></span>                                                          │
+    │    ·                   ──┬──                                                                       │
+    │    ·                     ╰──── gonna                                                               │
+    │    ·                                                                                               │
+    │  3 │   <span class="bg-give-500"></span>                                                           │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   I am a note from message 1                                                                  │
+    │    └─                                                                                              │
+    │                                                                                                    │
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │  2 │   <span class="bg-never-500"></span>                                                          │
+    │∙ 3 │   <span class="bg-give-500"></span>                                                           │
+    │    ·                   ─┬──                                                                        │
+    │    ·                    ╰──── you up                                                               │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   I am a note from message 2                                                                  │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -665,21 +754,24 @@ it('should be possible to print messages across different lines and group them i
   let result = await render(code, diagnostics, './example.html')
   expect(result).toMatchInlineSnapshot(`
     "
-        ┌─[./example.html]
-        │
-    ∙ 2 │   <span class="bg-never-500"></span>
-        ·                   ──┬──
-        ·                     ╰──── gonna
-        ·
-    ∙ 3 │   <span class="bg-give-500"></span>
-        ·                   ─┬──
-        ·                    ╰──── you up
-        ·
-        ├─
-        ·   I am a note from message 1
-        ├─
-        ·   I am a note from message 2
-        └─"
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.html]                                                                              │
+    │    │                                                                                               │
+    │∙ 2 │   <span class="bg-never-500"></span>                                                          │
+    │    ·                   ──┬──                                                                       │
+    │    ·                     ╰──── gonna                                                               │
+    │    ·                                                                                               │
+    │∙ 3 │   <span class="bg-give-500"></span>                                                           │
+    │    ·                   ─┬──                                                                        │
+    │    ·                    ╰──── you up                                                               │
+    │    ·                                                                                               │
+    │    ├─                                                                                              │
+    │    ·   I am a note from message 1                                                                  │
+    │    ├─                                                                                              │
+    │    ·   I am a note from message 2                                                                  │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
   `)
 })
 
@@ -698,19 +790,22 @@ describe('context lines', () => {
     let result = await render(code, diagnostics, './example.html')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.html]
-          │
-        2 │   <span class="a"></span>
-        3 │   <span class="b"></span>
-      ∙ 4 │   <span class="c"></span>
-          ·               ─┬─
-          ·                ╰─── With context lines around
-          ·
-        5 │   <span class="d"></span>
-        6 │   <span class="e"></span>
-        7 │   <span class="f"></span>
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.html]                                                                              │
+      │    │                                                                                               │
+      │  2 │   <span class="a"></span>                                                                     │
+      │  3 │   <span class="b"></span>                                                                     │
+      │∙ 4 │   <span class="c"></span>                                                                     │
+      │    ·               ─┬─                                                                             │
+      │    ·                ╰─── With context lines around                                                 │
+      │    ·                                                                                               │
+      │  5 │   <span class="d"></span>                                                                     │
+      │  6 │   <span class="e"></span>                                                                     │
+      │  7 │   <span class="f"></span>                                                                     │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -728,18 +823,21 @@ describe('context lines', () => {
     let result = await render(code, diagnostics, './example.html')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.html]
-          │
-        2 │   <span class="a"></span>
-      ∙ 3 │   <span class="b"></span>
-          ·               ─┬─
-          ·                ╰─── With context lines around
-          ·
-        4 │   <span class="c"></span>
-        5 │   <span class="d"></span>
-        6 │   <span class="e"></span>
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.html]                                                                              │
+      │    │                                                                                               │
+      │  2 │   <span class="a"></span>                                                                     │
+      │∙ 3 │   <span class="b"></span>                                                                     │
+      │    ·               ─┬─                                                                             │
+      │    ·                ╰─── With context lines around                                                 │
+      │    ·                                                                                               │
+      │  4 │   <span class="c"></span>                                                                     │
+      │  5 │   <span class="d"></span>                                                                     │
+      │  6 │   <span class="e"></span>                                                                     │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -757,19 +855,22 @@ describe('context lines', () => {
     let result = await render(code, diagnostics, './example.html')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.html]
-          │
-        2 │   <span class="a"></span>
-        3 │   <span class="b"></span>
-        4 │   <span class="c"></span>
-      ∙ 5 │   <span class="d"></span>
-          ·               ─┬─
-          ·                ╰─── With context lines around
-          ·
-        6 │   <span class="e"></span>
-        7 │   <span class="f"></span>
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.html]                                                                              │
+      │    │                                                                                               │
+      │  2 │   <span class="a"></span>                                                                     │
+      │  3 │   <span class="b"></span>                                                                     │
+      │  4 │   <span class="c"></span>                                                                     │
+      │∙ 5 │   <span class="d"></span>                                                                     │
+      │    ·               ─┬─                                                                             │
+      │    ·                ╰─── With context lines around                                                 │
+      │    ·                                                                                               │
+      │  6 │   <span class="e"></span>                                                                     │
+      │  7 │   <span class="f"></span>                                                                     │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -794,22 +895,25 @@ describe('context lines', () => {
     let result = await render(code, diagnostics, './example.html')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.html]
-          │
-        2 │   <span class="a"></span>
-      ∙ 3 │   <span class="b"></span>
-          ·               ─┬─
-          ·                ╰─── With context lines around
-          ·
-        4 │   <span class="c"></span>
-      ∙ 5 │   <span class="d"></span>
-          ·               ─┬─
-          ·                ╰─── With context lines around
-          ·
-        6 │   <span class="e"></span>
-        7 │   <span class="f"></span>
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.html]                                                                              │
+      │    │                                                                                               │
+      │  2 │   <span class="a"></span>                                                                     │
+      │∙ 3 │   <span class="b"></span>                                                                     │
+      │    ·               ─┬─                                                                             │
+      │    ·                ╰─── With context lines around                                                 │
+      │    ·                                                                                               │
+      │  4 │   <span class="c"></span>                                                                     │
+      │∙ 5 │   <span class="d"></span>                                                                     │
+      │    ·               ─┬─                                                                             │
+      │    ·                ╰─── With context lines around                                                 │
+      │    ·                                                                                               │
+      │  6 │   <span class="e"></span>                                                                     │
+      │  7 │   <span class="f"></span>                                                                     │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -842,28 +946,31 @@ describe('context lines', () => {
     let result = await render(code, diagnostics, './example.html')
     expect(result).toMatchInlineSnapshot(`
       "
-           ┌─[./example.html]
-           │
-         2 │   <span class="a"></span>
-      ∙  3 │   <span class="b"></span>
-           ·               ─┬─
-           ·                ╰─── With context lines around
-           ·
-         4 │   <span class="c"></span>
-         5 │   <span class="d"></span>
-         6 │   <span class="e"></span>
-           ┊
-        10 │   <span class="i"></span>
-        11 │   <span class="j"></span>
-        12 │   <span class="k"></span>
-      ∙ 13 │   <span class="l"></span>
-           ·               ─┬─
-           ·                ╰─── With context lines around
-           ·
-        14 │   <span class="m"></span>
-        15 │   <span class="n"></span>
-           │
-           └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │     ┌─[./example.html]                                                                             │
+      │     │                                                                                              │
+      │   2 │   <span class="a"></span>                                                                    │
+      │∙  3 │   <span class="b"></span>                                                                    │
+      │     ·               ─┬─                                                                            │
+      │     ·                ╰─── With context lines around                                                │
+      │     ·                                                                                              │
+      │   4 │   <span class="c"></span>                                                                    │
+      │   5 │   <span class="d"></span>                                                                    │
+      │   6 │   <span class="e"></span>                                                                    │
+      │     ┊                                                                                              │
+      │  10 │   <span class="i"></span>                                                                    │
+      │  11 │   <span class="j"></span>                                                                    │
+      │  12 │   <span class="k"></span>                                                                    │
+      │∙ 13 │   <span class="l"></span>                                                                    │
+      │     ·               ─┬─                                                                            │
+      │     ·                ╰─── With context lines around                                                │
+      │     ·                                                                                              │
+      │  14 │   <span class="m"></span>                                                                    │
+      │  15 │   <span class="n"></span>                                                                    │
+      │     │                                                                                              │
+      │     └─                                                                                             │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 })
@@ -884,15 +991,18 @@ describe('squashing', () => {
     let result = await render(code, diagnostics, './example.html')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.html]
-          │
-        2 │   <html>
-        3 │     <body>
-      ∙ 4 │       <div class="example"></div>
-        5 │     </body>       ───┬───
-        6 │   </html>            ╰───── This is indeed an example, good job!
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.html]                                                                              │
+      │    │                                                                                               │
+      │  2 │   <html>                                                                                      │
+      │  3 │     <body>                                                                                    │
+      │∙ 4 │       <div class="example"></div>                                                             │
+      │  5 │     </body>       ───┬───                                                                     │
+      │  6 │   </html>            ╰───── This is indeed an example, good job!                              │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -909,17 +1019,20 @@ describe('squashing', () => {
     let result = await render(code, diagnostics, './example.css')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.css]
-          │
-      ∙ 2 │   @screen 2xl {
-          ·           ─┬─
-          ·            ╰─── @screen 2xl is not supported
-          ·
-        3 │     html {
-        4 │       @apply disabled:font-bold;
-        5 │     }
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.css]                                                                               │
+      │    │                                                                                               │
+      │∙ 2 │   @screen 2xl {                                                                               │
+      │    ·           ─┬─                                                                                 │
+      │    ·            ╰─── @screen 2xl is not supported                                                  │
+      │    ·                                                                                               │
+      │  3 │     html {                                                                                    │
+      │  4 │       @apply disabled:font-bold;                                                              │
+      │  5 │     }                                                                                         │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 })
@@ -948,21 +1061,24 @@ describe('multi-line diagnostics', () => {
     let result = await render(code, diagnostics, './example.js')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.js]
-          │
-      ∙ 2 │    let sum = (() => {
-          ·                     ┬
-          · ╭───────────────────╯
-          · │
-        3 │ │    let a = 123
-        4 │ │    let b = 321
-          · │
-        6 │ │    return a + b
-      ∙ 7 │ │  })()
-          · │  ┬
-          · ╰──┴── This is a group
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.js]                                                                                │
+      │    │                                                                                               │
+      │∙ 2 │    let sum = (() => {                                                                         │
+      │    ·                     ┬                                                                         │
+      │    · ╭───────────────────╯                                                                         │
+      │    · │                                                                                             │
+      │  3 │ │    let a = 123                                                                              │
+      │  4 │ │    let b = 321                                                                              │
+      │    · │                                                                                             │
+      │  6 │ │    return a + b                                                                             │
+      │∙ 7 │ │  })()                                                                                       │
+      │    · │  ┬                                                                                          │
+      │    · ╰──┴── This is a group                                                                        │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -992,23 +1108,26 @@ describe('multi-line diagnostics', () => {
     let result = await render(code, diagnostics, './example.js')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.js]
-          │
-      ∙ 2 │    let sum = (() => {
-          ·                     ┬
-          · ╭───────────────────╯
-          · │
-        3 │ │    let a = 123
-      ∙ 4 │ │    let b = 321
-          · │        ┬
-          · ├────────╯
-          · │
-        5 │ │    return a + b
-      ∙ 6 │ │  })()
-          · │  ┬
-          · ╰──┴── This is a group
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.js]                                                                                │
+      │    │                                                                                               │
+      │∙ 2 │    let sum = (() => {                                                                         │
+      │    ·                     ┬                                                                         │
+      │    · ╭───────────────────╯                                                                         │
+      │    · │                                                                                             │
+      │  3 │ │    let a = 123                                                                              │
+      │∙ 4 │ │    let b = 321                                                                              │
+      │    · │        ┬                                                                                    │
+      │    · ├────────╯                                                                                    │
+      │    · │                                                                                             │
+      │  5 │ │    return a + b                                                                             │
+      │∙ 6 │ │  })()                                                                                       │
+      │    · │  ┬                                                                                          │
+      │    · ╰──┴── This is a group                                                                        │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -1041,25 +1160,28 @@ describe('multi-line diagnostics', () => {
     let result = await render(code, diagnostics, './example.js')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.js]
-          │
-      ∙ 2 │    let sum = (() => {
-          ·                     ┬
-          · ╭───────────────────╯
-          · │
-        3 │ │    let a = 123
-      ∙ 4 │ │    let b = 321
-          · │        ┬
-          · ├────────╯
-          · │
-        5 │ │    return a + b
-      ∙ 6 │ │  })()
-          · │  ┬ ╭─
-          · ╰──┴─┤ This is a group with a very long message so we should
-          ·      │ be able to render this as a multi-line message as well.
-          ·      ╰─
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.js]                                                                                │
+      │    │                                                                                               │
+      │∙ 2 │    let sum = (() => {                                                                         │
+      │    ·                     ┬                                                                         │
+      │    · ╭───────────────────╯                                                                         │
+      │    · │                                                                                             │
+      │  3 │ │    let a = 123                                                                              │
+      │∙ 4 │ │    let b = 321                                                                              │
+      │    · │        ┬                                                                                    │
+      │    · ├────────╯                                                                                    │
+      │    · │                                                                                             │
+      │  5 │ │    return a + b                                                                             │
+      │∙ 6 │ │  })()                                                                                       │
+      │    · │  ┬ ╭─                                                                                       │
+      │    · ╰──┴─┤ This is a group with a very long message so we should                                  │
+      │    ·      │ be able to render this as a multi-line message as well.                                │
+      │    ·      ╰─                                                                                       │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -1093,26 +1215,29 @@ describe('multi-line diagnostics', () => {
     let result = await render(code, diagnostics, './example.js')
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.js]
-          │
-      ∙ 2 │    let sum = (() => {
-          ·                     ┬
-          · ╭───────────────────╯
-          · │
-      ∙ 3 │ │    let a = 123
-          · │        ┬
-          · ├────────╯
-          · │
-      ∙ 4 │ │    let b = 321
-          · │        ┬
-          · ├────────╯
-          · │
-        5 │ │    return a + b
-      ∙ 6 │ │  })()
-          · │  ┬
-          · ╰──┴── This is a group
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.js]                                                                                │
+      │    │                                                                                               │
+      │∙ 2 │    let sum = (() => {                                                                         │
+      │    ·                     ┬                                                                         │
+      │    · ╭───────────────────╯                                                                         │
+      │    · │                                                                                             │
+      │∙ 3 │ │    let a = 123                                                                              │
+      │    · │        ┬                                                                                    │
+      │    · ├────────╯                                                                                    │
+      │    · │                                                                                             │
+      │∙ 4 │ │    let b = 321                                                                              │
+      │    · │        ┬                                                                                    │
+      │    · ├────────╯                                                                                    │
+      │    · │                                                                                             │
+      │  5 │ │    return a + b                                                                             │
+      │∙ 6 │ │  })()                                                                                       │
+      │    · │  ┬                                                                                          │
+      │    · ╰──┴── This is a group                                                                        │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -1144,23 +1269,26 @@ describe('multi-line diagnostics', () => {
 
     expect(result).toMatchInlineSnapshot(`
       "
-          ┌─[./example.js]
-          │
-      ∙ 2 │    let sum = (() => {
-          ·                     ┬
-          · ╭───────────────────╯
-          · │
-        3 │ │    let a = 123
-      ∙ 4 │ │    let b = 321
-          · │        ┬
-          · ├────────╯
-          · │
-        6 │ │    return a + b
-      ∙ 7 │ │  })()
-          · │  ┬
-          · ╰──┴── This is a group
-          │
-          └─"
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.js]                                                                                │
+      │    │                                                                                               │
+      │∙ 2 │    let sum = (() => {                                                                         │
+      │    ·                     ┬                                                                         │
+      │    · ╭───────────────────╯                                                                         │
+      │    · │                                                                                             │
+      │  3 │ │    let a = 123                                                                              │
+      │∙ 4 │ │    let b = 321                                                                              │
+      │    · │        ┬                                                                                    │
+      │    · ├────────╯                                                                                    │
+      │    · │                                                                                             │
+      │  6 │ │    return a + b                                                                             │
+      │∙ 7 │ │  })()                                                                                       │
+      │    · │  ┬                                                                                          │
+      │    · ╰──┴── This is a group                                                                        │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
     `)
   })
 
@@ -1217,13 +1345,16 @@ describe('responsiveness', () => {
       )
       expect(result).toMatchInlineSnapshot(`
         "
-            ┌─[./p/t/components/contact-pages.03-split-with-image-and-centered-cta-section.html]
-            │
-        ∙ 1 │   <div class="flex"></div>
-            ·               ─┬──
-            ·                ╰──── This applies a \`display: flex;\`
-            │
-            └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │    ┌─[./p/t/components/contact-pages.03-split-with-image-and-centered-cta-section.html]            │
+        │    │                                                                                               │
+        │∙ 1 │   <div class="flex"></div>                                                                    │
+        │    ·               ─┬──                                                                            │
+        │    ·                ╰──── This applies a ‵display: flex;‵                                          │
+        │    │                                                                                               │
+        │    └─                                                                                              │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
   })
@@ -1254,29 +1385,32 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.js')
       expect(result).toMatchInlineSnapshot(`
         "
-             ┌─[./example.js]
-             │
-           5 │   <p class="text-4xl font-bold tracking-tight text-indigo-600 sm:text-5xl">404</p>
-           6 │   <div class="sm:ml-6">
-           7 │     <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">
-        ∙  8 │       <a href="#" class="inline-flex items-center rounded-md border 
-             ·                          ─────┬─────
-             ·                               ╰─────── Diagnostic message 1
-             ·
-             │         ↳ border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium 
-             ·                              ──────┬──────
-             ·                                    ╰──────── Diagnostic message 2
-             ·
-             │         ↳ text-white shadow-sm hover:bg-indigo-700 focus:outline-none 
-             │         ↳ focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Go back 
-             │         ↳ home</a>                           ─────────┬─────────
-             ·                                                       ╰─────────── Diagnostic message 3
-             ·
-           9 │       <a href="#" class="inline-flex items-center rounded-md border border-transparent…
-          10 │     </div>
-          11 │   </div>
-             │
-             └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │     ┌─[./example.js]                                                                               │
+        │     │                                                                                              │
+        │   5 │   <p class="text-4xl font-bold tracking-tight text-indigo-600 sm:text-5xl">404</p>           │
+        │   6 │   <div class="sm:ml-6">                                                                      │
+        │   7 │     <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">             │
+        │∙  8 │       <a href="#" class="inline-flex items-center rounded-md border                          │
+        │     ·                          ─────┬─────                                                         │
+        │     ·                               ╰─────── Diagnostic message 1                                  │
+        │     ·                                                                                              │
+        │     │         ↳ border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium                     │
+        │     ·                              ──────┬──────                                                   │
+        │     ·                                    ╰──────── Diagnostic message 2                            │
+        │     ·                                                                                              │
+        │     │         ↳ text-white shadow-sm hover:bg-indigo-700 focus:outline-none                        │
+        │     │         ↳ focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Go back                    │
+        │     │         ↳ home</a>                           ─────────┬─────────                             │
+        │     ·                                                       ╰─────────── Diagnostic message 3      │
+        │     ·                                                                                              │
+        │   9 │       <a href="#" class="inline-flex items-center rounded-md border border-transparent…      │
+        │  10 │     </div>                                                                                   │
+        │  11 │   </div>                                                                                     │
+        │     │                                                                                              │
+        │     └─                                                                                             │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
 
@@ -1310,26 +1444,29 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.js')
       expect(result).toMatchInlineSnapshot(`
         "
-             ┌─[./example.js]
-             │
-           6 │     <div class="sm:ml-6">
-           7 │       <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">
-           8 │         <a href="#" class="inline-flex items-center rounded-md border border-transpare…
-        ∙  9 │         <a href="#" class="inline-flex items-center rounded-md 
-             │           ↳ border border-transparent bg-indigo-100 px-4 py-2 text-sm 
-             │           ↳ font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none 
-             ·                                                             ────────┬───────── ╭─
-             ·                                                                     ╰──────────┤ Diagnostic
-             │           ↳ focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Contact    │ message 4
-             ·             ──────────────────────────┬─────────────────────────── ╭─          ╰─
-             ·                                       ╰────────────────────────────┤ Diagnostic
-             │           ↳ support</a>                                            │ message 4
-          10 │       </div>                                                       ╰─
-             ·
-          11 │     </div>
-          12 │   </main>
-             │
-             └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │     ┌─[./example.js]                                                                               │
+        │     │                                                                                              │
+        │   6 │     <div class="sm:ml-6">                                                                    │
+        │   7 │       <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">           │
+        │   8 │         <a href="#" class="inline-flex items-center rounded-md border border-transpare…      │
+        │∙  9 │         <a href="#" class="inline-flex items-center rounded-md                               │
+        │     │           ↳ border border-transparent bg-indigo-100 px-4 py-2 text-sm                        │
+        │     │           ↳ font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none               │
+        │     ·                                                             ────────┬───────── ╭─            │
+        │     ·                                                                     ╰──────────┤ Diagnostic  │
+        │     │           ↳ focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Contact    │ message 4   │
+        │     ·             ──────────────────────────┬─────────────────────────── ╭─          ╰─            │
+        │     ·                                       ╰────────────────────────────┤ Diagnostic              │
+        │     │           ↳ support</a>                                            │ message 4               │
+        │  10 │       </div>                                                       ╰─                        │
+        │     ·                                                                                              │
+        │  11 │     </div>                                                                                   │
+        │  12 │   </main>                                                                                    │
+        │     │                                                                                              │
+        │     └─                                                                                             │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
   })
@@ -1347,17 +1484,20 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.css')
       expect(result).toMatchInlineSnapshot(`
         "
-            ┌─[./example.css]
-            │
-        ∙ 1 │   <div class="text-grey-200"></div>
-            ·                    ─┬── ╭─
-            ·                     ╰───┤ This color should be "gray" and not "grey". This is because
-            ·                         │ the letter "a" has an ascii value of 97 but an "e" has
-            ·                         │ an ascii value of 101. This means that "a" is cheaper
-            ·                         │ to store. Lol, jk, I just need a long message here...
-            ·                         ╰─
-            │
-            └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │    ┌─[./example.css]                                                                               │
+        │    │                                                                                               │
+        │∙ 1 │   <div class="text-grey-200"></div>                                                           │
+        │    ·                    ─┬── ╭─                                                                    │
+        │    ·                     ╰───┤ This color should be "gray" and not "grey". This is because         │
+        │    ·                         │ the letter "a" has an ascii value of 97 but an "e" has              │
+        │    ·                         │ an ascii value of 101. This means that "a" is cheaper               │
+        │    ·                         │ to store. Lol, jk, I just need a long message here...               │
+        │    ·                         ╰─                                                                    │
+        │    │                                                                                               │
+        │    └─                                                                                              │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
 
@@ -1382,18 +1522,21 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.css')
       expect(result).toMatchInlineSnapshot(`
         "
-            ┌─[./example.css]
-            │
-          2 │   <div>
-        ∙ 3 │     <div class="text-grey-200">
-          4 │       <div></div>    ─┬── ╭─
-          5 │     </div>            ╰───┤ This color should be "gray" and not "grey". This is because
-          6 │     <div>                 │ the letter "a" has an ascii value of 97 but an "e" has
-            ·                           │ an ascii value of 101. This means that "a" is cheaper
-            ·                           │ to store. Lol, jk, I just need a long message here...
-            ·                           ╰─
-            │
-            └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │    ┌─[./example.css]                                                                               │
+        │    │                                                                                               │
+        │  2 │   <div>                                                                                       │
+        │∙ 3 │     <div class="text-grey-200">                                                               │
+        │  4 │       <div></div>    ─┬── ╭─                                                                  │
+        │  5 │     </div>            ╰───┤ This color should be "gray" and not "grey". This is because       │
+        │  6 │     <div>                 │ the letter "a" has an ascii value of 97 but an "e" has            │
+        │    ·                           │ an ascii value of 101. This means that "a" is cheaper             │
+        │    ·                           │ to store. Lol, jk, I just need a long message here...             │
+        │    ·                           ╰─                                                                  │
+        │    │                                                                                               │
+        │    └─                                                                                              │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
 
@@ -1412,25 +1555,28 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.html')
       expect(result).toMatchInlineSnapshot(`
         "
-            ┌─[./example.html]
-            │
-        ∙ 1 │   <div class="text-grey-200"></div>
-            ·                    ─┬── ─┬─ ╭─
-            ·                     │    ╰──┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing
-            ·                     │       │ elit. Donec pulvinar sapien sit amet tellus dapibus,
-            ·                     │       │ ut mollis massa porta. Vivamus hendrerit semper risus,
-            ·                     │       │ vel accumsan nisi iaculis non. Donec mollis massa sit
-            ·                     │       │ amet lectus sagittis, vel faucibus quam condimentum.
-            ·                     │       ╰─
-            ·                     │       ╭─
-            ·                     ╰───────┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing
-            ·                             │ elit. Donec pulvinar sapien sit amet tellus dapibus,
-            ·                             │ ut mollis massa porta. Vivamus hendrerit semper risus,
-            ·                             │ vel accumsan nisi iaculis non. Donec mollis massa sit
-            ·                             │ amet lectus sagittis, vel faucibus quam condimentum.
-            ·                             ╰─
-            │
-            └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │    ┌─[./example.html]                                                                              │
+        │    │                                                                                               │
+        │∙ 1 │   <div class="text-grey-200"></div>                                                           │
+        │    ·                    ─┬── ─┬─ ╭─                                                                │
+        │    ·                     │    ╰──┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing          │
+        │    ·                     │       │ elit. Donec pulvinar sapien sit amet tellus dapibus,            │
+        │    ·                     │       │ ut mollis massa porta. Vivamus hendrerit semper risus,          │
+        │    ·                     │       │ vel accumsan nisi iaculis non. Donec mollis massa sit           │
+        │    ·                     │       │ amet lectus sagittis, vel faucibus quam condimentum.            │
+        │    ·                     │       ╰─                                                                │
+        │    ·                     │       ╭─                                                                │
+        │    ·                     ╰───────┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing          │
+        │    ·                             │ elit. Donec pulvinar sapien sit amet tellus dapibus,            │
+        │    ·                             │ ut mollis massa porta. Vivamus hendrerit semper risus,          │
+        │    ·                             │ vel accumsan nisi iaculis non. Donec mollis massa sit           │
+        │    ·                             │ amet lectus sagittis, vel faucibus quam condimentum.            │
+        │    ·                             ╰─                                                                │
+        │    │                                                                                               │
+        │    └─                                                                                              │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
 
@@ -1450,22 +1596,25 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.css')
       expect(result).toMatchInlineSnapshot(`
         "
-            ┌─[./example.css]
-            │
-        ∙ 1 │   <div class="text-grey-200"></div>
-            ·               ─┬── ─┬── ─┬─ ╭─
-            ·                │    │    ╰──┤ (3) Lorem ipsum dolor sit amet, consectetur
-            ·                │    │       │ adipiscing elit. Donec pulvinar sapien sit
-            ·                │    │       │ amet tellus dapibus, ut mollis massa porta.
-            ·                │    │       ╰─
-            ·                │    ╰──────── (2) Lorem ipsum.
-            ·                │            ╭─
-            ·                ╰────────────┤ (1) Lorem ipsum dolor sit amet, consectetur
-            ·                             │ adipiscing elit. Donec pulvinar sapien sit
-            ·                             │ amet tellus dapibus, ut mollis massa porta.
-            ·                             ╰─
-            │
-            └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │    ┌─[./example.css]                                                                               │
+        │    │                                                                                               │
+        │∙ 1 │   <div class="text-grey-200"></div>                                                           │
+        │    ·               ─┬── ─┬── ─┬─ ╭─                                                                │
+        │    ·                │    │    ╰──┤ (3) Lorem ipsum dolor sit amet, consectetur                     │
+        │    ·                │    │       │ adipiscing elit. Donec pulvinar sapien sit                      │
+        │    ·                │    │       │ amet tellus dapibus, ut mollis massa porta.                     │
+        │    ·                │    │       ╰─                                                                │
+        │    ·                │    ╰──────── (2) Lorem ipsum.                                                │
+        │    ·                │            ╭─                                                                │
+        │    ·                ╰────────────┤ (1) Lorem ipsum dolor sit amet, consectetur                     │
+        │    ·                             │ adipiscing elit. Donec pulvinar sapien sit                      │
+        │    ·                             │ amet tellus dapibus, ut mollis massa porta.                     │
+        │    ·                             ╰─                                                                │
+        │    │                                                                                               │
+        │    └─                                                                                              │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
 
@@ -1486,27 +1635,30 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.html')
       expect(result).toMatchInlineSnapshot(`
         "
-            ┌─[./example.html]
-            │
-        ∙ 1 │   <div class="text-grey-200"></div>
-            ·        ──┬── ╭─
-            ·          ├───┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-            ·          │   │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.
-            ·          │   │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec
-            ·          │   │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.
-            ·          │   ╰─
-            ·          │   ╭─
-            ·          ╰───┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-            ·              │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.
-            ·              │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec
-            ·              │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.
-            ·              ╰─
-            ·
-            ├─
-            ·   Note A
-            ├─
-            ·   Note B
-            └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │    ┌─[./example.html]                                                                              │
+        │    │                                                                                               │
+        │∙ 1 │   <div class="text-grey-200"></div>                                                           │
+        │    ·        ──┬── ╭─                                                                               │
+        │    ·          ├───┤ (2) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec             │
+        │    ·          │   │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.                │
+        │    ·          │   │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec           │
+        │    ·          │   │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.          │
+        │    ·          │   ╰─                                                                               │
+        │    ·          │   ╭─                                                                               │
+        │    ·          ╰───┤ (1) Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec             │
+        │    ·              │ pulvinar sapien sit amet tellus dapibus, ut mollis massa porta.                │
+        │    ·              │ Vivamus hendrerit semper risus, vel accumsan nisi iaculis non. Donec           │
+        │    ·              │ mollis massa sit amet lectus sagittis, vel faucibus quam condimentum.          │
+        │    ·              ╰─                                                                               │
+        │    ·                                                                                               │
+        │    ├─                                                                                              │
+        │    ·   Note A                                                                                      │
+        │    ├─                                                                                              │
+        │    ·   Note B                                                                                      │
+        │    └─                                                                                              │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
   })
@@ -1524,15 +1676,18 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.html')
       expect(result).toMatchInlineSnapshot(`
         "
-            ┌─[./example.html]
-            │
-        ∙ 1 │   <div class="text-grey-200"></div>
-            ·        ──┬──
-            ·          ╰──── This contains some notes
-            ·
-            ├─
-            ·   The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead. In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
-            └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │    ┌─[./example.html]                                                                              │
+        │    │                                                                                               │
+        │∙ 1 │   <div class="text-grey-200"></div>                                                           │
+        │    ·        ──┬──                                                                                  │
+        │    ·          ╰──── This contains some notes                                                       │
+        │    ·                                                                                               │
+        │    ├─                                                                                              │
+        │    ·   The ‵class‵ you see here is an attribute in html, in React this is typically used as ‵classN×me‵ instead. In Vue, you can use ‵class‵ but also use ‵:class‵ for more dynamic clases.
+        │    └─                                                                                              │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
 
@@ -1550,16 +1705,19 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.html')
       expect(result).toMatchInlineSnapshot(`
         "
-            ┌─[./example.html]
-            │
-        ∙ 1 │   <div class="text-grey-200"></div>
-            ·        ──┬──
-            ·          ╰──── This contains some notes
-            ·
-            ├─
-            ·   The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.
-            ·   In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
-            └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │    ┌─[./example.html]                                                                              │
+        │    │                                                                                               │
+        │∙ 1 │   <div class="text-grey-200"></div>                                                           │
+        │    ·        ──┬──                                                                                  │
+        │    ·          ╰──── This contains some notes                                                       │
+        │    ·                                                                                               │
+        │    ├─                                                                                              │
+        │    ·   The ‵class‵ you see here is an attribute in html, in React this is typically used as ‵classN×me‵ instead.
+        │    ·   In Vue, you can use ‵class‵ but also use ‵:class‵ for more dynamic clases.                  │
+        │    └─                                                                                              │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
 
@@ -1580,19 +1738,22 @@ describe('responsiveness', () => {
       let result = await render(code, diagnostics, './example.html')
       expect(result).toMatchInlineSnapshot(`
         "
-            ┌─[./example.html]
-            │
-        ∙ 1 │   <div class="text-grey-200"></div>
-            ·        ──┬──
-            ·          ╰──── This contains some notes
-            ·
-            ├─
-            ·   - The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.
-            ·   - In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.
-            ·     - The same rules apply to the \`style\` prop, the \`style\` prop in React is still called \`style\`.
-            ·       - Also one small caveat is that in React the \`style\` prop requires an object instead of a string with all the styles.
-            ·     - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.
-            └─"
+        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        │    ┌─[./example.html]                                                                              │
+        │    │                                                                                               │
+        │∙ 1 │   <div class="text-grey-200"></div>                                                           │
+        │    ·        ──┬──                                                                                  │
+        │    ·          ╰──── This contains some notes                                                       │
+        │    ·                                                                                               │
+        │    ├─                                                                                              │
+        │    ·   - The ‵class‵ you see here is an attribute in html, in React this is typically used as ‵clas×Name‵ instead.
+        │    ·   - In Vue, you can use ‵class‵ but also use ‵:class‵ for more dynamic clases.                │
+        │    ·     - The same rules apply to the ‵style‵ prop, the ‵style‵ prop in React is still called ‵sty×e‵.
+        │    ·       - Also one small caveat is that in React the ‵style‵ prop requires an object instead of × string with all the styles.
+        │    ·     - However, in Vue, you can use ‵style‵ but also use ‵:style‵ for more dynamic styles.     │
+        │    └─                                                                                              │
+        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+        "
       `)
     })
   })
