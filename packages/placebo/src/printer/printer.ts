@@ -10,6 +10,43 @@ import { parseNotes } from './parse-notes'
 
 const COLORS = [styles.yellow, styles.red, styles.blue, styles.magenta, styles.cyan, styles.green]
 
+function highlgightCode(input: string, extension: string) {
+  return input
+  switch (extension) {
+    case 'html': {
+      return (
+        input
+          // Elements
+          .replaceAll(
+            /(<\/?)([a-zA-Z]+?)(>)?/g,
+            (_, openTag, name, closeTag) =>
+              styles.black(styles.dim(openTag)) +
+              styles.magenta(name) +
+              styles.black(styles.dim(closeTag ?? '')),
+          )
+
+          // Attributes
+          .replaceAll(
+            /([^\s]+?)(=)/g,
+            (_, attributeName, equalsSign) =>
+              styles.blue(attributeName) + styles.blue(styles.dim(equalsSign ?? '')),
+          )
+
+          // Strings
+          .replaceAll(
+            /"(.*?)"/g,
+            (_) =>
+              styles.blue(styles.dim('"')) +
+              styles.blue(_.slice(1, -1)) +
+              styles.blue(styles.dim('"')),
+          )
+      )
+    }
+    default:
+      return input
+  }
+}
+
 // The default indentation to add some padding in the box.
 const PADDING = 3
 
@@ -132,25 +169,27 @@ class Printer {
     private rendering: Required<NonNullable<PrinterOptions['rendering']>>,
   ) {}
 
-  sourcesStorage: DefaultMap<'code' | 'file', DefaultMap<string, Item[]>> = new DefaultMap(
-    (type: 'code' | 'file') => {
-      switch (type) {
-        case 'code': {
-          return new DefaultMap((src) => {
-            let rasterizedCode = rasterizeCode(src)
-            let typedCode = typeCode(rasterizedCode)
-            return typedCode
-          })
+  sourcesStorage: DefaultMap<string, DefaultMap<'code' | 'file', DefaultMap<string, Item[]>>> =
+    new DefaultMap((extension) => {
+      return new DefaultMap((type: 'code' | 'file') => {
+        switch (type) {
+          case 'code': {
+            return new DefaultMap((src) => {
+              let highlightedCode = highlgightCode(src, extension)
+              let rasterizedCode = rasterizeCode(highlightedCode)
+              let typedCode = typeCode(rasterizedCode)
+              return typedCode
+            })
+          }
+          case 'file': {
+            return new DefaultMap((file) => {
+              let src = this.resolveSource(file)
+              return this.sourcesStorage.get(extension).get('code').get(src)
+            })
+          }
         }
-        case 'file': {
-          return new DefaultMap((file) => {
-            let src = this.resolveSource(file)
-            return this.sourcesStorage.get('code').get(src)
-          })
-        }
-      }
-    },
-  )
+      })
+    })
 
   dispose() {
     this.sourcesStorage.clear()
@@ -170,11 +209,12 @@ class Printer {
   private prepareDiagnostics(diagnostics: Iterable<Diagnostic>): InternalDiagnostic[][] {
     let internalDiagnostics: InternalDiagnostic[] = []
     for (let diagnostic of diagnostics) {
+      let extension = diagnostic.file.split('.').pop() ?? 'txt'
       let internalDiagnostic: InternalDiagnostic = {
         file: diagnostic.file,
         source: diagnostic.source
-          ? this.sourcesStorage.get('code').get(diagnostic.source)
-          : this.sourcesStorage.get('file').get(diagnostic.file),
+          ? this.sourcesStorage.get(extension).get('code').get(diagnostic.source)
+          : this.sourcesStorage.get(extension).get('file').get(diagnostic.file),
         message: diagnostic.message,
         loc: {
           // Map the public location API to the internal location API. For now

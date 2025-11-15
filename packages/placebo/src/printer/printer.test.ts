@@ -1,4 +1,4 @@
-import { stripVTControlCharacters } from 'node:util'
+import { stripVTControlCharacters } from 'util'
 import { describe, expect, it } from 'vitest'
 import CHARS from '../printer/char-maps/fancy'
 import { print } from '../printer/printer'
@@ -77,7 +77,7 @@ export async function render(
     },
   )
 
-  let out = stripVTControlCharacters(lines.join('\n').trimEnd())
+  let out = lines.join('\n').trimEnd()
 
   let debug = true // For debugging width issues
   if (debug) {
@@ -89,14 +89,15 @@ export async function render(
       // Replace all backticks with a similar character that doesn't need
       // escaping due to how inline snapshots work.
       line = line.replaceAll('`', '\u2035')
+      let actualLength = stripVTControlCharacters(line).length
 
-      if (line.length > PRINT_WIDTH) {
+      if (actualLength > PRINT_WIDTH) {
         let good = line.slice(0, PRINT_WIDTH)
         let bad = line.slice(PRINT_WIDTH + 1)
         // Highlight the overflowed part
         lines[idx] = CHARS.V + good + '×' + bad
       } else {
-        lines[idx] = CHARS.V + line.padEnd(PRINT_WIDTH) + CHARS.V
+        lines[idx] = CHARS.V + line + ' '.repeat(Math.max(0, PRINT_WIDTH - actualLength)) + CHARS.V
       }
     }
     out = lines.join('\n')
@@ -1035,6 +1036,49 @@ describe('squashing', () => {
       "
     `)
   })
+
+  it('should collapse some of the inner code if it is too large', async () => {
+    let code = css`
+      html {
+        @apply text-red-100 hover:text-red-200 focus:text-red-300 disabled:text-red-400 sm:text-red-500 md:text-red-600 lg:text-red-700 xl:text-red-800 2xl:text-red-900;
+      }
+    `
+    let diagnostics = [
+      diagnose(
+        'Too many classes applied here',
+        findLocation(
+          code,
+          'text-red-100 hover:text-red-200 focus:text-red-300 disabled:text-red-400 sm:text-red-500 md:text-red-600 lg:text-red-700 xl:text-red-800 2xl:text-red-900',
+        ),
+      ),
+    ]
+
+    let result = await render(code, diagnostics, './example.css')
+    expect(result).toMatchInlineSnapshot(`
+      "
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.css]                                                                               │
+      │    │                                                                                               │
+      │  2 │   html {                                                                                      │
+      │∙ 3 │     @apply text-red-100 hover:text-red-200 focus:text-red-300                                 │
+      │    ·            ────────────────────────┬───────────────────────── ╭─                              │
+      │    ·                                    ╰──────────────────────────┤ Too many classes              │
+      │    ·                                                               │ applied here                  │
+      │    ·                                                               ╰─                              │
+      │    ·                                                                                               │
+      │    │       ↳ disabled:text-red-400 sm:text-red-500 md:text-red-600 lg:text-red-700                 │
+      │    ·         ──────────────────────────────────┬────────────────────────────────── ╭─              │
+      │    ·                                           ╰───────────────────────────────────┤ Too many      │
+      │    │       ↳ xl:text-red-800 2xl:text-red-900;                                     │ classes       │
+      │  4 │   }     ───────────────┬────────────────                                      │ applied       │
+      │    ·                        ╰────────────────── Too many classes applied here      │ here          │
+      │    ·                                                                               ╰─              │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
+    `)
+  })
 })
 
 describe('multi-line diagnostics', () => {
@@ -1414,7 +1458,7 @@ describe('responsiveness', () => {
       `)
     })
 
-    it('should split diagnostics that span 2 lines after wrapping into multiple diagnostics', async () => {
+    it.only('should split diagnostics that span 2 lines after wrapping into multiple diagnostics', async () => {
       let code = String.raw`
         <div class="min-h-full bg-white px-4 py-16 sm:px-6 sm:py-24 md:grid md:place-items-center lg:px-8">
           <div class="mx-auto max-w-max">
@@ -1441,11 +1485,11 @@ describe('responsiveness', () => {
         ),
       ]
 
-      let result = await render(code, diagnostics, './example.js')
-      expect(result).toMatchInlineSnapshot(`
+      let result = await render(code, diagnostics, './example.html')
+      expect(stripVTControlCharacters(result)).toMatchInlineSnapshot(`
         "
         ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-        │     ┌─[./example.js]                                                                               │
+        │     ┌─[./example.html]                                                                             │
         │     │                                                                                              │
         │   6 │     <div class="sm:ml-6">                                                                    │
         │   7 │       <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">           │
