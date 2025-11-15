@@ -198,11 +198,8 @@ class Printer {
   print(diagnostics: Iterable<Diagnostic>) {
     let diagnosticsPerBlock = this.prepareDiagnostics(diagnostics)
 
-    // Report per block, that will be cleaner from a UI perspective
-    this.write('') // Before
     for (let diagnostics of diagnosticsPerBlock) {
-      this.reportBlock(diagnostics)
-      this.write('')
+      this.write(this.reportBlock(diagnostics))
     }
   }
 
@@ -257,7 +254,7 @@ class Printer {
     return Array.from(grouped.values())
   }
 
-  private reportBlock(diagnostics: InternalDiagnostic[]) {
+  private reportBlock(diagnostics: InternalDiagnostic[]): string {
     // Group by same line
     let groupedByRow = new DefaultMap<number, InternalDiagnostic[]>(() => [])
     for (let diagnostic of diagnostics) {
@@ -1228,7 +1225,7 @@ class Printer {
         }
         output.push(msg)
       }
-      this.write(output.join('\n'))
+      return output.join('\n')
     }
   }
 }

@@ -79,6 +79,9 @@ export async function render(
 
   let out = lines.join('\n').trimEnd()
 
+  let withANSI = false
+  if (!withANSI) out = stripVTControlCharacters(out)
+
   let debug = true // For debugging width issues
   if (debug) {
     // Print a box around the output to see if anything overflows
@@ -646,7 +649,6 @@ it('should be possible to print messages across different lines', async () => {
     │  3 │   <span class="bg-give-500"></span>                                                           │
     │    │                                                                                               │
     │    └─                                                                                              │
-    │                                                                                                    │
     │    ┌─[./example.html]                                                                              │
     │    │                                                                                               │
     │  2 │   <span class="bg-never-500"></span>                                                          │
@@ -720,7 +722,6 @@ it('should be possible to print messages across different lines including notes'
     │    ├─                                                                                              │
     │    ·   I am a note from message 1                                                                  │
     │    └─                                                                                              │
-    │                                                                                                    │
     │    ┌─[./example.html]                                                                              │
     │    │                                                                                               │
     │  2 │   <span class="bg-never-500"></span>                                                          │
@@ -1458,7 +1459,7 @@ describe('responsiveness', () => {
       `)
     })
 
-    it.only('should split diagnostics that span 2 lines after wrapping into multiple diagnostics', async () => {
+    it('should split diagnostics that span 2 lines after wrapping into multiple diagnostics', async () => {
       let code = String.raw`
         <div class="min-h-full bg-white px-4 py-16 sm:px-6 sm:py-24 md:grid md:place-items-center lg:px-8">
           <div class="mx-auto max-w-max">
@@ -1486,7 +1487,7 @@ describe('responsiveness', () => {
       ]
 
       let result = await render(code, diagnostics, './example.html')
-      expect(stripVTControlCharacters(result)).toMatchInlineSnapshot(`
+      expect(result).toMatchInlineSnapshot(`
         "
         ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
         │     ┌─[./example.html]                                                                             │
@@ -1740,8 +1741,8 @@ describe('responsiveness', () => {
       let diagnostics = [
         diagnose('This contains some notes', findLocation(code, 'class'), {
           notes: [
-            'The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.',
-            'In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.',
+            'The `class` you see here is an attribute in html, in React this is typically used as `className` instead.',
+            'In Vue, you can use `class` but also use `:class` for more dynamic clases.',
           ].join('\n'),
         }),
       ]
@@ -1770,11 +1771,11 @@ describe('responsiveness', () => {
       let diagnostics = [
         diagnose('This contains some notes', findLocation(code, 'class'), {
           notes: [
-            '- The \`class\` you see here is an attribute in html, in React this is typically used as \`className\` instead.',
-            '- In Vue, you can use \`class\` but also use \`:class\` for more dynamic clases.',
-            '  - The same rules apply to the \`style\` prop, the \`style\` prop in React is still called \`style\`.',
-            '    - Also one small caveat is that in React the \`style\` prop requires an object instead of a string with all the styles.',
-            '  - However, in Vue, you can use \`style\` but also use \`:style\` for more dynamic styles.',
+            '- The `class` you see here is an attribute in html, in React this is typically used as `className` instead.',
+            '- In Vue, you can use `class` but also use `:class` for more dynamic clases.',
+            '  - The same rules apply to the `style` prop, the `style` prop in React is still called `style`.',
+            '    - Also one small caveat is that in React the `style` prop requires an object instead of a string with all the styles.',
+            '  - However, in Vue, you can use `style` but also use `:style` for more dynamic styles.',
           ].join('\n'),
         }),
       ]
