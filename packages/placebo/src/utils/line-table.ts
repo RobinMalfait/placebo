@@ -26,6 +26,13 @@ export interface LineTable {
    * @param offset The index for which to find the position
    */
   find(offset: number): Position
+
+  /**
+   * Find the most likely byte offset for given a position
+   *
+   * @param offset The position for which to find the byte offset
+   */
+  findOffset(pos: Position): number
 }
 
 /**
@@ -66,11 +73,23 @@ export function createLineTable(source: string): LineTable {
 
     return {
       line: line + 1,
-      column: column,
+      column: column + 1,
     }
+  }
+
+  function findOffset({ line, column }: Position) {
+    column -= 1
+    line -= 1
+    line = Math.min(Math.max(line, 0), table.length - 1)
+
+    let offsetA = table[line]
+    let offsetB = table[line + 1] ?? offsetA
+
+    return Math.min(Math.max(offsetA + column, 0), offsetB)
   }
 
   return {
     find,
+    findOffset,
   }
 }

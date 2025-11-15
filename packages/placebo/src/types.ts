@@ -178,6 +178,6 @@ export interface InternalDiagnostic {
   locations?: InternalLocation[]
 }
 
-function bits(number: number) {
+function bits(number: number): number {
   return Math.floor(Math.log2(number) + 1)
 }
