@@ -10,43 +10,6 @@ import { parseNotes } from './parse-notes'
 
 const COLORS = [styles.yellow, styles.red, styles.blue, styles.magenta, styles.cyan, styles.green]
 
-function highlgightCode(input: string, extension: string) {
-  // return input
-  switch (extension) {
-    // case 'html': {
-    //   return (
-    //     input
-    //       // Elements
-    //       .replaceAll(
-    //         /(<\/?)([a-zA-Z]+?)(>)?/g,
-    //         (_, openTag, name, closeTag) =>
-    //           styles.black(styles.dim(openTag)) +
-    //           styles.magenta(name) +
-    //           styles.black(styles.dim(closeTag ?? '')),
-    //       )
-    //
-    //       // Attributes
-    //       .replaceAll(
-    //         /([^\s]+?)(=)/g,
-    //         (_, attributeName, equalsSign) =>
-    //           styles.blue(attributeName) + styles.blue(styles.dim(equalsSign ?? '')),
-    //       )
-    //
-    //       // Strings
-    //       .replaceAll(
-    //         /"(.*?)"/g,
-    //         (_) =>
-    //           styles.blue(styles.dim('"')) +
-    //           styles.blue(_.slice(1, -1)) +
-    //           styles.blue(styles.dim('"')),
-    //       )
-    //   )
-    // }
-    default:
-      return input
-  }
-}
-
 // The default indentation to add some padding in the box.
 const PADDING = 3
 
@@ -183,8 +146,7 @@ class Printer {
         switch (type) {
           case 'code': {
             return new DefaultMap((src) => {
-              let highlightedCode = highlgightCode(src, extension)
-              let rasterizedCode = rasterizeCode(highlightedCode)
+              let rasterizedCode = rasterizeCode(src)
               let typedCode = typeCode(rasterizedCode)
               return typedCode
             })
