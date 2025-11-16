@@ -18,10 +18,11 @@ const cli = parseArgs({
 export default function (diagnose: (files: string[]) => Promise<Diagnostic[]>) {
   return async function run(files = process.argv.slice(2), write = console.log) {
     let diagnostics = await diagnose(files)
+    let blocks: string[] = []
 
     function render() {
       return print(diagnostics, {
-        write,
+        write: (block) => blocks.push(block),
         source(file) {
           return fs.readFileSync(file, 'utf8')
         },
@@ -32,11 +33,21 @@ export default function (diagnose: (files: string[]) => Promise<Diagnostic[]>) {
       process.stdout.on('resize', async () => {
         console.clear()
         render()
+        write('')
+        for (let block of blocks.splice(0)) {
+          write(block)
+          write('')
+        }
       })
       process.stdout.resume()
     }
 
     render()
+    write('')
+    for (let block of blocks.splice(0)) {
+      write(block)
+      write('')
+    }
 
     return diagnostics
   }
