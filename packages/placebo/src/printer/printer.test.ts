@@ -79,7 +79,7 @@ export async function render(
     },
   )
 
-  let out = lines.join('\n').trimEnd()
+  let out = lines.join('\n\n').trimEnd()
 
   let withANSI = false
   if (!withANSI) out = stripVTControlCharacters(out)
@@ -668,6 +668,7 @@ it('should be possible to print messages across different lines', async () => {
     │  3 │   <span class="bg-give-500"></span>                                                           │
     │    │                                                                                               │
     │    └─                                                                                              │
+    │                                                                                                    │
     │    ┌─[./example.html]                                                                              │
     │    │                                                                                               │
     │  2 │   <span class="bg-never-500"></span>                                                          │
@@ -743,6 +744,7 @@ it('should be possible to print messages across different lines including notes'
     │    ├─                                                                                              │
     │    ·   I am a note from message 1                                                                  │
     │    └─                                                                                              │
+    │                                                                                                    │
     │    ┌─[./example.html]                                                                              │
     │    │                                                                                               │
     │  2 │   <span class="bg-never-500"></span>                                                          │
