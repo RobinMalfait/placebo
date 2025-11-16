@@ -3,11 +3,13 @@ import { range } from '../utils/range'
 export function wordWrap(
   text: string,
   width: number,
-  type: 'simple' | 'pretty' = 'pretty',
+  type: 'simple' | 'prevent-orphans' | 'pretty' = 'pretty',
 ): string[] {
   switch (type) {
     case 'simple':
       return wordWrapSimple(text, width)
+    case 'prevent-orphans':
+      return wordWrapPreventOrphans(text, width)
     case 'pretty':
       return wordWrapPretty(text, width)
     default:
@@ -37,6 +39,32 @@ function wordWrapSimple(text: string, width: number): string[] {
   }
 
   return lines
+}
+
+function wordWrapPreventOrphans(text: string, width: number): string[] {
+  let lines: string[][] = [[]]
+  let words = text.split(/(\s+)/g)
+
+  for (let word of words) {
+    if (
+      lines[lines.length - 1].reduce((acc, word) => acc + word.length, 0) + word.length + 1 <=
+      width
+    ) {
+      lines[lines.length - 1].push(word)
+    } else {
+      lines.push([word])
+    }
+  }
+
+  // Move last word from second last line, to last line to prevent orphans
+  if (lines.length >= 2 && lines[lines.length - 1].length === 1) {
+    let secondLastLine = lines[lines.length - 2]
+    let lastWordIdx = secondLastLine.findLastIndex((w) => w.trim().length > 0)
+    let trailingWords = secondLastLine.splice(lastWordIdx)
+    lines[lines.length - 1].unshift(...trailingWords)
+  }
+
+  return lines.map((words) => words.join('').trimEnd())
 }
 
 // Ref: https://xxyxyz.org/line-breaking/

@@ -13,7 +13,7 @@ function parseMarkdown(input: string, availableSpace: number) {
       let firstCharOffset = line.search(/[a-z]/i)
       let offset = Math.max(0, firstCharOffset - firstNonSpaceOffset)
 
-      return wordWrap(line, availableSpace, 'simple').map((line, idx) => {
+      return wordWrap(line, availableSpace, 'prevent-orphans').map((line, idx) => {
         let result = line
           // Inline code
           .replace(/`[^`\n]+`/gim, (code) => {
