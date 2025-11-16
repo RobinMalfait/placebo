@@ -1780,8 +1780,8 @@ describe('responsiveness', () => {
         │    ·                                                                                               │
         │    ├─                                                                                              │
         │    ·   The ‵class‵ you see here is an attribute in html, in React this is typically used as        │
-        │    ·   ‵className‵ instead. In Vue, you can use ‵class‵ but also use ‵:class‵ for more             │
-        │    ·   dynamic classes.                                                                            │
+        │    ·   ‵className‵ instead. In Vue, you can use ‵class‵ but also use ‵:class‵ for more dynamic     │
+        │    ·   classes.                                                                                    │
         │    └─                                                                                              │
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
@@ -1846,15 +1846,14 @@ describe('responsiveness', () => {
         │    ·          ╰──── This contains some notes                                                       │
         │    ·                                                                                               │
         │    ├─                                                                                              │
-        │    ·   - The ‵class‵ you see here is an attribute in html, in React this is typically used         │
-        │    ·     as ‵className‵ instead.                                                                   │
+        │    ·   - The ‵class‵ you see here is an attribute in html, in React this is typically used as      │
+        │    ·     ‵className‵ instead.                                                                      │
         │    ·   - In Vue, you can use ‵class‵ but also use ‵:class‵ for more dynamic classes.               │
-        │    ·     - The same rules apply to the ‵style‵ prop, the ‵style‵ prop in React is still            │
-        │    ·       called ‵style‵.                                                                         │
-        │    ·       - Also one small caveat is that in React the ‵style‵ prop requires an object            │
-        │    ·         instead of a string with all the styles.                                              │
-        │    ·     - However, in Vue, you can use ‵style‵ but also use ‵:style‵ for more dynamic             │
-        │    ·       styles.                                                                                 │
+        │    ·     - The same rules apply to the ‵style‵ prop, the ‵style‵ prop in React is still called     │
+        │    ·       ‵style‵.                                                                                │
+        │    ·       - Also one small caveat is that in React the ‵style‵ prop requires an object instead    │
+        │    ·         of a string with all the styles.                                                      │
+        │    ·     - However, in Vue, you can use ‵style‵ but also use ‵:style‵ for more dynamic styles.     │
         │    └─                                                                                              │
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
