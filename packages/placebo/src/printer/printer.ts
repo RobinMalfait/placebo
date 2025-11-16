@@ -16,62 +16,6 @@ const PADDING = 3
 // The margin before the line numbers
 const MARGIN = 2
 
-function combinedType(row: { type: Type }[]) {
-  let type = Type.None
-  for (let cell of row) {
-    if (!cell) continue // Holes
-    type |= cell.type
-  }
-  return type
-}
-
-function hasType(row: { type: Type }[], type: Type) {
-  for (let cell of row) {
-    if (!cell) continue // Holes
-    if (cell.type & type) return true
-  }
-  return false
-}
-
-function createCell(value: string, type: Type) {
-  return { type, value }
-}
-
-function* createCells<T>(amount: number, cb: () => T) {
-  for (let _ of range(amount)) {
-    yield cb()
-  }
-}
-
-function createDiagnosticCell(value: string, type = Type.None) {
-  return createCell(value, type | Type.Diagnostic)
-}
-
-function createWhitespaceCell(value = ' ') {
-  return { type: Type.Whitespace, value }
-}
-
-function createNoteCells(input: string | number, decorate = (s: string) => s) {
-  if (typeof input === 'number') {
-    return createCells(input, () => createCell(' ', Type.Note))
-  }
-
-  return input.split('').map((v) => createCell(decorate(v), Type.Note))
-}
-
-type Item = { type: Type; value: string }[]
-
-function typeCode(input: string[][]): Item[] {
-  return input.map((row) =>
-    row.map((value) => {
-      let type = Type.Code
-      if (clearAnsiEscapes(value) === ' ') type |= Type.Whitespace
-
-      return { type, value }
-    }),
-  )
-}
-
 export interface PrinterOptions {
   /**
    * Where we should write the output to. Will be called with each diagnostic
@@ -91,9 +35,9 @@ export interface PrinterOptions {
   /**
    * Which formatter to use for printing diagnostics.
    *
-   * Defaults to: `'ansi'`
+   * Defaults to: `'cli'`
    */
-  formatter?: 'ansi' | 'html'
+  formatter?: 'cli' | 'html'
 
   /**
    * Rendering options that influence how diagnostics are rendered.
@@ -133,6 +77,53 @@ export interface PrinterOptions {
   }
 }
 
+export function print(diagnostics: Iterable<Diagnostic>, options: PrinterOptions = {}) {
+  env.DEBUG && console.time('[PLACEBO]: Print')
+
+  let printer = new Printer(options.write ?? console.error, options.source, {
+    get beforeContextLines() {
+      return parseNumberEnv(
+        'PLACEBO_CONTEXT_LINES_BEFORE',
+        options.rendering?.beforeContextLines ?? 3,
+      )
+    },
+    get afterContextLines() {
+      return parseNumberEnv(
+        'PLACEBO_CONTEXT_LINES_AFTER',
+        options.rendering?.afterContextLines ?? 3,
+      )
+    },
+    get printWidth() {
+      return parseNumberEnv(
+        'PLACEBO_PRINT_WIDTH',
+        options.rendering?.printWidth ?? process.stdout.columns ?? 80,
+      )
+    },
+    formatFilePath(file) {
+      let fn =
+        options.rendering?.formatFilePath ??
+        ((file) => {
+          // Create relative paths when running in Node-like environments
+          if (typeof process !== 'undefined') {
+            let path = require('path')
+            let relative = path.relative(process.cwd(), path.resolve(file))
+            return relative.startsWith('.') || relative.startsWith('/') ? relative : `./${relative}`
+          }
+
+          // Fallback: return the original file path
+          return file
+        })
+      return fn(file)
+    },
+  })
+  printer.print(diagnostics)
+
+  // Cleanup resources after printing
+  printer.dispose()
+
+  env.DEBUG && console.timeEnd('[PLACEBO]: Print')
+}
+
 class Printer {
   constructor(
     private write: (msg: string) => void = console.error,
@@ -166,17 +157,19 @@ class Printer {
   }
 
   print(diagnostics: Iterable<Diagnostic>) {
-    let diagnosticsPerBlock = this.prepareDiagnostics(diagnostics)
+    let blocks = this.prepareDiagnostics(diagnostics)
 
-    for (let diagnostics of diagnosticsPerBlock) {
-      this.write(this.reportBlock(diagnostics))
+    for (let block of blocks) {
+      this.write(this.reportBlock(block))
     }
   }
 
   private prepareDiagnostics(diagnostics: Iterable<Diagnostic>): InternalDiagnostic[][] {
     let internalDiagnostics: InternalDiagnostic[] = []
     for (let diagnostic of diagnostics) {
-      let extension = diagnostic.file.split('.').pop() ?? 'txt'
+      let extensionIndex = diagnostic.file.lastIndexOf('.')
+      let extension = extensionIndex !== -1 ? diagnostic.file.slice(extensionIndex + 1) : ''
+
       let internalDiagnostic: InternalDiagnostic = {
         file: diagnostic.file,
         source: diagnostic.source
@@ -1200,49 +1193,58 @@ class Printer {
   }
 }
 
-export function print(diagnostics: Iterable<Diagnostic>, options: PrinterOptions = {}) {
-  env.DEBUG && console.time('[PLACEBO]: Print')
+function combinedType(row: { type: Type }[]) {
+  let type = Type.None
+  for (let cell of row) {
+    if (!cell) continue // Holes
+    type |= cell.type
+  }
+  return type
+}
 
-  let printer = new Printer(options.write ?? console.error, options.source, {
-    get beforeContextLines() {
-      return parseNumberEnv(
-        'PLACEBO_CONTEXT_LINES_BEFORE',
-        options.rendering?.beforeContextLines ?? 3,
-      )
-    },
-    get afterContextLines() {
-      return parseNumberEnv(
-        'PLACEBO_CONTEXT_LINES_AFTER',
-        options.rendering?.afterContextLines ?? 3,
-      )
-    },
-    get printWidth() {
-      return parseNumberEnv(
-        'PLACEBO_PRINT_WIDTH',
-        options.rendering?.printWidth ?? process.stdout.columns ?? 80,
-      )
-    },
-    formatFilePath(file) {
-      let fn =
-        options.rendering?.formatFilePath ??
-        ((file) => {
-          // Create relative paths when running in Node-like environments
-          if (typeof process !== 'undefined') {
-            let path = require('path')
-            let relative = path.relative(process.cwd(), path.resolve(file))
-            return relative.startsWith('.') || relative.startsWith('/') ? relative : `./${relative}`
-          }
+function hasType(row: { type: Type }[], type: Type) {
+  for (let cell of row) {
+    if (!cell) continue // Holes
+    if (cell.type & type) return true
+  }
+  return false
+}
 
-          // Fallback: return the original file path
-          return file
-        })
-      return fn(file)
-    },
-  })
-  printer.print(diagnostics)
+function createCell(value: string, type: Type) {
+  return { type, value }
+}
 
-  // Cleanup resources after printing
-  printer.dispose()
+function* createCells<T>(amount: number, cb: () => T) {
+  for (let _ of range(amount)) {
+    yield cb()
+  }
+}
 
-  env.DEBUG && console.timeEnd('[PLACEBO]: Print')
+function createDiagnosticCell(value: string, type = Type.None) {
+  return createCell(value, type | Type.Diagnostic)
+}
+
+function createWhitespaceCell(value = ' ') {
+  return { type: Type.Whitespace, value }
+}
+
+function createNoteCells(input: string | number, decorate = (s: string) => s) {
+  if (typeof input === 'number') {
+    return createCells(input, () => createCell(' ', Type.Note))
+  }
+
+  return input.split('').map((v) => createCell(decorate(v), Type.Note))
+}
+
+type Item = { type: Type; value: string }[]
+
+function typeCode(input: string[][]): Item[] {
+  return input.map((row) =>
+    row.map((value) => {
+      let type = Type.Code
+      if (clearAnsiEscapes(value) === ' ') type |= Type.Whitespace
+
+      return { type, value }
+    }),
+  )
 }
