@@ -111,11 +111,12 @@ function typeCode(input: string[][]): Item[] {
 
 export interface PrinterOptions {
   /**
-   * Where we should write the output to.
+   * Where we should write the output to. Will be called with each diagnostic
+   * block.
    *
    * Defaults to: `console.error`
    */
-  write?: (line: string) => void
+  write?: (block: string) => void
 
   /**
    * Resolve source code for a given file.

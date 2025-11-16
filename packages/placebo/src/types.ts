@@ -124,15 +124,18 @@ export interface InternalLocation {
 
 export interface Diagnostic {
   /**
-   * The file path for the diagnostic.
+   * An absolute file path related to the diagnostic.
+   *
+   * We will use this as a unique identifier for the file, so we only have to
+   * load the source code once per file.
    */
   file: string
 
   /**
    * Optional: The source code of the file related to the diagnostic.
    *
-   * When this is not provided, a `source(filePath)` function has to be provided
-   * as part of the `printer` options to retrieve the source code.
+   * When this is not provided, a `source(file)` function has to be provided as
+   * part of the `printer` options to retrieve the source code.
    */
   source?: string
 
