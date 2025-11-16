@@ -1,65 +1,81 @@
 import CHARS from '../printer/char-maps/fancy'
 import { styles as ansiStyles } from '../utils/ansi'
 import { rasterizeCode } from '../utils/highlight-code'
+import { wordWrap } from '../utils/word-wrap'
 
 function parseMarkdown(input: string, availableSpace: number) {
-  return (
-    // Inline code
-    input
-      .replace(/`[^`\n]+`/gim, (code) => {
-        return ansiStyles.blue(code)
-      })
+  return input
+    .split('\n')
+    .flatMap((line) => {
+      if (line.trim() === '') return ['']
+      let countLeadingWhitespace = line.match(/^\s*/)?.[0].length || 0
+      let firstNonSpaceOffset = line.search(/\S/)
+      let firstCharOffset = line.search(/[a-z]/i)
+      let offset = Math.max(0, firstCharOffset - firstNonSpaceOffset)
 
-      // Heading
-      .replace(/^#{1,6} .*/gim, (title) => {
-        return ansiStyles.yellow(title)
-      })
+      return wordWrap(line, availableSpace, 'simple').map((line, idx) => {
+        let result = line
+          // Inline code
+          .replace(/`[^`\n]+`/gim, (code) => {
+            return ansiStyles.blue(code)
+          })
 
-      // Links
-      .replace(/(.)?\[(.*?)\]\((.*?)\)/g, (_, before, label, url) => {
-        if (before === '!') return _ // Ignore images
-        return ansiStyles.link(url, label)
-      })
+          // Heading
+          .replace(/^#{1,6} .*/gim, (title) => {
+            return ansiStyles.yellow(title)
+          })
 
-      // Horizontal ruler
-      .replace(/^\s*?(---)\s/gim, (_, hr) => {
-        return _.replace(hr, ansiStyles.dim(CHARS.dot.repeat(availableSpace)))
-      })
+          // Links
+          .replace(/(.)?\[(.*?)\]\((.*?)\)/g, (_, before, label, url) => {
+            if (before === '!') return _ // Ignore images
+            return ansiStyles.link(url, label)
+          })
 
-      // Ordered lists
-      .replace(/^\s*?((?:\d+\.)+)/gim, (_, lineNumber) => {
-        return _.replace(lineNumber, ansiStyles.magenta(lineNumber))
-      })
+          // Horizontal ruler
+          .replace(/^\s*?(---)\s/gim, (_, hr) => {
+            return _.replace(hr, ansiStyles.dim(CHARS.dot.repeat(availableSpace)))
+          })
 
-      // Unordered lists
-      .replace(/^\s*?(-)\s/gim, (_, list) => {
-        return _.replace(list, ansiStyles.dim(list))
-      })
+          // Ordered lists
+          .replace(/^\s*?((?:\d+\.)+)/gim, (_, lineNumber) => {
+            return _.replace(lineNumber, ansiStyles.magenta(lineNumber))
+          })
 
-      // Blockquote
-      .replace(/^\>(.*$)/gim, (_, quote) => {
-        return ansiStyles.dim(ansiStyles.blue('\u258D') + quote)
-      })
+          // Unordered lists
+          .replace(/^\s*?(-)\s/gim, (_, list) => {
+            return _.replace(list, ansiStyles.dim(list))
+          })
 
-      // Italic
-      .replace(/(.)?_(.*)_/gim, (_, before, code) => {
-        if (before === '\\') return _.replace(/\\_/g, '_')
-        return `${before}${ansiStyles.italic(code)}`
-      })
+          // Blockquote
+          .replace(/^\>(.*$)/gim, (_, quote) => {
+            return ansiStyles.dim(ansiStyles.blue('\u258D') + quote)
+          })
 
-      // Strikethrough
-      .replace(/~~(.*)~~/gim, (_, code) => {
-        return ansiStyles.strikethrough(code)
-      })
+          // Italic
+          .replace(/(.)?_(.*)_/gim, (_, before, code) => {
+            if (before === '\\') return _.replace(/\\_/g, '_')
+            return `${before}${ansiStyles.italic(code)}`
+          })
 
-      // Bold
-      .replace(/\*\*(.*)\*\*/gim, (_, code) => {
-        return ansiStyles.bold(code)
-      })
+          // Strikethrough
+          .replace(/~~(.*)~~/gim, (_, code) => {
+            return ansiStyles.strikethrough(code)
+          })
 
-      // Cleanup leading/trailing whitespace
-      .trim()
-  )
+          // Bold
+          .replace(/\*\*(.*)\*\*/gim, (_, code) => {
+            return ansiStyles.bold(code)
+          })
+
+          // Cleanup leading/trailing whitespace
+          .trim()
+
+        return idx === 0
+          ? ' '.repeat(countLeadingWhitespace) + result
+          : ' '.repeat(offset + countLeadingWhitespace) + result
+      })
+    })
+    .join('\n')
 }
 
 export function parseNotes(notes = ''): (availableSpace: number) => string[] {
