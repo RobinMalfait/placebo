@@ -8,6 +8,8 @@ const html = String.raw
 const css = String.raw
 const javascript = String.raw
 
+const OVERFLOW_MARKER = '×'
+
 function diagnose(
   message: string,
   locations: Location[],
@@ -98,7 +100,7 @@ export async function render(
         let good = line.slice(0, PRINT_WIDTH)
         let bad = line.slice(PRINT_WIDTH + 1)
         // Highlight the overflowed part
-        lines[idx] = CHARS.V + good + '×' + bad
+        lines[idx] = CHARS.V + good + OVERFLOW_MARKER + bad
       } else {
         lines[idx] = CHARS.V + line + ' '.repeat(Math.max(0, PRINT_WIDTH - actualLength)) + CHARS.V
       }
@@ -137,6 +139,7 @@ it('should print a message', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it("should allow for diagnostics for places that don't exist", async () => {
@@ -169,6 +172,7 @@ it("should allow for diagnostics for places that don't exist", async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should print a message and re-indent it to save space', async () => {
@@ -190,6 +194,7 @@ it('should print a message and re-indent it to save space', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should print a message and a note', async () => {
@@ -217,6 +222,7 @@ it('should print a message and a note', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should flatten duplicate notes when they occur multiple times in the same block', async () => {
@@ -255,6 +261,7 @@ it('should flatten duplicate notes when they occur multiple times in the same bl
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should print a message with multiple notes', async () => {
@@ -283,6 +290,7 @@ it('should print a message with multiple notes', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should print nested notes in a hierarchy', async () => {
@@ -329,6 +337,7 @@ it('should print nested notes in a hierarchy', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should render syntax highlighted code in notes', async () => {
@@ -361,6 +370,7 @@ it('should render syntax highlighted code in notes', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should print multiple messages', async () => {
@@ -386,6 +396,7 @@ it('should print multiple messages', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should squash multiple equal messages #1', async () => {
@@ -410,6 +421,7 @@ it('should squash multiple equal messages #1', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should squash multiple equal messages #2', async () => {
@@ -437,6 +449,7 @@ it('should squash multiple equal messages #2', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should properly render multiple messages for the same location', async () => {
@@ -462,6 +475,7 @@ it('should properly render multiple messages for the same location', async () =>
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should not squash multiple equal messages if there is a message in between', async () => {
@@ -489,6 +503,7 @@ it('should not squash multiple equal messages if there is a message in between',
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should print multiple messages with a note', async () => {
@@ -516,6 +531,7 @@ it('should print multiple messages with a note', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should print multiple messages with multiple notes', async () => {
@@ -549,6 +565,7 @@ it('should print multiple messages with multiple notes', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should be possible to print a lot of messages', async () => {
@@ -598,6 +615,7 @@ it('should be possible to print a lot of messages', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should be possible to print a lot of similar messages', async () => {
@@ -622,6 +640,7 @@ it('should be possible to print a lot of similar messages', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should be possible to print messages across different lines', async () => {
@@ -660,6 +679,7 @@ it('should be possible to print messages across different lines', async () => {
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should be possible to print messages across different lines and group them in the same context block', async () => {
@@ -691,6 +711,7 @@ it('should be possible to print messages across different lines and group them i
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should be possible to print messages across different lines including notes', async () => {
@@ -735,6 +756,7 @@ it('should be possible to print messages across different lines including notes'
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 it('should be possible to print messages across different lines and group them in the same context block including notes', async () => {
@@ -775,6 +797,7 @@ it('should be possible to print messages across different lines and group them i
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
     "
   `)
+  expect(result).not.toContain(OVERFLOW_MARKER)
 })
 
 describe('context lines', () => {
@@ -809,6 +832,7 @@ describe('context lines', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should not print non-existing leading context lines', async () => {
@@ -841,6 +865,7 @@ describe('context lines', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should not print non-existing trailing context lines', async () => {
@@ -874,6 +899,7 @@ describe('context lines', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should squash overlapping context lines together', async () => {
@@ -917,6 +943,7 @@ describe('context lines', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should add an indication when there are context lines that are not immediately attached', async () => {
@@ -974,6 +1001,7 @@ describe('context lines', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 })
 
@@ -1006,6 +1034,7 @@ describe('squashing', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should be possible to squash context lines and diagnostics lines #2', async () => {
@@ -1036,6 +1065,7 @@ describe('squashing', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should collapse some of the inner code if it is too large', async () => {
@@ -1079,6 +1109,7 @@ describe('squashing', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 })
 
@@ -1125,6 +1156,7 @@ describe('multi-line diagnostics', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should be possible to print related diagnostics together spread across multiple lines (3x)', async () => {
@@ -1174,6 +1206,7 @@ describe('multi-line diagnostics', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should be possible to print related diagnostics together spread across multiple lines but with very very large text (4x)', async () => {
@@ -1228,6 +1261,7 @@ describe('multi-line diagnostics', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should be possible to print related diagnostics together spread across multiple lines (5x)', async () => {
@@ -1284,6 +1318,7 @@ describe('multi-line diagnostics', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it('should drop "useless" empty line context lines between diagnostic lines', async () => {
@@ -1335,6 +1370,7 @@ describe('multi-line diagnostics', () => {
       └────────────────────────────────────────────────────────────────────────────────────────────────────┘
       "
     `)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 
   it.skip('should be possible to print multiple related diagnostics together spread across multiple lines', async () => {
@@ -1374,6 +1410,7 @@ describe('multi-line diagnostics', () => {
     · ╰───┴────── Pair 1
     │
     └─`)
+    expect(result).not.toContain(OVERFLOW_MARKER)
   })
 })
 
@@ -1401,6 +1438,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
   })
 
@@ -1457,6 +1495,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
 
     it('should split diagnostics that span 2 lines after wrapping into multiple diagnostics', async () => {
@@ -1513,6 +1552,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
   })
 
@@ -1544,6 +1584,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
 
     it('should squash context lines in multi-line messages', async () => {
@@ -1583,6 +1624,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
 
     it('should render 2 multi-line messages', async () => {
@@ -1623,6 +1665,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
 
     it('should render 2 multi-line messages with a single one-liner in between', async () => {
@@ -1661,6 +1704,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
 
     it('should render 2 multi-line diagnostics for the same location', async () => {
@@ -1705,6 +1749,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
   })
 
@@ -1734,6 +1779,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
 
     it('should wrap multiple notes that are too long', async () => {
@@ -1764,6 +1810,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
 
     it('should wrap multiple nested notes that are too long', async () => {
@@ -1800,6 +1847,7 @@ describe('responsiveness', () => {
         └────────────────────────────────────────────────────────────────────────────────────────────────────┘
         "
       `)
+      expect(result).not.toContain(OVERFLOW_MARKER)
     })
   })
 })
