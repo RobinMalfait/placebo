@@ -219,27 +219,29 @@ class Printer {
 
     // Reserve space for the frame and gutter around the code
     let diagnosticIndicatorLength = 1
+    availableSpace -= diagnosticIndicatorLength
+
     let lineNumberPaddingLeft = 1
+    availableSpace -= lineNumberPaddingLeft
 
     let maxLineNumber = diagnostics[diagnostics.length - 1]?.loc?.row ?? 0
     maxLineNumber += this.rendering.afterContextLines
     maxLineNumber = Math.min(maxLineNumber, diagnostics[diagnostics.length - 1]?.source.length)
 
     let lineNumberLength = maxLineNumber.toString().length
-    let lineNumberPaddingRight = 1
-    let frameWallLength = 1
-    let paddingLeft = PADDING
-    let paddingRight = PADDING
+    availableSpace -= lineNumberLength
 
-    // Reserve the space
-    availableSpace -=
-      diagnosticIndicatorLength +
-      lineNumberPaddingLeft +
-      lineNumberLength +
-      lineNumberPaddingRight +
-      frameWallLength +
-      paddingLeft +
-      paddingRight
+    let lineNumberPaddingRight = 1
+    availableSpace -= lineNumberPaddingRight
+
+    let frameWallLength = 1
+    availableSpace -= frameWallLength
+
+    let paddingLeft = PADDING
+    availableSpace -= paddingLeft
+
+    let paddingRight = PADDING
+    availableSpace -= paddingRight
 
     // Group by same line
     let groupedByRow = new DefaultMap<number, InternalDiagnostic[]>(() => [])
