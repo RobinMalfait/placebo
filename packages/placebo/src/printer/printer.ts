@@ -1057,7 +1057,7 @@ class Printer {
 
     function responsiveFileName(path: string) {
       let reserved = 1 /* TLSquare */ + 1 /* H */ + 1 /* [ */ + 1 /* ] */
-      let width = availableSpace + PADDING * 2 - reserved
+      let width = availableSpace - reserved
 
       // If it already fits, then we are good to go
       if (path.length <= width) return path
