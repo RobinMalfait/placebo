@@ -13,9 +13,6 @@ const COLORS = [styles.yellow, styles.red, styles.blue, styles.magenta, styles.c
 // The default indentation to add some padding in the box.
 const PADDING = 3
 
-// The margin before the line numbers
-const MARGIN = 2
-
 export interface PrinterOptions {
   /**
    * Where we should write the output to. Will be called with each diagnostic
@@ -218,6 +215,32 @@ class Printer {
   }
 
   private reportBlock(diagnostics: InternalDiagnostic[]): string {
+    let availableSpace = this.rendering.printWidth
+
+    // Reserve space for the frame and gutter around the code
+    let diagnosticIndicatorLength = 1
+    let lineNumberPaddingLeft = 1
+
+    let maxLineNumber = diagnostics[diagnostics.length - 1]?.loc?.row ?? 0
+    maxLineNumber += this.rendering.afterContextLines
+    maxLineNumber = Math.min(maxLineNumber, diagnostics[diagnostics.length - 1]?.source.length)
+
+    let lineNumberLength = maxLineNumber.toString().length
+    let lineNumberPaddingRight = 1
+    let frameWallLength = 1
+    let paddingLeft = PADDING
+    let paddingRight = PADDING
+
+    // Reserve the space
+    availableSpace -=
+      diagnosticIndicatorLength +
+      lineNumberPaddingLeft +
+      lineNumberLength +
+      lineNumberPaddingRight +
+      frameWallLength +
+      paddingLeft +
+      paddingRight
+
     // Group by same line
     let groupedByRow = new DefaultMap<number, InternalDiagnostic[]>(() => [])
     for (let diagnostic of diagnostics) {
@@ -284,25 +307,6 @@ class Printer {
         ),
       )
     }
-
-    // Calculate the biggest line number, so that we can pretty print it
-    // correctly. E.g.: When we have 420 lines of code, then this number will be
-    // `3`, because that's the amount of characters it requires.
-    let lineNumberGutterWidth = Array.from(printableLines.keys())
-      .reduce((max, lineNumber) => Math.max(max, lineNumber + 1), Number.NEGATIVE_INFINITY)
-      .toString().length
-
-    // Compute available working space (excluding the frame and all of that...)
-    let availableStartPosition =
-      /* Reserved values for the frame: */
-      lineNumberGutterWidth /* Amount of space to reserve for the line numbers in the current block */ +
-      MARGIN /* The amount of margin in front of the line numbers */ +
-      1 /* A space after the line number */ +
-      1 /* The "border" of the frame */
-
-    let availableWorkingSpace =
-      /* Total available space */
-      this.rendering.printWidth - availableStartPosition - PADDING * 2 /* For left and right */
 
     for (let [lineNumber, line] of printableLines.entries()) {
       // Re-indent the line
@@ -411,11 +415,11 @@ class Printer {
         }
       }
 
-      if (line.length >= availableWorkingSpace) {
+      if (line.length >= availableSpace) {
         // A contextual code line that is too long
         if (!hasDiagnostics) {
           // Cut-off contextual lines that are too long at the end
-          line = line.slice(0, availableWorkingSpace - 1)
+          line = line.slice(0, availableSpace - 1)
           line.push({ type: Type.Code, value: styles.dim(CHARS.ellipsis) })
 
           let rowIdx = output.push(line) - 1
@@ -442,7 +446,7 @@ class Printer {
           let forcedIndent = whitespaceIndent + indent
           forcedIndentByLineNumber.set(lineNumber, forcedIndent)
           let widthPerLine =
-            availableWorkingSpace -
+            availableSpace -
             whitespaceIndent -
             indent -
             2 /* (1) For the \u21B3 and ' ' characters */ -
@@ -792,10 +796,10 @@ class Printer {
         // Inject the message after the horizontal line
         if (!diagnostic.relatedId || isLastDiagnosticInContext(diagnostic)) {
           let lastLineOffset = lastLine!.length
-          let availableSpace = availableWorkingSpace - lastLine!.length
+          let availableWorkingSpace = availableSpace - lastLine!.length
 
           let mustBeMultiLine = diagnostic.message.includes('\n')
-          if (!mustBeMultiLine && availableSpace >= diagnostic.message.length) {
+          if (!mustBeMultiLine && availableWorkingSpace >= diagnostic.message.length) {
             lastLine!.push(
               createCell(' ', Type.Diagnostic | Type.Whitespace),
               ...diagnostic.message.split('').map((v) => createDiagnosticCell(decorate(v))),
@@ -803,10 +807,10 @@ class Printer {
           } else {
             // For the additional character that we are about to put in front of the multi-line
             // message. (1*)
-            availableSpace -= 1
+            availableWorkingSpace -= 1
             let sentences = diagnostic.message
               .split('\n')
-              .flatMap((line) => wordWrap(line, availableSpace))
+              .flatMap((line) => wordWrap(line, availableWorkingSpace))
 
             output[output.indexOf(lastLine!)]![connectorIdx] ??= createDiagnosticCell(
               decorate(CHARS.V),
@@ -842,7 +846,7 @@ class Printer {
             for (let [idx, sentence] of sentences.entries()) {
               if (idx !== 0) {
                 lastLine!.push(
-                  /* (1*) This extra character is why we added `availableSpace -= 1` */
+                  /* (1*) This extra character is why we added `availableWorkingSpace -= 1` */
                   createDiagnosticCell(decorate(CHARS.V)),
                 )
               }
@@ -1012,7 +1016,7 @@ class Printer {
       // right which means that the left most (first) will be rendered at the bottom, that's why we
       // need to flip the `col` coordinates as well so that we end up with 1-9 instead of 9-1.
       .sort((a, z) => a.loc.row - z.loc.row || z.loc.col - a.loc.col)
-      .map((diagnostic) => diagnostic.notes(availableWorkingSpace))
+      .map((diagnostic) => diagnostic.notes(availableSpace))
       .filter((notes) => notes.length > 0)
 
     // TODO: Clean this up, make it more efficient
@@ -1051,7 +1055,7 @@ class Printer {
 
     function responsiveFileName(path: string) {
       let reserved = 1 /* TLSquare */ + 1 /* H */ + 1 /* [ */ + 1 /* ] */
-      let width = availableWorkingSpace + PADDING * 2 - reserved
+      let width = availableSpace + PADDING * 2 - reserved
 
       // If it already fits, then we are good to go
       if (path.length <= width) return path
@@ -1084,14 +1088,27 @@ class Printer {
     let outputOfStrings = [
       // Opening block
       [
-        ...' '.repeat(lineNumberGutterWidth + 1 + MARGIN),
+        ...' '.repeat(
+          diagnosticIndicatorLength +
+            lineNumberPaddingLeft +
+            lineNumberLength +
+            lineNumberPaddingRight,
+        ),
         styles.dim(CHARS.TLSquare),
         styles.dim(CHARS.H),
         styles.dim('['),
         styles.bold(responsiveFileName(this.rendering.formatFilePath(file))),
         styles.dim(']'),
       ],
-      [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.V].map((v) => styles.dim(v)),
+      [
+        ...' '.repeat(
+          diagnosticIndicatorLength +
+            lineNumberPaddingLeft +
+            lineNumberLength +
+            lineNumberPaddingRight,
+        ),
+        CHARS.V,
+      ].map((v) => styles.dim(v)),
 
       // Gutter + existing output
       ...output.map((row, i, all) => {
@@ -1102,77 +1119,105 @@ class Printer {
           rowType & Type.Wrapped ? '' : typeof _lineNumber === 'number' ? _lineNumber + 1 : ''
         )
           .toString()
-          .padStart(lineNumberGutterWidth, ' ')
+          .padStart(lineNumberLength, ' ')
 
-        let result = [
-          // Gutter
-          ...' '.repeat(MARGIN + lineNumberGutterWidth + 1 /* space behind the line number */),
+        let result: string[] = []
 
-          // Line numbers
-          ...(rowType & Type.Code ? [styles.dim(CHARS.V)] : []),
+        // Diagnostic indicator
+        if (rowType & Type.Code && !(rowType & (Type.ContextLine | Type.Wrapped))) {
+          result.push(styles.red(CHARS.bigdot))
+        } else {
+          result.push(' '.repeat(diagnosticIndicatorLength))
+        }
+
+        // Line number padding left
+        result.push(' '.repeat(lineNumberPaddingLeft))
+
+        // Insert the line numbers for code & context lines
+        if (rowType & Type.Code) {
+          if (rowType & Type.ContextLine) {
+            result.push(styles.dim(lineNumber))
+          } else {
+            result.push(lineNumber)
+          }
+        } else {
+          result.push(' '.repeat(lineNumberLength))
+        }
+
+        // Line number padding right
+        result.push(' '.repeat(lineNumberPaddingRight))
+
+        // Frame wall
+        {
+          // Mark empty lines with `·`, unless there are multiple line numbers (more than 2) in between,
+          // then we can mark it with a better visual clue that there are multiple lines: `┊`.
+          let previousLineNumber = rowToLineNumber.get(all[i - 1]!)
+          let nextLineNumber = rowToLineNumber.get(all[i + 1]!)
+
+          if (
+            rowType === Type.Diagnostic &&
+            Number(nextLineNumber) - Number(previousLineNumber) > 2
+          ) {
+            result.push(styles.dim(CHARS.VSeparator))
+          }
+
+          // Code
+          else if (rowType & Type.Code) {
+            result.push(styles.dim(CHARS.V))
+          }
 
           // Diagnostic | Note
-          ...(rowType & (Type.Diagnostic | Type.Note | Type.Whitespace) && !(rowType & Type.Code)
-            ? [styles.dim(CHARS.dot)]
-            : []),
+          else if (rowType & (Type.Diagnostic | Type.Note | Type.Whitespace)) {
+            result.push(styles.dim(CHARS.dot))
+          }
 
           // Start of note
-          ...(rowType & Type.StartOfNote
-            ? [styles.dim(CHARS.LConnector), styles.dim(CHARS.H)]
-            : []),
+          else if (rowType & Type.StartOfNote) {
+            result.push(styles.dim(CHARS.LConnector) + styles.dim(CHARS.H))
+          }
 
-          // Rest
-          ...row.map((data) => {
+          // Empty wall (probably shouldn't happen)
+          else {
+            result.push(' '.repeat(frameWallLength))
+          }
+        }
+
+        // The actual contents
+        result = result.concat(
+          row.map((data) => {
             if (data.type & Type.ContextLine) {
               return styles.dim(clearAnsiEscapes(data.value))
             }
 
             return data.value
           }),
-        ]
-
-        // Insert the line numbers for code & context lines
-        if (rowType & Type.Code) {
-          result.splice(
-            MARGIN,
-            lineNumber.length,
-            ...(rowType & Type.ContextLine
-              ? lineNumber.split('').map((x) => styles.dim(x))
-              : lineNumber.split('')),
-          )
-        }
-
-        // Add the red dot indicator before the line numbers that have diagnostics attached to them.
-        if (rowType & Type.Code && !(rowType & (Type.ContextLine | Type.Wrapped))) {
-          result.splice(MARGIN - 2, 1, styles.red(CHARS.bigdot))
-        }
-
-        // Mark empty lines with `·`, unless there are multiple line numbers (more than 2) in between,
-        // then we can mark it with a better visual clue that there are multiple lines: `┊`.
-        {
-          let previousLineNumber = rowToLineNumber.get(all[i - 1]!)
-          let nextLineNumber = rowToLineNumber.get(all[i + 1]!)
-
-          if (
-            rowType === Type.Diagnostic &&
-            previousLineNumber !== undefined &&
-            nextLineNumber !== undefined &&
-            Number(nextLineNumber) - Number(previousLineNumber) > 2
-          ) {
-            result.splice(MARGIN + lineNumberGutterWidth + 1, 1, styles.dim(CHARS.VSeparator))
-          }
-        }
+        )
 
         return result
       }),
 
       // Closing block
       noteGroups.length <= 0
-        ? [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.V].map((v) => styles.dim(v))
+        ? [
+            ...' '.repeat(
+              diagnosticIndicatorLength +
+                lineNumberPaddingLeft +
+                lineNumberLength +
+                lineNumberPaddingRight,
+            ),
+            CHARS.V,
+          ].map((v) => styles.dim(v))
         : null,
-      [...' '.repeat(lineNumberGutterWidth + 1 + MARGIN), CHARS.BLSquare, CHARS.H].map((v) =>
-        styles.dim(v),
-      ),
+      [
+        ...' '.repeat(
+          diagnosticIndicatorLength +
+            lineNumberPaddingLeft +
+            lineNumberLength +
+            lineNumberPaddingRight,
+        ),
+        CHARS.BLSquare,
+        CHARS.H,
+      ].map((v) => styles.dim(v)),
     ].filter(Boolean) as string[][]
 
     // Write the block
