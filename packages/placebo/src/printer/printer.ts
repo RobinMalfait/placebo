@@ -128,29 +128,16 @@ class Printer {
     private rendering: Required<NonNullable<PrinterOptions['rendering']>>,
   ) {}
 
-  sourcesStorage: DefaultMap<string, DefaultMap<'code' | 'file', DefaultMap<string, Item[]>>> =
-    new DefaultMap((extension) => {
-      return new DefaultMap((type: 'code' | 'file') => {
-        switch (type) {
-          case 'code': {
-            return new DefaultMap((src) => {
-              let rasterizedCode = rasterizeCode(src)
-              let typedCode = typeCode(rasterizedCode)
-              return typedCode
-            })
-          }
-          case 'file': {
-            return new DefaultMap((file) => {
-              let src = this.resolveSource(file)
-              return this.sourcesStorage.get(extension).get('code').get(src)
-            })
-          }
-        }
-      })
-    })
+  pathToSource = new DefaultMap((file: string) => this.resolveSource(file))
+  sourceToCode = new DefaultMap((source: string) => {
+    let rasterizedCode = rasterizeCode(source)
+    let typedCode = typeCode(rasterizedCode)
+    return typedCode
+  })
 
   dispose() {
-    this.sourcesStorage.clear()
+    this.pathToSource.clear()
+    this.sourceToCode.clear()
   }
 
   print(diagnostics: Iterable<Diagnostic>) {
@@ -164,14 +151,11 @@ class Printer {
   private prepareDiagnostics(diagnostics: Iterable<Diagnostic>): InternalDiagnostic[][] {
     let internalDiagnostics: InternalDiagnostic[] = []
     for (let diagnostic of diagnostics) {
-      let extensionIndex = diagnostic.file.lastIndexOf('.')
-      let extension = extensionIndex !== -1 ? diagnostic.file.slice(extensionIndex + 1) : ''
+      let source = diagnostic.source ?? this.pathToSource.get(diagnostic.file)
 
       let internalDiagnostic: InternalDiagnostic = {
         file: diagnostic.file,
-        source: diagnostic.source
-          ? this.sourcesStorage.get(extension).get('code').get(diagnostic.source)
-          : this.sourcesStorage.get(extension).get('file').get(diagnostic.file),
+        source: this.sourceToCode.get(source),
         message: diagnostic.message,
         loc: {
           // Map the public location API to the internal location API. For now
