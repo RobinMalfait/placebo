@@ -98,11 +98,14 @@ export type Location = [
   /**
    * The row location of the diagnostic. Value should be 1-based.
    */
-  [startLine: number, startColumn: number],
+  startLine: number,
+  startColumn: number,
+
   /**
    * The column location of the diagnostic. Value should be 1-based.
    */
-  [endLine: number, endColumn: number],
+  endLine: number,
+  endColumn: number,
 ]
 
 export interface InternalLocation {

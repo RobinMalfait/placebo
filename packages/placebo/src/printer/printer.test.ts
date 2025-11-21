@@ -51,10 +51,7 @@ function findLocation(code: string, word: string, occurrences: number | number[]
       }
     }
 
-    result.push([
-      [row + 1, col + 1],
-      [row + 1, col + 1 + word.length],
-    ])
+    result.push([row + 1, col + 1, row + 1, col + 1 + word.length])
   }
 
   return result
@@ -149,10 +146,8 @@ it("should allow for diagnostics for places that don't exist", async () => {
   let diagnostics = [
     diagnose(
       'Missing semicolon',
-      findLocation(code, ')').map((x) => {
-        x[0][1]++
-        x[1][1]++
-        return x
+      findLocation(code, ')').map(([startLine, startCol, endLine, endCol]) => {
+        return [startLine, startCol + 1, endLine, endCol + 1]
       }),
     ),
   ]

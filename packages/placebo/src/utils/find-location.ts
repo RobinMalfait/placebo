@@ -25,10 +25,7 @@ export function findLocation(
     let start = lines.find(index)
     let end = lines.find(index + highlighted.length)
 
-    return [
-      [start.line, start.column],
-      [end.line, end.column],
-    ]
+    return [start.line, start.column, end.line, end.column]
   }
 
   return null
@@ -59,10 +56,7 @@ export function findLocations(
     let start = lines.find(index)
     let end = lines.find(index + highlighted.length)
 
-    result.push([
-      [start.line, start.column],
-      [end.line, end.column],
-    ])
+    result.push([start.line, start.column, end.line, end.column])
   }
 
   return result
