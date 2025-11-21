@@ -27,8 +27,10 @@ export async function diagnose(files: string[]) {
           file: result.filePath,
           message: x.message,
           location: [
-            [x.line, x.column],
-            [x.line, x.line === x.endLine ? (x.endColumn ?? x.column) : x.column + 1],
+            x.line,
+            x.column,
+            x.endLine ?? x.line,
+            x.line === x.endLine ? (x.endColumn ?? x.column) : x.column + 1,
           ] satisfies Location,
           notes:
             x.suggestions?.map((suggestion) => suggestion.fix.text).join('\n') ??

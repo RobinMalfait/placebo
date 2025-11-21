@@ -1,9 +1,10 @@
 import { env, parseNumberEnv } from '../env'
 import CHARS from '../printer/char-maps/fancy'
-import { Type, type Diagnostic, type InternalDiagnostic } from '../types'
+import { Type, type Diagnostic, type InternalDiagnostic, type Location } from '../types'
 import { styles } from '../utils/ansi'
 import { DefaultMap } from '../utils/default-map'
 import { clearAnsiEscapes, rasterizeCode } from '../utils/highlight-code'
+import { createLineTable } from '../utils/line-table'
 import { range } from '../utils/range'
 import { wordWrap } from '../utils/word-wrap'
 import { parseNotes } from './parse-notes'
@@ -129,7 +130,8 @@ class Printer {
   ) {}
 
   pathToSource = new DefaultMap((file: string) => this.resolveSource(file))
-  sourceToCode = new DefaultMap((source: string) => {
+  lineTables = new DefaultMap((source: string) => createLineTable(source))
+  sourceToGrid = new DefaultMap((source: string) => {
     let rasterizedCode = rasterizeCode(source)
     let typedCode = typeCode(rasterizedCode)
     return typedCode
@@ -137,7 +139,8 @@ class Printer {
 
   dispose() {
     this.pathToSource.clear()
-    this.sourceToCode.clear()
+    this.lineTables.clear()
+    this.sourceToGrid.clear()
   }
 
   print(diagnostics: Iterable<Diagnostic>) {
@@ -149,36 +152,103 @@ class Printer {
   }
 
   private prepareDiagnostics(diagnostics: Iterable<Diagnostic>): InternalDiagnostic[][] {
-    let internalDiagnostics: InternalDiagnostic[] = []
-    for (let diagnostic of diagnostics) {
-      let source = diagnostic.source ?? this.pathToSource.get(diagnostic.file)
+    let seen = new Set<string>()
+
+    let lineTables = this.lineTables
+    let pathToSource = this.pathToSource
+    let sourceToGrid = this.sourceToGrid
+
+    let internalDiagnostics = Array.from(diagnostics)
+      .filter(dedupe)
+      .flatMap(splitMultiLine)
+      .map(intoInternalDiagnostic)
+
+    // Dedupe diagnostics. We can assume that incoming diagnostics are already
+    // deduped, but if they aren't we will see potentially weird results.
+    // Let's dedupe them anyway.
+    function dedupe(diagnostic: Diagnostic) {
+      let key = [diagnostic.file, diagnostic.location.join(','), diagnostic.message].join(';;')
+
+      if (seen.has(key)) {
+        return false
+      }
+
+      seen.add(key)
+      return true
+    }
+
+    // Map multi-line diagnostics to multiple single-line diagnostics. Temporary
+    // solution until we have proper multi-line diagnostic rendering.
+    function splitMultiLine(diagnostic: Diagnostic): Diagnostic[] {
+      let [startLine, startCol, endLine, endCol] = diagnostic.location
+      if (startLine === endLine) {
+        return [diagnostic]
+      }
+
+      let source = diagnostic.source ?? pathToSource.get(diagnostic.file)
+
+      let locations: Location[] = []
+      for (let line = startLine; line <= endLine; line++) {
+        let offset = lineTables.get(source).findOffset({ line, column: startCol })
+
+        if (line === startLine) {
+          let endOfLineOffset = source.indexOf('\n', offset)
+          let endCol = lineTables.get(source).find(endOfLineOffset).column - 1
+          locations.push([line, startCol, line, endCol])
+        } else if (line === endLine) {
+          let startCol = source.search(/\S/) + 1
+          locations.push([line, startCol, line, endCol])
+        } else {
+          let startCol = source.slice(offset).search(/\S/) + 1
+          let endOfLineOffset = source.indexOf('\n', offset)
+          let endCol = lineTables.get(source).find(endOfLineOffset).column - 1
+          locations.push([line, startCol, line, endCol])
+        }
+      }
+
+      return locations.map((location) => {
+        return {
+          ...diagnostic,
+
+          // Link diagnostics together based on original location (if the
+          // relatedId wasn't set already)
+          relatedId: diagnostic.relatedId ?? `${startLine}:${startCol}-${endLine}:${endCol}`,
+
+          location,
+        }
+      })
+    }
+
+    // Map the public diagnostic to the internal diagnostic. For now this is the
+    // easiest thing to get things working without changing all the internals.
+    function intoInternalDiagnostic(diagnostic: Diagnostic): InternalDiagnostic {
+      let source = diagnostic.source ?? pathToSource.get(diagnostic.file)
+      let code = sourceToGrid.get(source)
+
+      let [startLine, startCol, _, endCol] = diagnostic.location
 
       let internalDiagnostic: InternalDiagnostic = {
         file: diagnostic.file,
-        source: this.sourceToCode.get(source),
+        code,
         message: diagnostic.message,
         loc: {
-          // Map the public location API to the internal location API. For now
-          // this is the easiest thing to get things working without changing all
-          // the internals.
-          row: diagnostic.location[0][0],
-          col: diagnostic.location[0][1],
-          len: diagnostic.location[1][1] - diagnostic.location[0][1],
+          row: startLine,
+          col: startCol,
+          len: endCol - startCol,
         },
         notes: parseNotes(diagnostic.notes),
         blockId: diagnostic.blockId ?? null,
         relatedId: diagnostic.relatedId ?? null,
       }
 
-      // `row` and `col` are 1-based when they come in. This is because most tools
-      // use `row` and `col` to point to a location in your editor and editors
-      // usually start with `1` instead of `0`. For now, let's make it a bit
-      // simpler and use them as 0-based values.
+      // `row` and `col` are 1-based when they come in. This is because most
+      // tools use `row` and `col` to point to a location in your editor and
+      // editors usually start with `1` instead of `0`. For now, let's make it a
+      // bit simpler and use them as 0-based values.
       internalDiagnostic.loc.row -= 1
       internalDiagnostic.loc.col -= 1
 
-      // Track the internal diagnostic
-      internalDiagnostics.push(internalDiagnostic)
+      return internalDiagnostic
     }
 
     let all = internalDiagnostics
@@ -210,7 +280,7 @@ class Printer {
 
     let maxLineNumber = diagnostics[diagnostics.length - 1]?.loc?.row ?? 0
     maxLineNumber += this.rendering.afterContextLines
-    maxLineNumber = Math.min(maxLineNumber, diagnostics[diagnostics.length - 1]?.source.length)
+    maxLineNumber = Math.min(maxLineNumber, diagnostics[diagnostics.length - 1]?.code.length)
 
     let lineNumberLength = maxLineNumber.toString().length
     availableSpace -= lineNumberLength
@@ -237,7 +307,7 @@ class Printer {
     // different files in the same block. In addition, diagnostic lines _can_
     // cross those file boundaries so that is going to be interesting...
     let file = diagnostics[0]?.file
-    let code = diagnostics[0]?.source
+    let code = diagnostics[0]?.code
 
     // Find all printable lines. Lines with issues + context lines. We'll use an object for now which
     // will make it easier for overlapping context lines.

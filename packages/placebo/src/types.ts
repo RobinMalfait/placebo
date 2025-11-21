@@ -110,12 +110,12 @@ export type Location = [
 
 export interface InternalLocation {
   /**
-   * The row location of the diagnostic. Value should be 1-based.
+   * The row location of the diagnostic. Value should be 0-based.
    */
   row: number
 
   /**
-   * The column location of the diagnostic. Value should be 1-based.
+   * The column location of the diagnostic. Value should be 0-based.
    */
   col: number
 
@@ -172,7 +172,7 @@ export interface Diagnostic {
 
 export interface InternalDiagnostic {
   file: string
-  source: Item[]
+  code: Item[]
   message: string
   loc: InternalLocation
   notes: (availableSpace: number) => string[]

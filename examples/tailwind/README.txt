@@ -86,29 +86,29 @@
     │
     └─
 
-     ┌─[./examples/tailwind/code/index.html]
-     │
-   5 │   <div class="underline block text-gray-100 antialiased flex line-through">
-   6 │     <div class="text-gray-200 text-gray-300"></div>
-∙  7 │     <div class="truncate text-gray-200 overflow-ellipsis overflow-scroll"></div>
-   8 │   </div>        ───┬────                                 ───────┬─────── ╭─
-     ·                    ╰────────────────────────────────────────────┴────────┤ Colliding classes, they operate
-  10 │   <div class="block text-gray-900 flex sm:block sm:flex">                │ on the same "overflow" property.
-     ·                                                                          ╰─
-     │
-     └─
-
-     ┌─[./examples/tailwind/code/index.html]
-     │
-   5 │   <div class="underline block text-gray-100 antialiased flex line-through">
-   6 │     <div class="text-gray-200 text-gray-300"></div>
-∙  7 │     <div class="truncate text-gray-200 overflow-ellipsis overflow-scroll"></div>
-   8 │   </div>        ───┬────               ────────┬────────
-     ·                    ╰───────────────────────────┴────────── Colliding classes, they operate on the same "text-overflow" property.
-     ·
+    ┌─[./examples/tailwind/code/index.html]
+    │
+  5 │   <div class="underline block text-gray-100 antialiased flex line-through">
+  6 │     <div class="text-gray-200 text-gray-300"></div>
+∙ 7 │     <div class="truncate text-gray-200 overflow-ellipsis overflow-scroll"></div>
+  8 │   </div>        ───┬────                                 ───────┬───────
+    ·                    ╰────────────────────────────────────────────┴───────── Colliding classes, they operate on the same "overflow" property.
+    ·
   10 │   <div class="block text-gray-900 flex sm:block sm:flex">
-     │
-     └─
+    │
+    └─
+
+    ┌─[./examples/tailwind/code/index.html]
+    │
+  5 │   <div class="underline block text-gray-100 antialiased flex line-through">
+  6 │     <div class="text-gray-200 text-gray-300"></div>
+∙ 7 │     <div class="truncate text-gray-200 overflow-ellipsis overflow-scroll"></div>
+  8 │   </div>        ───┬────               ────────┬────────
+    ·                    ╰───────────────────────────┴────────── Colliding classes, they operate on the same "text-overflow" property.
+    ·
+  10 │   <div class="block text-gray-900 flex sm:block sm:flex">
+    │
+    └─
 
      ┌─[./examples/tailwind/code/index.html]
      │

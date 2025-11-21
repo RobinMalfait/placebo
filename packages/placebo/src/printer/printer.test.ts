@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import CHARS from '../printer/char-maps/fancy'
 import { print } from '../printer/printer'
 import type { Diagnostic, Location } from '../types'
+import { findLocations } from '../utils/find-location'
 
 const html = String.raw
 const css = String.raw
@@ -1410,6 +1411,49 @@ describe('multi-line diagnostics', () => {
     · ╰───┴────── Pair 1
     │
     └─`)
+    expect(result).not.toContain(OVERFLOW_MARKER)
+  })
+
+  it('should be possible to print multiple related diagnostics together spread across multiple lines', async () => {
+    let foo = ['function foo() {', "  console.log('foo')", '}'].join('\n')
+    let bar = ['function bar() {', "  console.log('bar')", '}'].join('\n')
+    let code = [foo, bar].join('\n\n')
+    let blockId = 'foo'
+    let diagnostics = [
+      diagnose(
+        'This is the foo function',
+        findLocations(code, {
+          regex: /function foo[\s\S]*?}/g,
+        }),
+        { blockId },
+      ),
+    ]
+
+    let result = await render(code, diagnostics)
+    expect(result).toMatchInlineSnapshot(`
+      "
+      ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+      │    ┌─[./example.txt]                                                                               │
+      │    │                                                                                               │
+      │∙ 1 │    function foo() {                                                                           │
+      │    ·    ───────┬───────                                                                            │
+      │    · ╭─────────╯                                                                                   │
+      │    · │                                                                                             │
+      │∙ 2 │ │    console.log('foo')                                                                       │
+      │    · │    ────────┬────────                                                                        │
+      │    · ├────────────╯                                                                                │
+      │    · │                                                                                             │
+      │∙ 3 │ │  }                                                                                          │
+      │    · │  ┬                                                                                          │
+      │    · ╰──┴── This is the foo function                                                               │
+      │    ·                                                                                               │
+      │  5 │    function bar() {                                                                           │
+      │  6 │      console.log('bar')                                                                       │
+      │    │                                                                                               │
+      │    └─                                                                                              │
+      └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+      "
+    `)
     expect(result).not.toContain(OVERFLOW_MARKER)
   })
 })

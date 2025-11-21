@@ -147,128 +147,86 @@ A beautiful new language agnostic diagnostics printer!
   {
     "file": "README.md",
     "message": "A beautiful new language agnostic diagnostics printer!",
-    "location": [
-      [1, 9],
-      [1, 17]
-    ]
+    "location": [1, 9, 1, 17]
   },
   {
     "file": "README.md",
     "message": "Messages will be rendered",
-    "location": [
-      [6, 33],
-      [6, 41]
-    ],
-    "blockId": "fd396db4-3046-4e42-92b4-4bece7d88295"
+    "location": [6, 33, 6, 41],
+    "blockId": "f320c1bc-6ee5-4cb9-b7e5-c8b82134bd8a"
   },
   {
     "file": "README.md",
     "message": "underneath each other just",
-    "location": [
-      [6, 24],
-      [6, 32]
-    ],
-    "blockId": "fd396db4-3046-4e42-92b4-4bece7d88295"
+    "location": [6, 24, 6, 32],
+    "blockId": "f320c1bc-6ee5-4cb9-b7e5-c8b82134bd8a"
   },
   {
     "file": "README.md",
     "message": "like the messages you see here.",
-    "location": [
-      [6, 15],
-      [6, 23]
-    ],
-    "blockId": "fd396db4-3046-4e42-92b4-4bece7d88295"
+    "location": [6, 15, 6, 23],
+    "blockId": "f320c1bc-6ee5-4cb9-b7e5-c8b82134bd8a"
   },
   {
     "file": "README.md",
     "message": "You wrote `the` twice!",
-    "location": [
-      [12, 28],
-      [12, 31]
-    ],
-    "blockId": "cabdb63b-ef30-4239-84f1-7f6cc99d4231"
+    "location": [12, 28, 12, 31],
+    "blockId": "a19ac495-d69c-4240-a628-5c038ba72d74"
   },
   {
     "file": "README.md",
     "message": "You wrote `the` twice!",
-    "location": [
-      [12, 32],
-      [12, 35]
-    ],
-    "blockId": "cabdb63b-ef30-4239-84f1-7f6cc99d4231"
+    "location": [12, 32, 12, 35],
+    "blockId": "a19ac495-d69c-4240-a628-5c038ba72d74"
   },
   {
     "file": "README.md",
     "message": "Yay, found my `context` friends!",
-    "location": [
-      [18, 65],
-      [18, 74]
-    ],
-    "blockId": "df73ecdf-1b70-4092-8d6b-5df9590bcf86",
-    "relatedId": "6b86b478-90de-4755-9eae-f2d8ad91c08b"
+    "location": [18, 65, 18, 74],
+    "blockId": "e78aaaeb-db0b-4236-b136-229397ffef27",
+    "relatedId": "ec6ef4de-fafd-4132-8b44-36ada6e62649"
   },
   {
     "file": "README.md",
     "message": "Yay, found my `context` friends!",
-    "location": [
-      [21, 1],
-      [21, 10]
-    ],
-    "blockId": "df73ecdf-1b70-4092-8d6b-5df9590bcf86",
-    "relatedId": "6b86b478-90de-4755-9eae-f2d8ad91c08b"
+    "location": [21, 1, 21, 10],
+    "blockId": "e78aaaeb-db0b-4236-b136-229397ffef27",
+    "relatedId": "ec6ef4de-fafd-4132-8b44-36ada6e62649"
   },
   {
     "file": "README.md",
     "message": "Like this message. We have a lot to say here so it might not be ideal if everything was just written on the same line. Instead we will use the width of your terminal to decide when to start wrapping.",
-    "location": [
-      [25, 37],
-      [25, 46]
-    ]
+    "location": [25, 37, 25, 46]
   },
   {
     "file": "README.md",
     "message": "This diagnostic contains some notes.",
-    "location": [
-      [29, 33],
-      [29, 40]
-    ],
+    "location": [29, 33, 29, 40],
     "notes": "- This note can contain more information about the specific diagnostic.\n- What do you think? More info at https://github.com/RobinMalfait/placebo!"
   },
   {
     "file": "README.md",
     "message": "This is an example of the superscript indicator",
-    "location": [
-      [35, 8],
-      [35, 30]
-    ],
+    "location": [35, 8, 35, 30],
     "notes": "- This note belongs to the superscript indicator.\n- This note also belongs to the superscript indicator.\n  - And also has some nested/child notes.\n  - Just like these right here!",
-    "blockId": "2b217c63-eb7f-45c9-9f93-82cc4cb5e104"
+    "blockId": "5dbc119d-2abd-419c-b090-c095df39dd5e"
   },
   {
     "file": "README.md",
     "message": "This will also have a note",
-    "location": [
-      [35, 31],
-      [35, 35]
-    ],
+    "location": [35, 31, 35, 35],
     "notes": "This note belongs to the other diagnostic",
-    "blockId": "2b217c63-eb7f-45c9-9f93-82cc4cb5e104"
+    "blockId": "5dbc119d-2abd-419c-b090-c095df39dd5e"
   },
   {
     "file": "README.md",
     "message": "We split into multiple lines",
-    "location": [
-      [40, 110],
-      [40, 145]
-    ]
+    "location": [40, 110, 40, 145]
   },
   {
     "file": "README.md",
     "message": "This one is moved down because it exists way past the available space.",
-    "location": [
-      [40, 301],
-      [40, 316]
-    ]
+    "location": [40, 301, 40, 316]
   }
 ]
 ```
