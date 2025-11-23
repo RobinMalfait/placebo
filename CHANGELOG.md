@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.2.0-alpha.5] - 2025-11-23
+
+### Changed
+
+- Changed the diagnostics format such that locations look like this:
+
+  ```
+  location: {
+    start: {
+      line: 6,    // 1-based, inclusive
+      column: 33, // 1-based, inclusive
+      offset: 127 // 0-based, inclusive
+    },
+    end: {
+      line: 6,    // 1-based, inclusive
+      column: 40, // 1-based, inclusive
+      offset: 135 // 0-based, exclusive ← this offset is exclusive, unlike the start offset
+    }
+  },
+  ```
+
 ## [0.2.0-alpha.4] - 2025-11-13
 
 ### Added
@@ -39,7 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Everything!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.4...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.5...HEAD
+[0.2.0-alpha.5]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.4...v0.2.0-alpha.5
 [0.2.0-alpha.4]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.3...v0.2.0-alpha.4
 [0.2.0-alpha.3]: https://github.com/tailwindlabs/tailwindcss/compare/v0.2.0-alpha.2...v0.2.0-alpha.3
 [0.2.0-alpha.2]: https://github.com/tailwindlabs/tailwindcss/compare/v0.1.4...v0.2.0-alpha.2
