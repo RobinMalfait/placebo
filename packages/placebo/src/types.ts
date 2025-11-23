@@ -1,112 +1,49 @@
-declare const __brand: unique symbol
-export type Brand<T, U extends string> = T & { readonly [__brand]: U }
+export interface Diagnostic {
+  /**
+   * An absolute file path related to the diagnostic.
+   *
+   * We will use this as a unique identifier for the file, so we only have to
+   * load the source code once per file.
+   */
+  file: string
 
-export type Offset = Brand<number, 'offset'>
-export type Line = Brand<number, 'line'>
-export type Column = Brand<number, 'column'>
+  /**
+   * Optional: The source code of the file related to the diagnostic.
+   *
+   * When this is not provided, a `source(file)` function has to be provided as
+   * part of the `printer` options to retrieve the source code.
+   */
+  source?: string
 
-// const enum Kind {
-//   Code,
-//   Diagnostic,
-// }
-//
-// const enum CodeKind {
-//   Normal,
-//   Whitespace,
-//   ContextLine,
-//   Wrapped,
-// }
+  /**
+   * The diagnostic message.
+   */
+  message: string
 
-// export interface Cell {
-//   kind: Kind
-//   value: string
-// }
+  /**
+   * The location of the diagnostic.
+   *
+   * - This can either be UTF-16 offset based.
+   * - Or line/column based, line and column are both 1-based.
+   */
+  location: Location
 
-// export const enum Kind {
-/**
- * The current cell represents source code.
- */
-//   Code [>       <] = 0b01,
-//
-/**
- * The current cell represents a diagnostic.
- */
-//   Diagnosic [>  <] = 0b10,
-//
-/**
- * The current cell represents only leading or trailing whitespace.
- */
-//   Whitespace [> <] = 0b11,
-// }
-//
-// export const KIND_MASK = 0b11
-// const KIND_MASK_BITS = bits(KIND_MASK)
-//
-// export const enum CodeKind {
-/**
- * The current cell represents real source code that contains a diagnostic.
- */
-//   RealCode [>    <] = 0b01 << KIND_MASK_BITS,
-//
-/**
- * The current cell represents contextual source code without any diagnostics,
- * but to provide more context around the code that has diagnostics.
- */
-//   ContextLine [> <] = 0b10 << KIND_MASK_BITS,
-// }
-//
-// export const CODE_KIND_MASK = 0b11 << bits(KIND_MASK)
-//
-// export const enum DiagnosticKind {
-/**
- * The current cell represents a connecting diagnostic line.
- */
-//   Connector [> <] = 0b01,
-//
-/**
- * The current cell represents a diagnostic message.
- */
-//   Message [>   <] = 0b10,
-// }
-//
-// export const DIAGNOST_KIND_MASK = 0b11 << bits(KIND_MASK)
-//
-/**
- * Reserve 1 byte for diagnostic IDs. This allows for 256 diagnostic IDs per
- * block. Which should be more than enough.
- */
-// export const DIAGNOSTIC_ID = 0xff << bits(DIAGNOST_KIND_MASK)
-//
-// let x = Kind.Code | (CodeKind.RealCode << bits(KIND_MASK))
+  /**
+   * Optional: additional information about the diagnostic. Will be rendered in
+   * a separate notes section.
+   */
+  notes?: string
 
-export enum Type {
-  None = 0,
+  /**
+   * Optional: Every diagnostic with the same block id will be rendered in the
+   * same diagnostic block.
+   */
+  blockId?: string
 
-  // Code
-  Code = 1 << 0,
-  Whitespace = 1 << 1,
-  ContextLine = 1 << 2,
-  Wrapped = 1 << 3,
-
-  // Diagnostics
-  Diagnostic = 1 << 4,
-  DiagnosticVerticalConnector = 1 << 5,
-
-  // Notes
-  Note = 1 << 6,
-  StartOfNote = 1 << 7,
-}
-
-export type Cell = { type: Type; value: string }
-export type Row = Cell[]
-
-export interface DeepArray<T> extends Array<T | DeepArray<T>> {}
-export type DeepRequired<T> = {
-  [K in keyof T]-?: T[K] extends Array<infer U>
-    ? DeepArray<DeepRequired<U>>
-    : T[K] extends object
-      ? DeepRequired<T[K]>
-      : T[K]
+  /**
+   * Optional: Every diagnostic with the same related id will be visually connected if possible.
+   */
+  relatedId?: string
 }
 
 export interface Location {
@@ -193,6 +130,8 @@ export interface Location {
       }
 }
 
+/// Internal types:
+
 export interface StableLocation {
   /**
    * Start position of the diagnostic.
@@ -211,44 +150,6 @@ export interface StableLocation {
   end: { line: Line; column: Column; offset: Offset }
 }
 
-export type LocationOld =
-  | {
-      kind: 'offset'
-
-      /**
-       * The starting UTF-16 offset of the diagnostic. 0-based.
-       */
-      start: number
-
-      /**
-       * The ending UTF-16 offset of the diagnostic. 0-based. Inclusive.
-       */
-      end: number
-    }
-  | {
-      kind: 'line-column'
-
-      /**
-       * The starting line of the diagnostic. 1-based.
-       */
-      startLine: number
-
-      /**
-       * The starting column of the diagnostic. 1-based.
-       */
-      startColumn: number
-
-      /**
-       * The ending line of the diagnostic. 1-based. Inclusive.
-       */
-      endLine: number
-
-      /**
-       * The ending column of the diagnostic. 1-based. Inclusive.
-       */
-      endColumn: number
-    }
-
 export interface InternalLocation {
   /**
    * The row location of the diagnostic. Value should be 0-based.
@@ -264,54 +165,6 @@ export interface InternalLocation {
    * The length.
    */
   len: number
-}
-
-export interface Diagnostic {
-  /**
-   * An absolute file path related to the diagnostic.
-   *
-   * We will use this as a unique identifier for the file, so we only have to
-   * load the source code once per file.
-   */
-  file: string
-
-  /**
-   * Optional: The source code of the file related to the diagnostic.
-   *
-   * When this is not provided, a `source(file)` function has to be provided as
-   * part of the `printer` options to retrieve the source code.
-   */
-  source?: string
-
-  /**
-   * The diagnostic message.
-   */
-  message: string
-
-  /**
-   * The location of the diagnostic.
-   *
-   * - This can either be UTF-16 offset based.
-   * - Or line/column based, line and column are both 1-based.
-   */
-  location: Location
-
-  /**
-   * Optional: additional information about the diagnostic. Will be rendered in
-   * a separate notes section.
-   */
-  notes?: string
-
-  /**
-   * Optional: Every diagnostic with the same block id will be rendered in the
-   * same diagnostic block.
-   */
-  blockId?: string
-
-  /**
-   * Optional: Every diagnostic with the same related id will be visually connected if possible.
-   */
-  relatedId?: string
 }
 
 export interface StableDiagnostic extends Diagnostic {
@@ -332,6 +185,39 @@ export interface InternalDiagnostic {
   locations?: InternalLocation[]
 }
 
-// function bits(number: number): number {
-//   return Math.floor(Math.log2(number) + 1)
-// }
+declare const __brand: unique symbol
+export type Brand<T, U extends string> = T & { readonly [__brand]: U }
+
+export type Offset = Brand<number, 'offset'>
+export type Line = Brand<number, 'line'>
+export type Column = Brand<number, 'column'>
+
+export enum Type {
+  None = 0,
+
+  // Code
+  Code = 1 << 0,
+  Whitespace = 1 << 1,
+  ContextLine = 1 << 2,
+  Wrapped = 1 << 3,
+
+  // Diagnostics
+  Diagnostic = 1 << 4,
+  DiagnosticVerticalConnector = 1 << 5,
+
+  // Notes
+  Note = 1 << 6,
+  StartOfNote = 1 << 7,
+}
+
+export type Cell = { type: Type; value: string }
+export type Row = Cell[]
+
+export interface DeepArray<T> extends Array<T | DeepArray<T>> {}
+export type DeepRequired<T> = {
+  [K in keyof T]-?: T[K] extends Array<infer U>
+    ? DeepArray<DeepRequired<U>>
+    : T[K] extends object
+      ? DeepRequired<T[K]>
+      : T[K]
+}
