@@ -411,9 +411,12 @@ import { print, type Diagnostic, type Location } from '@robinmalfait/placebo'
 let diagnostics: Diagnostic[] = [
   {
     /**
-     * The file path of the source code related to this diagnostic
+     * An absolute file path related to the diagnostic.
+     *
+     * We will use this as a unique identifier for the file, so we only have to
+     * load the source code once per file.
      */
-    file: 'example.ts',
+    file: '/Users/robin/projects/project-a/example.ts',
 
     /**
      * Optional: The actual source code related to the diagnostic.
@@ -433,7 +436,7 @@ let diagnostics: Diagnostic[] = [
      * The location of the diagnostic in the source code.
      *
      * - Either provide `line` and `column` (1-based, all values are inclusive)
-     * - Or provide `offset` (0-based, start offset is inclusive, end offset is exclusive)
+     * - Or provide `offset` (0-based, start offset is **inclusive**, end offset is **exclusive**)
      * - Or provide both
      */
     location: {
@@ -447,7 +450,7 @@ let diagnostics: Diagnostic[] = [
         column: 40,
         offset: 135
       }
-    ],
+    },
 
     /**
      * Optional: additional information about the diagnostic. Will be rendered in
@@ -471,8 +474,20 @@ let diagnostics: Diagnostic[] = [
 ]
 
 print(diagnostics, {
-  write: console.error, // Defaults to `console.error`
-  source: (file) => fs.readFileSync(file, 'utf-8'), // Only necessary if the `diagnostic` doesn't contain the source code already
+  /**
+   * Where we should write the output to. Will be called with each diagnostic
+   * block.
+   *
+   * Defaults to: `console.error`
+   */
+  write: (block: string) => console.error(block),
+
+  /**
+   * Resolve source code for a given file.
+   *
+   * Will only be used if `diagnostic.source` is not provided.
+   */
+  source: (file: string) => fs.readFileSync(file, 'utf-8'),
 
   /**
    * Optional rendering options that influence how diagnostics are rendered.
@@ -501,6 +516,14 @@ print(diagnostics, {
      * Override via:  `process.env.PLACEBO_PRINT_WIDTH`
      */
     printWidth: process.stdout.columns ?? 80,
+
+    /**
+     * A way to format the file path when printing diagnostics.
+     *
+     * In Node-like environments, this will render paths relative to the
+     * `process.cwd()` by default.
+     */
+    formatFilePath?: (file: string) => string
   },
 })
 ```

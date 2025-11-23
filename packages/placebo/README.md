@@ -440,14 +440,14 @@ let diagnostics: Diagnostic[] = [
       start: {
         line: 6,
         column: 33,
-        offset: 127
+        offset: 127,
       },
       end: {
         line: 6,
         column: 40,
-        offset: 135
-      }
-    ],
+        offset: 135,
+      },
+    },
 
     /**
      * Optional: additional information about the diagnostic. Will be rendered in
