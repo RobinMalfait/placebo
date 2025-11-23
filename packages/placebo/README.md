@@ -431,11 +431,23 @@ let diagnostics: Diagnostic[] = [
 
     /**
      * The location of the diagnostic in the source code.
+     *
+     * - Either provide `line` and `column` (1-based, all values are inclusive)
+     * - Or provide `offset` (0-based, start offset is inclusive, end offset is exclusive)
+     * - Or provide both
      */
-    location: [
-      [3, 5], // start: [line, column]
-      [3, 15], // end: [line, column
-    ] satisfies Location,
+    location: {
+      start: {
+        line: 6,
+        column: 33,
+        offset: 127
+      },
+      end: {
+        line: 6,
+        column: 40,
+        offset: 135
+      }
+    ],
 
     /**
      * Optional: additional information about the diagnostic. Will be rendered in
@@ -469,24 +481,24 @@ print(diagnostics, {
     /**
      * The amount of lines of the source code to show before a diagnostic line.
      *
-     * Defaults to:       `3`
-     * Overrideable via:  `process.env.PLACEBO_CONTEXT_LINES_BEFORE`
+     * Defaults to:   `3`
+     * Override via:  `process.env.PLACEBO_CONTEXT_LINES_BEFORE`
      */
     beforeContextLines: 3,
 
     /**
      * The amount of lines of the source code to show after a diagnostic line.
      *
-     * Defaults to:       `3`
-     * Overrideable via:  `process.env.PLACEBO_CONTEXT_LINES_AFTER`
+     * Defaults to:   `3`
+     * Override via:  `process.env.PLACEBO_CONTEXT_LINES_AFTER`
      */
     afterContextLines: 3,
 
     /**
      * Available print width for rendering the diagnostics.
      *
-     * Defaults to:       `process.stdout.columns ?? 80`
-     * Overrideable via:  `process.env.PLACEBO_PRINT_WIDTH`
+     * Defaults to:   `process.stdout.columns ?? 80`
+     * Override via:  `process.env.PLACEBO_PRINT_WIDTH`
      */
     printWidth: process.stdout.columns ?? 80,
   },
