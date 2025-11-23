@@ -175,7 +175,7 @@ A beautiful new language agnostic diagnostics printer!
         "offset": 135
       }
     },
-    "blockId": "6c15329a-19d6-40ba-a6f4-714339710780"
+    "blockId": "00000000-0000-4000-8000-000000000001"
   },
   {
     "file": "README.md",
@@ -192,7 +192,7 @@ A beautiful new language agnostic diagnostics printer!
         "offset": 126
       }
     },
-    "blockId": "6c15329a-19d6-40ba-a6f4-714339710780"
+    "blockId": "00000000-0000-4000-8000-000000000001"
   },
   {
     "file": "README.md",
@@ -209,7 +209,7 @@ A beautiful new language agnostic diagnostics printer!
         "offset": 117
       }
     },
-    "blockId": "6c15329a-19d6-40ba-a6f4-714339710780"
+    "blockId": "00000000-0000-4000-8000-000000000001"
   },
   {
     "file": "README.md",
@@ -226,7 +226,7 @@ A beautiful new language agnostic diagnostics printer!
         "offset": 309
       }
     },
-    "blockId": "a224042d-4f8d-4698-b007-cfdabf0452f7"
+    "blockId": "00000000-0000-4000-8000-000000000002"
   },
   {
     "file": "README.md",
@@ -243,7 +243,7 @@ A beautiful new language agnostic diagnostics printer!
         "offset": 313
       }
     },
-    "blockId": "a224042d-4f8d-4698-b007-cfdabf0452f7"
+    "blockId": "00000000-0000-4000-8000-000000000002"
   },
   {
     "file": "README.md",
@@ -260,8 +260,8 @@ A beautiful new language agnostic diagnostics printer!
         "offset": 516
       }
     },
-    "blockId": "0668975a-2a21-474a-a524-386a1924654b",
-    "relatedId": "0906f34d-c12b-422a-a9d3-cbc895e2b0b0"
+    "blockId": "00000000-0000-4000-8000-000000000004",
+    "relatedId": "00000000-0000-4000-8000-000000000008"
   },
   {
     "file": "README.md",
@@ -278,8 +278,8 @@ A beautiful new language agnostic diagnostics printer!
         "offset": 683
       }
     },
-    "blockId": "0668975a-2a21-474a-a524-386a1924654b",
-    "relatedId": "0906f34d-c12b-422a-a9d3-cbc895e2b0b0"
+    "blockId": "00000000-0000-4000-8000-000000000004",
+    "relatedId": "00000000-0000-4000-8000-000000000008"
   },
   {
     "file": "README.md",
@@ -330,7 +330,7 @@ A beautiful new language agnostic diagnostics printer!
       }
     },
     "notes": "- This note belongs to the superscript indicator.\n- This note also belongs to the superscript indicator.\n  - And also has some nested/child notes.\n  - Just like these right here!",
-    "blockId": "e57f0050-ad53-4794-a4c6-23527d1b4a28"
+    "blockId": "00000000-0000-4000-8000-000000000016"
   },
   {
     "file": "README.md",
@@ -348,7 +348,7 @@ A beautiful new language agnostic diagnostics printer!
       }
     },
     "notes": "This note belongs to the other diagnostic",
-    "blockId": "e57f0050-ad53-4794-a4c6-23527d1b4a28"
+    "blockId": "00000000-0000-4000-8000-000000000016"
   },
   {
     "file": "README.md",

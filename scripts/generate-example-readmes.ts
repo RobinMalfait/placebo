@@ -1,8 +1,21 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import prettier from 'prettier'
+import { DefaultMap } from '../packages/placebo/src/utils/default-map'
 
 const root = process.cwd()
+
+let uuidCounter = 0
+const stableUuid = new DefaultMap((_uuid) => {
+  return `00000000-0000-4000-8000-${(2 ** uuidCounter++).toString().padStart(12, '0')}`
+})
+
+function makeUuidsStable(input: string) {
+  return input.replace(
+    /\b[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}\b/g,
+    (match) => stableUuid.get(match),
+  )
+}
 
 async function generate() {
   let base = path.resolve(root, 'examples')
@@ -37,6 +50,7 @@ async function generate() {
       }
 
       let [example, output, diagnostics] = result
+      output = makeUuidsStable(output)
       fs.writeFile(path.resolve(example, 'README.txt'), output)
       return [example, output, diagnostics]
     })
@@ -83,10 +97,12 @@ async function generate() {
 
       await fs.writeFile(
         mainReadme,
-        await prettier.format(contents, {
-          parser: 'markdown',
-          ...require(path.resolve(root, 'package.json')).prettier,
-        }),
+        makeUuidsStable(
+          await prettier.format(contents, {
+            parser: 'markdown',
+            ...require(path.resolve(root, 'package.json')).prettier,
+          }),
+        ),
       )
 
       // Copy main readme to `packages/placebo/README.md`
