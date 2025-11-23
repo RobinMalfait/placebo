@@ -41,13 +41,6 @@ export interface PrinterOptions {
   source?: (file: string) => string
 
   /**
-   * Which formatter to use for printing diagnostics.
-   *
-   * Defaults to: `'cli'`
-   */
-  formatter?: 'cli' | 'html'
-
-  /**
    * Rendering options that influence how diagnostics are rendered.
    */
   rendering?: {
