@@ -26,12 +26,11 @@ export async function diagnose(files: string[]) {
           blockId: `${x.line}`,
           file: result.filePath,
           message: x.message,
-          location: [
-            x.line,
-            x.column,
-            x.endLine ?? x.line,
-            x.line === x.endLine ? (x.endColumn ?? x.column) : x.column + 1,
-          ] satisfies Location,
+          location: {
+            start: { line: x.line, column: x.column },
+            // endColumn -1 because ESLint endColumn is _after_ the last character
+            end: { line: x.endLine ?? x.line, column: x.endColumn ? x.endColumn - 1 : x.column },
+          } satisfies Location,
           notes:
             x.suggestions?.map((suggestion) => suggestion.fix.text).join('\n') ??
             ['Severity: ' + severity(x.severity), 'Rule: ' + x.ruleId].join('\n'),

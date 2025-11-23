@@ -1,3 +1,5 @@
+import type { Column, Line, Offset } from '../types'
+
 const LINE_BREAK = 0x0a
 
 /**
@@ -7,10 +9,10 @@ const LINE_BREAK = 0x0a
  */
 export interface Position {
   /** The line number, one-based */
-  line: number
+  line: Line
 
   /** The column/character number, one-based */
-  column: number
+  column: Column
 }
 
 /**
@@ -25,14 +27,14 @@ export interface LineTable {
    *
    * @param offset The index for which to find the position
    */
-  find(offset: number): Position
+  find(offset: Offset): Position
 
   /**
    * Find the most likely byte offset for given a position
    *
    * @param offset The position for which to find the byte offset
    */
-  findOffset(pos: Position): number
+  findOffset(pos: Position): Offset
 }
 
 /**
@@ -72,20 +74,21 @@ export function createLineTable(source: string): LineTable {
     let column = offset - table[line]
 
     return {
-      line: line + 1,
-      column: column + 1,
+      line: (line + 1) as Line,
+      column: (column + 1) as Column,
     }
   }
 
   function findOffset({ line, column }: Position) {
-    column -= 1
-    line -= 1
-    line = Math.min(Math.max(line, 0), table.length - 1)
+    column = (column - 1) as Column
+    line = (line - 1) as Line
+
+    line = Math.min(Math.max(line, 0), table.length - 1) as Line
 
     let offsetA = table[line]
-    let offsetB = table[line + 1] ?? offsetA
+    let offsetB = table[line + 1] ?? source.length
 
-    return Math.min(Math.max(offsetA + column, 0), offsetB)
+    return Math.min(Math.max(offsetA + column, 0), offsetB) as Offset
   }
 
   return {

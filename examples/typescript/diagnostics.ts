@@ -3,7 +3,10 @@ import { randomUUID as uuid } from 'crypto'
 import ts from 'typescript'
 
 function location(row: number, col: number, len = 1): Location {
-  return [row, col, row, col + len]
+  return {
+    start: { line: row, column: col },
+    end: { line: row, column: col + len - 1 },
+  }
 }
 
 export async function diagnose(_files: string[]) {

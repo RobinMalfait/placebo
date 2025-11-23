@@ -22,7 +22,10 @@ export async function diagnose(files: string[]) {
   }
 
   function location(row: number, col: number, len = 1): Location {
-    return [row, col, row, col + len]
+    return {
+      start: { line: row, column: col },
+      end: { line: row, column: col + len - 1 },
+    }
   }
 
   let diagnostics: Diagnostic[] = []

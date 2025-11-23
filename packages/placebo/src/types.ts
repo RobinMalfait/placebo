@@ -1,3 +1,10 @@
+declare const __brand: unique symbol
+export type Brand<T, U extends string> = T & { readonly [__brand]: U }
+
+export type Offset = Brand<number, 'offset'>
+export type Line = Brand<number, 'line'>
+export type Column = Brand<number, 'column'>
+
 // const enum Kind {
 //   Code,
 //   Diagnostic,
@@ -90,23 +97,157 @@ export enum Type {
   StartOfNote = 1 << 7,
 }
 
-export type Item = { type: Type; value: string }[]
+export type Cell = { type: Type; value: string }
+export type Row = Cell[]
 
 export interface DeepArray<T> extends Array<T | DeepArray<T>> {}
+export type DeepRequired<T> = {
+  [K in keyof T]-?: T[K] extends Array<infer U>
+    ? DeepArray<DeepRequired<U>>
+    : T[K] extends object
+      ? DeepRequired<T[K]>
+      : T[K]
+}
 
-export type Location = [
+export interface Location {
   /**
-   * The row location of the diagnostic. Value should be 1-based.
+   * Start position of the diagnostic.
+   *
+   * - Line and column are 1-based. Values are **inclusive**.
+   * - Offset is 0-based. Value is **inclusive**.
    */
-  startLine: number,
-  startColumn: number,
+  start:
+    | {
+        /**
+         * Start line of the diagnostic. 1-based. Inclusive.
+         */
+        line: number
+
+        /**
+         * Start column of the diagnostic. 1-based. Inclusive.
+         */
+        column: number
+
+        /**
+         * Start offset of the diagnostic. 0-based. Inclusive.
+         */
+        offset: number
+      }
+    | {
+        /**
+         * Start line of the diagnostic. 1-based. Inclusive.
+         */
+        line: number
+
+        /**
+         * Start column of the diagnostic. 1-based. Inclusive.
+         */
+        column: number
+      }
+    | {
+        /**
+         * Start offset of the diagnostic. 0-based. Inclusive.
+         */
+        offset: number
+      }
 
   /**
-   * The column location of the diagnostic. Value should be 1-based.
+   * End position of the diagnostic.
+   *
+   * - Line and column are 1-based. Values are **inclusive**.
+   * - Offset is 0-based. Value is **exclusive**.
    */
-  endLine: number,
-  endColumn: number,
-]
+  end:
+    | {
+        /**
+         * End line of the diagnostic. 1-based. Inclusive.
+         */
+        line: number
+
+        /**
+         * End column of the diagnostic. 1-based. Inclusive.
+         */
+        column: number
+
+        /**
+         * End offset of the diagnostic. 0-based. **Exclusive**.
+         */
+        offset: number
+      }
+    | {
+        /**
+         * End line of the diagnostic. 1-based. Inclusive.
+         */
+        line: number
+
+        /**
+         * End column of the diagnostic. 1-based. Inclusive.
+         */
+        column: number
+      }
+    | {
+        /**
+         * End offset of the diagnostic. 0-based. **Exclusive**.
+         */
+        offset: number
+      }
+}
+
+export interface StableLocation {
+  /**
+   * Start position of the diagnostic.
+   *
+   * - Line and column are 1-based. Values are **inclusive**.
+   * - Offset is 0-based. Value is **inclusive**.
+   */
+  start: { line: Line; column: Column; offset: Offset }
+
+  /**
+   * End position of the diagnostic.
+   *
+   * - Line and column are 1-based. Values are **inclusive**.
+   * - Offset is 0-based. Value is **exclusive**.
+   */
+  end: { line: Line; column: Column; offset: Offset }
+}
+
+export type LocationOld =
+  | {
+      kind: 'offset'
+
+      /**
+       * The starting UTF-16 offset of the diagnostic. 0-based.
+       */
+      start: number
+
+      /**
+       * The ending UTF-16 offset of the diagnostic. 0-based. Inclusive.
+       */
+      end: number
+    }
+  | {
+      kind: 'line-column'
+
+      /**
+       * The starting line of the diagnostic. 1-based.
+       */
+      startLine: number
+
+      /**
+       * The starting column of the diagnostic. 1-based.
+       */
+      startColumn: number
+
+      /**
+       * The ending line of the diagnostic. 1-based. Inclusive.
+       */
+      endLine: number
+
+      /**
+       * The ending column of the diagnostic. 1-based. Inclusive.
+       */
+      endColumn: number
+    }
 
 export interface InternalLocation {
   /**
@@ -149,6 +290,9 @@ export interface Diagnostic {
 
   /**
    * The location of the diagnostic.
+   *
+   * - This can either be UTF-16 offset based.
+   * - Or line/column based, line and column are both 1-based.
    */
   location: Location
 
@@ -170,9 +314,13 @@ export interface Diagnostic {
   relatedId?: string
 }
 
+export interface StableDiagnostic extends Diagnostic {
+  location: StableLocation
+}
+
 export interface InternalDiagnostic {
   file: string
-  code: Item[]
+  code: Row[]
   message: string
   loc: InternalLocation
   notes: (availableSpace: number) => string[]

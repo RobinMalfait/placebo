@@ -1,5 +1,4 @@
 import { type Location } from '../types'
-import { createLineTable } from './line-table'
 
 export function findLocation(
   input: string,
@@ -9,8 +8,6 @@ export function findLocation(
     highlight?: (match: RegExpExecArray) => string
   },
 ): Location | null {
-  let lines = createLineTable(input)
-
   for (let match of input.matchAll(options.regex)) {
     if (!(options.test?.(match) ?? true)) continue // Skip
 
@@ -22,10 +19,10 @@ export function findLocation(
 
     let index = match.index + offset
 
-    let start = lines.find(index)
-    let end = lines.find(index + highlighted.length)
-
-    return [start.line, start.column, end.line, end.column]
+    return {
+      start: { offset: index },
+      end: { offset: index + highlighted.length },
+    }
   }
 
   return null
@@ -39,7 +36,6 @@ export function findLocations(
     highlight?: (match: RegExpExecArray) => string
   },
 ): Location[] {
-  let lines = createLineTable(input)
   let result: Location[] = []
 
   for (let match of input.matchAll(options.regex)) {
@@ -53,10 +49,10 @@ export function findLocations(
 
     let index = match.index + offset
 
-    let start = lines.find(index)
-    let end = lines.find(index + highlighted.length)
-
-    result.push([start.line, start.column, end.line, end.column])
+    result.push({
+      start: { offset: index },
+      end: { offset: index + highlighted.length },
+    })
   }
 
   return result

@@ -21,38 +21,19 @@ function diagnose(
   })
 }
 
-function findLocation(code: string, word: string, occurrences: number | number[] = 1): Location[] {
-  if (!Array.isArray(occurrences)) {
-    occurrences = [occurrences]
-  }
-
+function findLocation(code: string, word: string, occurences = 1): Location[] {
   let result: Location[] = []
-  for (let occurrence of occurrences) {
-    let row = 0
-    let col = 0
 
-    let lines = code.split('\n')
+  let lastOffset = -1
+  while (occurences--) {
+    let offset = code.indexOf(word, lastOffset)
+    if (offset === -1) return result
+    lastOffset = offset + word.length
 
-    outer: for (let [rowIdx, line] of lines.entries()) {
-      let offset = 0
-
-      while (occurrence > 0) {
-        let idx = line.indexOf(word, offset + 1)
-        if (idx === -1) continue outer
-
-        if (occurrence !== 1) {
-          offset = idx
-          occurrence--
-          continue
-        }
-
-        row = rowIdx
-        col = idx
-        break outer
-      }
-    }
-
-    result.push([row + 1, col + 1, row + 1, col + 1 + word.length])
+    result.push({
+      start: { offset },
+      end: { offset: offset + word.length },
+    })
   }
 
   return result
@@ -147,8 +128,20 @@ it("should allow for diagnostics for places that don't exist", async () => {
   let diagnostics = [
     diagnose(
       'Missing semicolon',
-      findLocation(code, ')').map(([startLine, startCol, endLine, endCol]) => {
-        return [startLine, startCol + 1, endLine, endCol + 1]
+      findLocation(code, ')').map((location) => {
+        if ('column' in location.start) {
+          location.start.column += 1
+        }
+        if ('column' in location.end) {
+          location.end.column += 1
+        }
+        if ('offset' in location.start) {
+          location.start.offset += 1
+        }
+        if ('offset' in location.end) {
+          location.end.offset += 1
+        }
+        return location
       }),
     ),
   ]
@@ -572,7 +565,12 @@ it('should be possible to print a lot of messages', async () => {
   let diagnostics = Array(26)
     .fill(0)
     .map((_, idx) => idx * 2)
-    .map((col, idx) => diagnose(`Symbol at position: ${idx}`, findLocation(code, code[col])))
+    .map((col, idx) =>
+      diagnose(
+        `Symbol at position: ${idx.toString().padStart(2, ' ')}`,
+        findLocation(code, code[col]),
+      ),
+    )
 
   let result = await render(code, diagnostics)
 
@@ -599,16 +597,16 @@ it('should be possible to print a lot of messages', async () => {
     │    ·   │ │ │ │ │ │ │ │ │ │ │ │ ╰──────────────────────────── Symbol at position: 12                │
     │    ·   │ │ │ │ │ │ │ │ │ │ │ ╰────────────────────────────── Symbol at position: 11                │
     │    ·   │ │ │ │ │ │ │ │ │ │ ╰──────────────────────────────── Symbol at position: 10                │
-    │    ·   │ │ │ │ │ │ │ │ │ ╰────────────────────────────────── Symbol at position: 9                 │
-    │    ·   │ │ │ │ │ │ │ │ ╰──────────────────────────────────── Symbol at position: 8                 │
-    │    ·   │ │ │ │ │ │ │ ╰────────────────────────────────────── Symbol at position: 7                 │
-    │    ·   │ │ │ │ │ │ ╰──────────────────────────────────────── Symbol at position: 6                 │
-    │    ·   │ │ │ │ │ ╰────────────────────────────────────────── Symbol at position: 5                 │
-    │    ·   │ │ │ │ ╰──────────────────────────────────────────── Symbol at position: 4                 │
-    │    ·   │ │ │ ╰────────────────────────────────────────────── Symbol at position: 3                 │
-    │    ·   │ │ ╰──────────────────────────────────────────────── Symbol at position: 2                 │
-    │    ·   │ ╰────────────────────────────────────────────────── Symbol at position: 1                 │
-    │    ·   ╰──────────────────────────────────────────────────── Symbol at position: 0                 │
+    │    ·   │ │ │ │ │ │ │ │ │ ╰────────────────────────────────── Symbol at position:  9                │
+    │    ·   │ │ │ │ │ │ │ │ ╰──────────────────────────────────── Symbol at position:  8                │
+    │    ·   │ │ │ │ │ │ │ ╰────────────────────────────────────── Symbol at position:  7                │
+    │    ·   │ │ │ │ │ │ ╰──────────────────────────────────────── Symbol at position:  6                │
+    │    ·   │ │ │ │ │ ╰────────────────────────────────────────── Symbol at position:  5                │
+    │    ·   │ │ │ │ ╰──────────────────────────────────────────── Symbol at position:  4                │
+    │    ·   │ │ │ ╰────────────────────────────────────────────── Symbol at position:  3                │
+    │    ·   │ │ ╰──────────────────────────────────────────────── Symbol at position:  2                │
+    │    ·   │ ╰────────────────────────────────────────────────── Symbol at position:  1                │
+    │    ·   ╰──────────────────────────────────────────────────── Symbol at position:  0                │
     │    │                                                                                               │
     │    └─                                                                                              │
     └────────────────────────────────────────────────────────────────────────────────────────────────────┘
@@ -1436,11 +1434,11 @@ describe('multi-line diagnostics', () => {
       │    ┌─[./example.txt]                                                                               │
       │    │                                                                                               │
       │∙ 1 │    function foo() {                                                                           │
-      │    ·    ───────┬───────                                                                            │
+      │    ·    ───────┬────────                                                                           │
       │    · ╭─────────╯                                                                                   │
       │    · │                                                                                             │
       │∙ 2 │ │    console.log('foo')                                                                       │
-      │    · │    ────────┬────────                                                                        │
+      │    · │    ────────┬─────────                                                                       │
       │    · ├────────────╯                                                                                │
       │    · │                                                                                             │
       │∙ 3 │ │  }                                                                                          │
@@ -1571,31 +1569,55 @@ describe('responsiveness', () => {
 
       let result = await render(code, diagnostics, './example.html')
       expect(result).toMatchInlineSnapshot(`
-        "
-        ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-        │     ┌─[./example.html]                                                                             │
-        │     │                                                                                              │
-        │   6 │     <div class="sm:ml-6">                                                                    │
-        │   7 │       <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">           │
-        │   8 │         <a href="#" class="inline-flex items-center rounded-md border border-transpare…      │
-        │∙  9 │         <a href="#" class="inline-flex items-center rounded-md                               │
-        │     │           ↳ border border-transparent bg-indigo-100 px-4 py-2 text-sm                        │
-        │     │           ↳ font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none               │
-        │     ·                                                             ────────┬───────── ╭─            │
-        │     ·                                                                     ╰──────────┤ Diagnostic  │
-        │     │           ↳ focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Contact    │ message 4   │
-        │     ·             ──────────────────────────┬─────────────────────────── ╭─          ╰─            │
-        │     ·                                       ╰────────────────────────────┤ Diagnostic              │
-        │     │           ↳ support</a>                                            │ message 4               │
-        │  10 │       </div>                                                       ╰─                        │
-        │     ·                                                                                              │
-        │  11 │     </div>                                                                                   │
-        │  12 │   </main>                                                                                    │
-        │     │                                                                                              │
-        │     └─                                                                                             │
-        └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        "
-      `)
+            "
+            ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+            │     ┌─[./example.html]                                                                             │
+            │     │                                                                                              │
+            │   5 │   <p class="text-4xl font-bold tracking-tight text-indigo-600 sm:text-5xl">404</p>           │
+            │   6 │   <div class="sm:ml-6">                                                                      │
+            │   7 │     <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">             │
+            │∙  8 │       <a href="#" class="inline-flex items-center rounded-md border                          │
+            │     │         ↳ border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium                     │
+            │     │         ↳ text-white shadow-sm hover:bg-indigo-700 focus:outline-none                        │
+            │     ·                                                    ────────┬───────── ╭─                     │
+            │     ·                                                            ╰──────────┤ Diagnostic           │
+            │     ·                                                                       │ message 4            │
+            │     ·                                                                       ╰─                     │
+            │     ·                                                                                              │
+            │     │         ↳ focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Go back                    │
+            │     ·           ──────────────────────────┬───────────────────────────                             │
+            │     ·                                     ╰───────────────────────────── Diagnostic message 4      │
+            │     ·                                                                                              │
+            │     │         ↳ home</a>                                                                           │
+            │   9 │       <a href="#" class="inline-flex items-center rounded-md border border-transparent…      │
+            │  10 │     </div>                                                                                   │
+            │  11 │   </div>                                                                                     │
+            │     │                                                                                              │
+            │     └─                                                                                             │
+            │                                                                                                    │
+            │     ┌─[./example.html]                                                                             │
+            │     │                                                                                              │
+            │   6 │     <div class="sm:ml-6">                                                                    │
+            │   7 │       <div class="mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6">           │
+            │   8 │         <a href="#" class="inline-flex items-center rounded-md border border-transpare…      │
+            │∙  9 │         <a href="#" class="inline-flex items-center rounded-md                               │
+            │     │           ↳ border border-transparent bg-indigo-100 px-4 py-2 text-sm                        │
+            │     │           ↳ font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none               │
+            │     ·                                                             ────────┬───────── ╭─            │
+            │     ·                                                                     ╰──────────┤ Diagnostic  │
+            │     │           ↳ focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Contact    │ message 4   │
+            │     ·             ──────────────────────────┬─────────────────────────── ╭─          ╰─            │
+            │     ·                                       ╰────────────────────────────┤ Diagnostic              │
+            │     │           ↳ support</a>                                            │ message 4               │
+            │  10 │       </div>                                                       ╰─                        │
+            │     ·                                                                                              │
+            │  11 │     </div>                                                                                   │
+            │  12 │   </main>                                                                                    │
+            │     │                                                                                              │
+            │     └─                                                                                             │
+            └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+            "
+          `)
       expect(result).not.toContain(OVERFLOW_MARKER)
     })
   })
@@ -1900,4 +1922,24 @@ describe('responsiveness', () => {
       expect(result).not.toContain(OVERFLOW_MARKER)
     })
   })
+})
+
+it('should work', async () => {
+  let code = '.foo { --what: "test }'
+  let diagnostics = [diagnose('Wrong', findLocation(code, '"'))]
+
+  let result = await render(code, diagnostics, './example.css')
+  expect(result).toMatchInlineSnapshot(`
+    "
+    ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │    ┌─[./example.css]                                                                               │
+    │    │                                                                                               │
+    │∙ 1 │   .foo { --what: "test }                                                                      │
+    │    ·                  ┬                                                                            │
+    │    ·                  ╰── Wrong                                                                    │
+    │    │                                                                                               │
+    │    └─                                                                                              │
+    └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    "
+  `)
 })

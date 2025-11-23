@@ -4,8 +4,8 @@
   1 │    html,
   2 │    body {
 ∙ 3 │      display: inline;
-    ·      ───────┬────────
-    · ╭───────────╯
+    ·      ───┬───
+    · ╭───────╯
     · │
 ∙ 5 │ │    width: 200px;
     · │    ──┬──
@@ -26,8 +26,8 @@
      · 
   12 │    .my-row {
 ∙ 13 │      display: table-row;
-     ·      ─────────┬─────────
-     · ╭─────────────╯
+     ·      ───┬───
+     · ╭───────╯
      · │
 ∙ 14 │ │    margin-top: 2px;
      · │    ────┬─────
@@ -53,7 +53,7 @@
      ·
   20 │   .something {
 ∙ 21 │     padding: 0px;
-  22 │   }          ─┬─
-     ·               ╰─── Values of 0 shouldn't have units specified.
+  22 │   }          ─┬──
+     ·               ╰──── Values of 0 shouldn't have units specified.
      │
      └─

@@ -1,4 +1,4 @@
-import { type Diagnostic, type Location } from '@robinmalfait/placebo'
+import { type Diagnostic } from '@robinmalfait/placebo'
 import { randomUUID } from 'node:crypto'
 import * as fs from 'node:fs/promises'
 import postcss, { Root } from 'postcss'
@@ -63,14 +63,11 @@ export async function diagnose(files: string[]) {
                 file,
                 blockId,
                 relatedId,
-                location: location(
-                  decl.source?.start?.line ?? 0,
-                  decl.source?.start?.column ?? 0,
-                  value === undefined
-                    ? decl.prop.length
-                    : (decl.source?.end?.column ?? 0) - (decl.source?.start?.column ?? 0) + 1,
-                ),
-                message: '',
+                location: {
+                  start: { offset: decl.source!.start!.offset! },
+                  end: { offset: decl.source!.start!.offset! + decl.prop.length },
+                },
+                message: '…',
               })
 
               let main = value === undefined ? decl.prop : `${decl.prop}: ${decl.value};`
@@ -100,15 +97,10 @@ export async function diagnose(files: string[]) {
                         ),
                       )
                     },
-                    location: location(
-                      otherDecl.source?.start?.line ?? 0,
-                      otherDecl.source?.start?.column ?? 0,
-                      value === undefined
-                        ? otherDecl.prop.length
-                        : (otherDecl.source?.end?.column ?? 0) -
-                            (otherDecl.source?.start?.column ?? 0) +
-                            1,
-                    ),
+                    location: {
+                      start: { offset: otherDecl.source!.start!.offset! },
+                      end: { offset: otherDecl.source!.start!.offset! + otherDecl.prop.length },
+                    },
                   })
                 }
               })
@@ -124,11 +116,12 @@ export async function diagnose(files: string[]) {
           diagnostics.push({
             file,
             message: "Values of 0 shouldn't have units specified.",
-            location: location(
-              decl.source?.start?.line ?? 0,
-              (decl.source?.end?.column ?? 0) - decl.value.length,
-              decl.value.length,
-            ),
+            location: {
+              start: {
+                offset: decl.source!.start!.offset + decl.prop.length + decl.raws.between!.length,
+              },
+              end: { offset: decl.source!.end!.offset },
+            },
           })
         })
       },
@@ -138,14 +131,13 @@ export async function diagnose(files: string[]) {
         diagnostics.push({
           file,
           message: err.reason,
-          location: location(err.line, err.column),
+          location: {
+            start: { line: err.line, column: err.column },
+            end: { line: err.line, column: err.column },
+          },
         })
       })
   }
 
   return diagnostics
-}
-
-function location(row: number, col: number, len = 1): Location {
-  return [row, col, row, col + len]
 }

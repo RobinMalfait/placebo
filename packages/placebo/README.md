@@ -147,86 +147,240 @@ A beautiful new language agnostic diagnostics printer!
   {
     "file": "README.md",
     "message": "A beautiful new language agnostic diagnostics printer!",
-    "location": [1, 9, 1, 17]
+    "location": {
+      "start": {
+        "line": 1,
+        "column": 9,
+        "offset": 8
+      },
+      "end": {
+        "line": 1,
+        "column": 16,
+        "offset": 16
+      }
+    }
   },
   {
     "file": "README.md",
     "message": "Messages will be rendered",
-    "location": [6, 33, 6, 41],
-    "blockId": "f320c1bc-6ee5-4cb9-b7e5-c8b82134bd8a"
+    "location": {
+      "start": {
+        "line": 6,
+        "column": 33,
+        "offset": 127
+      },
+      "end": {
+        "line": 6,
+        "column": 40,
+        "offset": 135
+      }
+    },
+    "blockId": "6c15329a-19d6-40ba-a6f4-714339710780"
   },
   {
     "file": "README.md",
     "message": "underneath each other just",
-    "location": [6, 24, 6, 32],
-    "blockId": "f320c1bc-6ee5-4cb9-b7e5-c8b82134bd8a"
+    "location": {
+      "start": {
+        "line": 6,
+        "column": 24,
+        "offset": 118
+      },
+      "end": {
+        "line": 6,
+        "column": 31,
+        "offset": 126
+      }
+    },
+    "blockId": "6c15329a-19d6-40ba-a6f4-714339710780"
   },
   {
     "file": "README.md",
     "message": "like the messages you see here.",
-    "location": [6, 15, 6, 23],
-    "blockId": "f320c1bc-6ee5-4cb9-b7e5-c8b82134bd8a"
+    "location": {
+      "start": {
+        "line": 6,
+        "column": 15,
+        "offset": 109
+      },
+      "end": {
+        "line": 6,
+        "column": 22,
+        "offset": 117
+      }
+    },
+    "blockId": "6c15329a-19d6-40ba-a6f4-714339710780"
   },
   {
     "file": "README.md",
     "message": "You wrote `the` twice!",
-    "location": [12, 28, 12, 31],
-    "blockId": "a19ac495-d69c-4240-a628-5c038ba72d74"
+    "location": {
+      "start": {
+        "line": 12,
+        "column": 28,
+        "offset": 306
+      },
+      "end": {
+        "line": 12,
+        "column": 30,
+        "offset": 309
+      }
+    },
+    "blockId": "a224042d-4f8d-4698-b007-cfdabf0452f7"
   },
   {
     "file": "README.md",
     "message": "You wrote `the` twice!",
-    "location": [12, 32, 12, 35],
-    "blockId": "a19ac495-d69c-4240-a628-5c038ba72d74"
+    "location": {
+      "start": {
+        "line": 12,
+        "column": 32,
+        "offset": 310
+      },
+      "end": {
+        "line": 12,
+        "column": 34,
+        "offset": 313
+      }
+    },
+    "blockId": "a224042d-4f8d-4698-b007-cfdabf0452f7"
   },
   {
     "file": "README.md",
     "message": "Yay, found my `context` friends!",
-    "location": [18, 65, 18, 74],
-    "blockId": "e78aaaeb-db0b-4236-b136-229397ffef27",
-    "relatedId": "ec6ef4de-fafd-4132-8b44-36ada6e62649"
+    "location": {
+      "start": {
+        "line": 18,
+        "column": 65,
+        "offset": 507
+      },
+      "end": {
+        "line": 18,
+        "column": 73,
+        "offset": 516
+      }
+    },
+    "blockId": "0668975a-2a21-474a-a524-386a1924654b",
+    "relatedId": "0906f34d-c12b-422a-a9d3-cbc895e2b0b0"
   },
   {
     "file": "README.md",
     "message": "Yay, found my `context` friends!",
-    "location": [21, 1, 21, 10],
-    "blockId": "e78aaaeb-db0b-4236-b136-229397ffef27",
-    "relatedId": "ec6ef4de-fafd-4132-8b44-36ada6e62649"
+    "location": {
+      "start": {
+        "line": 21,
+        "column": 1,
+        "offset": 674
+      },
+      "end": {
+        "line": 21,
+        "column": 9,
+        "offset": 683
+      }
+    },
+    "blockId": "0668975a-2a21-474a-a524-386a1924654b",
+    "relatedId": "0906f34d-c12b-422a-a9d3-cbc895e2b0b0"
   },
   {
     "file": "README.md",
     "message": "Like this message. We have a lot to say here so it might not be ideal if everything was just written on the same line. Instead we will use the width of your terminal to decide when to start wrapping.",
-    "location": [25, 37, 25, 46]
+    "location": {
+      "start": {
+        "line": 25,
+        "column": 37,
+        "offset": 749
+      },
+      "end": {
+        "line": 25,
+        "column": 45,
+        "offset": 758
+      }
+    }
   },
   {
     "file": "README.md",
     "message": "This diagnostic contains some notes.",
-    "location": [29, 33, 29, 40],
+    "location": {
+      "start": {
+        "line": 29,
+        "column": 33,
+        "offset": 795
+      },
+      "end": {
+        "line": 29,
+        "column": 39,
+        "offset": 802
+      }
+    },
     "notes": "- This note can contain more information about the specific diagnostic.\n- What do you think? More info at https://github.com/RobinMalfait/placebo!"
   },
   {
     "file": "README.md",
     "message": "This is an example of the superscript indicator",
-    "location": [35, 8, 35, 30],
+    "location": {
+      "start": {
+        "line": 35,
+        "column": 8,
+        "offset": 1002
+      },
+      "end": {
+        "line": 35,
+        "column": 29,
+        "offset": 1024
+      }
+    },
     "notes": "- This note belongs to the superscript indicator.\n- This note also belongs to the superscript indicator.\n  - And also has some nested/child notes.\n  - Just like these right here!",
-    "blockId": "5dbc119d-2abd-419c-b090-c095df39dd5e"
+    "blockId": "e57f0050-ad53-4794-a4c6-23527d1b4a28"
   },
   {
     "file": "README.md",
     "message": "This will also have a note",
-    "location": [35, 31, 35, 35],
+    "location": {
+      "start": {
+        "line": 35,
+        "column": 31,
+        "offset": 1025
+      },
+      "end": {
+        "line": 35,
+        "column": 34,
+        "offset": 1029
+      }
+    },
     "notes": "This note belongs to the other diagnostic",
-    "blockId": "5dbc119d-2abd-419c-b090-c095df39dd5e"
+    "blockId": "e57f0050-ad53-4794-a4c6-23527d1b4a28"
   },
   {
     "file": "README.md",
     "message": "We split into multiple lines",
-    "location": [40, 110, 40, 145]
+    "location": {
+      "start": {
+        "line": 40,
+        "column": 110,
+        "offset": 1252
+      },
+      "end": {
+        "line": 40,
+        "column": 144,
+        "offset": 1287
+      }
+    }
   },
   {
     "file": "README.md",
     "message": "This one is moved down because it exists way past the available space.",
-    "location": [40, 301, 40, 316]
+    "location": {
+      "start": {
+        "line": 40,
+        "column": 301,
+        "offset": 1443
+      },
+      "end": {
+        "line": 40,
+        "column": 315,
+        "offset": 1458
+      }
+    }
   }
 ]
 ```

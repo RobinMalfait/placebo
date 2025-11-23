@@ -99,5 +99,8 @@ export async function diagnose(files: string[]) {
 }
 
 function location(row: number, col: number, len = 1): Location {
-  return [row + 1, col + 1, row + 1, col + 1 + len]
+  return {
+    start: { line: row + 1, column: col + 1 },
+    end: { line: row + 1, column: col + len },
+  }
 }

@@ -1,10 +1,20 @@
+import assert from 'node:assert'
 import { env, parseNumberEnv } from '../env'
 import CHARS from '../printer/char-maps/fancy'
-import { Type, type Diagnostic, type InternalDiagnostic, type Location } from '../types'
+import {
+  Type,
+  type Column,
+  type Diagnostic,
+  type InternalDiagnostic,
+  type Location,
+  type Offset,
+  type StableDiagnostic,
+  type StableLocation,
+} from '../types'
 import { styles } from '../utils/ansi'
 import { DefaultMap } from '../utils/default-map'
 import { clearAnsiEscapes, rasterizeCode } from '../utils/highlight-code'
-import { createLineTable } from '../utils/line-table'
+import { createLineTable, type LineTable } from '../utils/line-table'
 import { range } from '../utils/range'
 import { wordWrap } from '../utils/word-wrap'
 import { parseNotes } from './parse-notes'
@@ -159,15 +169,25 @@ class Printer {
     let sourceToGrid = this.sourceToGrid
 
     let internalDiagnostics = Array.from(diagnostics)
+      .map(withStableLocations)
       .filter(dedupe)
       .flatMap(splitMultiLine)
       .map(intoInternalDiagnostic)
 
+    // Ensure stable locations for diagnostics are used
+    function withStableLocations(diagnostic: Diagnostic): StableDiagnostic {
+      let source = diagnostic.source ?? pathToSource.get(diagnostic.file)
+      let lineTable = lineTables.get(source)
+      diagnostic.location = stableLocation(diagnostic.location, lineTable)
+      return diagnostic as StableDiagnostic
+    }
+
     // Dedupe diagnostics. We can assume that incoming diagnostics are already
     // deduped, but if they aren't we will see potentially weird results.
     // Let's dedupe them anyway.
-    function dedupe(diagnostic: Diagnostic) {
-      let key = [diagnostic.file, diagnostic.location.join(','), diagnostic.message].join(';;')
+    function dedupe(diagnostic: StableDiagnostic) {
+      let { start, end } = diagnostic.location
+      let key = [diagnostic.file, start.offset, end.offset, diagnostic.message].join(';;')
 
       if (seen.has(key)) {
         return false
@@ -179,30 +199,73 @@ class Printer {
 
     // Map multi-line diagnostics to multiple single-line diagnostics. Temporary
     // solution until we have proper multi-line diagnostic rendering.
-    function splitMultiLine(diagnostic: Diagnostic): Diagnostic[] {
-      let [startLine, startCol, endLine, endCol] = diagnostic.location
-      if (startLine === endLine) {
+    function splitMultiLine(diagnostic: StableDiagnostic): StableDiagnostic[] {
+      let source = diagnostic.source ?? pathToSource.get(diagnostic.file)
+      let lineTable = lineTables.get(source)
+
+      if (diagnostic.location.start.line === diagnostic.location.end.line) {
         return [diagnostic]
       }
 
-      let source = diagnostic.source ?? pathToSource.get(diagnostic.file)
+      let locations: StableLocation[] = []
+      for (
+        let line = diagnostic.location.start.line;
+        line <= diagnostic.location.end.line;
+        line++
+      ) {
+        // First line
+        if (line === diagnostic.location.start.line) {
+          let endOfLineOffset = source.indexOf('\n', diagnostic.location.start.offset)
+          if (endOfLineOffset === -1) endOfLineOffset = source.length
 
-      let locations: Location[] = []
-      for (let line = startLine; line <= endLine; line++) {
-        let offset = lineTables.get(source).findOffset({ line, column: startCol })
+          locations.push(
+            stableLocation(
+              { start: diagnostic.location.start, end: { offset: endOfLineOffset } },
+              lineTable,
+            ),
+          )
+        }
 
-        if (line === startLine) {
-          let endOfLineOffset = source.indexOf('\n', offset)
-          let endCol = lineTables.get(source).find(endOfLineOffset).column - 1
-          locations.push([line, startCol, line, endCol])
-        } else if (line === endLine) {
-          let startCol = source.search(/\S/) + 1
-          locations.push([line, startCol, line, endCol])
-        } else {
-          let startCol = source.slice(offset).search(/\S/) + 1
-          let endOfLineOffset = source.indexOf('\n', offset)
-          let endCol = lineTables.get(source).find(endOfLineOffset).column - 1
-          locations.push([line, startCol, line, endCol])
+        // Last line
+        else if (line === diagnostic.location.end.line) {
+          let startOfLineOffset = lineTable.findOffset({ line, column: 1 as Column })
+          let firstNonWhitespaceColumn = source.slice(startOfLineOffset).search(/\S/)
+          if (firstNonWhitespaceColumn === -1) firstNonWhitespaceColumn = 0 // Line is empty or all whitespace
+
+          startOfLineOffset = (startOfLineOffset + firstNonWhitespaceColumn) as Offset
+
+          // Offsets _must_ be different because the start is inclusive and the
+          // end is exclusive. If they are the same, it means there is no range
+          // to highlight.
+          if (startOfLineOffset === diagnostic.location.end.offset) {
+            continue
+          }
+
+          locations.push(
+            stableLocation(
+              { start: { offset: startOfLineOffset }, end: diagnostic.location.end },
+              lineTable,
+            ),
+          )
+        }
+
+        // Middle lines
+        else {
+          let startOfLineOffset = lineTable.findOffset({ line, column: 1 as Column })
+          let firstNonWhitespaceColumn = source.slice(startOfLineOffset).search(/\S/)
+          if (firstNonWhitespaceColumn === -1) firstNonWhitespaceColumn = 0 // Line is empty or all whitespace
+
+          startOfLineOffset = (startOfLineOffset + firstNonWhitespaceColumn) as Offset
+
+          let endOfLineOffset = source.indexOf('\n', startOfLineOffset)
+          if (endOfLineOffset === -1) endOfLineOffset = source.length
+
+          locations.push(
+            stableLocation(
+              { start: { offset: startOfLineOffset }, end: { offset: endOfLineOffset } },
+              lineTable,
+            ),
+          )
         }
       }
 
@@ -212,7 +275,9 @@ class Printer {
 
           // Link diagnostics together based on original location (if the
           // relatedId wasn't set already)
-          relatedId: diagnostic.relatedId ?? `${startLine}:${startCol}-${endLine}:${endCol}`,
+          relatedId:
+            diagnostic.relatedId ??
+            `${diagnostic.location.start.offset}:${diagnostic.location.end.offset}`,
 
           location,
         }
@@ -221,34 +286,23 @@ class Printer {
 
     // Map the public diagnostic to the internal diagnostic. For now this is the
     // easiest thing to get things working without changing all the internals.
-    function intoInternalDiagnostic(diagnostic: Diagnostic): InternalDiagnostic {
+    function intoInternalDiagnostic(diagnostic: StableDiagnostic): InternalDiagnostic {
       let source = diagnostic.source ?? pathToSource.get(diagnostic.file)
       let code = sourceToGrid.get(source)
 
-      let [startLine, startCol, _, endCol] = diagnostic.location
-
-      let internalDiagnostic: InternalDiagnostic = {
+      return {
         file: diagnostic.file,
         code,
         message: diagnostic.message,
         loc: {
-          row: startLine,
-          col: startCol,
-          len: endCol - startCol,
+          row: diagnostic.location.start.line - 1, // Make 0-based
+          col: diagnostic.location.start.column - 1, // Make 0-based
+          len: Math.max(1, diagnostic.location.end.offset - diagnostic.location.start.offset),
         },
         notes: parseNotes(diagnostic.notes),
         blockId: diagnostic.blockId ?? null,
         relatedId: diagnostic.relatedId ?? null,
-      }
-
-      // `row` and `col` are 1-based when they come in. This is because most
-      // tools use `row` and `col` to point to a location in your editor and
-      // editors usually start with `1` instead of `0`. For now, let's make it a
-      // bit simpler and use them as 0-based values.
-      internalDiagnostic.loc.row -= 1
-      internalDiagnostic.loc.col -= 1
-
-      return internalDiagnostic
+      } satisfies InternalDiagnostic
     }
 
     let all = internalDiagnostics
@@ -311,7 +365,7 @@ class Printer {
 
     // Find all printable lines. Lines with issues + context lines. We'll use an object for now which
     // will make it easier for overlapping context lines.
-    let printableLines = new Map<number, Item>()
+    let printableLines = new Map<number, Row>()
     for (let lineNumber of groupedByRow.keys()) {
       // Before context lines
       let beforeStart = Math.max(lineNumber - this.rendering.beforeContextLines, 0)
@@ -388,9 +442,9 @@ class Printer {
     }
 
     // Keep track of things
-    let output: Item[] = []
-    let rowToLineNumber = new Map<Item, number>()
-    let lineNumberToRow = new Map<number, Item>()
+    let output: Row[] = []
+    let rowToLineNumber = new Map<Row, number>()
+    let lineNumberToRow = new Map<number, Row>()
     let diagnosticToColor = new Map<InternalDiagnostic, (input: string) => string>()
 
     let diagnosticsByContext = new DefaultMap<string | null, InternalDiagnostic[]>(() => [])
@@ -445,7 +499,7 @@ class Printer {
     }
 
     // Inject a certain a row at a certain position, and return it
-    function inject(idx: number, ...row: Item) {
+    function inject(idx: number, ...row: Row) {
       output.splice(idx, 0, row)
       return output[idx]
     }
@@ -508,7 +562,7 @@ class Printer {
             2 /* (1) For the \u21B3 and ' ' characters */ -
             8 /* An arbitrary value to leave some room for the actual diagnostic */
 
-          let lines: Item[] = []
+          let lines: Row[] = []
           let offset = 0
           while (line.length - offset > 0) {
             let nextLine = line.slice(offset, offset + widthPerLine)
@@ -1337,9 +1391,9 @@ function createNoteCells(input: string | number, decorate = (s: string) => s) {
   return input.split('').map((v) => createCell(decorate(v), Type.Note))
 }
 
-type Item = { type: Type; value: string }[]
+type Row = { type: Type; value: string }[]
 
-function typeCode(input: string[][]): Item[] {
+function typeCode(input: string[][]): Row[] {
   return input.map((row) =>
     row.map((value) => {
       let type = Type.Code
@@ -1348,4 +1402,73 @@ function typeCode(input: string[][]): Item[] {
       return { type, value }
     }),
   )
+}
+
+function stableLocation(unstable: Location, lineTable: LineTable): StableLocation {
+  let stable = unstable as StableLocation
+
+  if (
+    stable.start.line === undefined &&
+    stable.start.column === undefined &&
+    stable.start.offset === undefined
+  ) {
+    throw new Error('Location is missing `start` information')
+  }
+
+  if (
+    stable.end.line === undefined &&
+    stable.end.column === undefined &&
+    stable.end.offset === undefined
+  ) {
+    throw new Error('Location is missing `end` information')
+  }
+
+  // Offset is missing, calculate it based on line/column
+  if (
+    stable.start.offset === undefined &&
+    stable.start.line !== undefined &&
+    stable.start.column !== undefined
+  ) {
+    stable.start.offset = lineTable.findOffset(stable.start)
+  }
+
+  // Line/column is missing, calculate it based on offset
+  if (
+    stable.start.offset !== undefined &&
+    (stable.start.line === undefined || stable.start.column === undefined)
+  ) {
+    let { line, column } = lineTable.find(stable.start.offset)
+    if (stable.start.line === undefined) stable.start.line = line
+    if (stable.start.column === undefined) stable.start.column = column
+  }
+
+  // Offset is missing, calculate it based on line/column
+  if (
+    stable.end.offset === undefined &&
+    stable.end.line !== undefined &&
+    stable.end.column !== undefined
+  ) {
+    stable.end.offset = (lineTable.findOffset(stable.end) + 1) as Offset
+  }
+
+  // Line/column is missing, calculate it based on offset
+  if (
+    stable.end.offset !== undefined &&
+    (stable.end.line === undefined || stable.end.column === undefined)
+  ) {
+    let { line, column } = lineTable.find(stable.end.offset)
+    if (stable.end.line === undefined) stable.end.line = line
+    if (stable.end.column === undefined) stable.end.column = column
+  }
+
+  assert(stable.start.offset >= 0, 'Location `start.offset` is negative')
+  assert(stable.end.offset >= 0, 'Location `end.offset` is negative')
+
+  assert(stable.start.line >= 1, 'Location `start.line` is less than 1')
+  assert(stable.start.column >= 1, 'Location `start.column` is less than 1')
+
+  assert(stable.end.line >= 1, 'Location `end.line` is less than 1')
+  assert(stable.end.column >= 1, 'Location `end.column` is less than 1')
+
+  return stable
 }
